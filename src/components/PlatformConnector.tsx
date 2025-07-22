@@ -1,52 +1,43 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { useProfile } from "@/hooks/useProfile";
+import { usePlatformAuth } from "@/hooks/usePlatformAuth";
 import { 
   Droplets, 
   Cloud, 
   Music2, 
   Link2, 
   Check, 
-  ExternalLink,
-  Settings
+  Settings,
+  Loader2
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 
-interface PlatformConnection {
+interface PlatformConfig {
   id: 'dropbox' | 'soundcloud' | 'spotify';
   name: string;
   icon: React.ComponentType<{ className?: string }>;
   color: string;
   bgColor: string;
-  connected: boolean;
   enabled: boolean;
   description: string;
-  accountInfo?: {
-    email?: string;
-    name?: string;
-  };
 }
 
 export function PlatformConnector() {
-  const { profile } = useProfile();
-  const { toast } = useToast();
+  const { connections, loading, connectPlatform, disconnectPlatform, isConnected, getConnection } = usePlatformAuth();
   const [connecting, setConnecting] = useState<string | null>(null);
 
-  // Mock data - will be replaced with real connection status
-  const platforms: PlatformConnection[] = [
+  const platforms: PlatformConfig[] = [
     {
       id: 'dropbox',
       name: 'Dropbox',
       icon: Droplets,
       color: 'text-blue-500',
       bgColor: 'bg-blue-500/10',
-      connected: false, // TODO: check actual connection status
       enabled: true,
-      description: 'Backup automático na nuvem',
-      accountInfo: undefined
+      description: 'Backup automático na nuvem'
     },
     {
       id: 'soundcloud',
@@ -54,10 +45,8 @@ export function PlatformConnector() {
       icon: Cloud,
       color: 'text-orange-500',
       bgColor: 'bg-orange-500/10',
-      connected: false,
-      enabled: false,
-      description: 'Publicação direta de tracks',
-      accountInfo: undefined
+      enabled: true,
+      description: 'Publicação direta de tracks'
     },
     {
       id: 'spotify',
@@ -65,64 +54,31 @@ export function PlatformConnector() {
       icon: Music2,
       color: 'text-green-500',
       bgColor: 'bg-green-500/10',
-      connected: false,
-      enabled: false,
-      description: 'Distribuição profissional',
-      accountInfo: undefined
+      enabled: true,
+      description: 'Distribuição profissional'
     }
   ];
 
-  const handleConnect = async (platformId: string) => {
-    if (!platforms.find(p => p.id === platformId)?.enabled) {
-      toast({
-        title: "Plataforma não disponível",
-        description: "Esta integração ainda não está implementada.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleConnect = async (platformId: 'dropbox' | 'soundcloud' | 'spotify') => {
     setConnecting(platformId);
-
     try {
-      if (platformId === 'dropbox') {
-        // TODO: Implement Dropbox OAuth flow
-        // For now, simulate connection process
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        toast({
-          title: "✅ Dropbox conectado!",
-          description: "Agora você pode exportar tracks diretamente para sua conta Dropbox.",
-        });
-      }
-    } catch (error) {
-      console.error('Connection error:', error);
-      toast({
-        title: "Erro na conexão",
-        description: "Não foi possível conectar com a plataforma. Tente novamente.",
-        variant: "destructive",
-      });
+      await connectPlatform(platformId);
     } finally {
       setConnecting(null);
     }
   };
 
-  const handleDisconnect = async (platformId: string) => {
-    try {
-      // TODO: Implement disconnect logic
-      toast({
-        title: "Plataforma desconectada",
-        description: "A conexão foi removida com sucesso.",
-      });
-    } catch (error) {
-      console.error('Disconnect error:', error);
-      toast({
-        title: "Erro ao desconectar",
-        description: "Não foi possível remover a conexão.",
-        variant: "destructive",
-      });
-    }
+  const handleDisconnect = async (platformId: 'dropbox' | 'soundcloud' | 'spotify') => {
+    await disconnectPlatform(platformId);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -139,6 +95,8 @@ export function PlatformConnector() {
         {platforms.map((platform) => {
           const Icon = platform.icon;
           const isConnecting = connecting === platform.id;
+          const connected = isConnected(platform.id);
+          const connection = getConnection(platform.id);
           
           return (
             <Card key={platform.id} className="glass border-glass-border p-4">
@@ -150,29 +108,24 @@ export function PlatformConnector() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h4 className="font-medium text-foreground">{platform.name}</h4>
-                      {platform.connected && (
+                      {connected && (
                         <Badge variant="outline" className="border-green-500/30 text-green-600">
                           <Check className="h-3 w-3 mr-1" />
                           Conectado
                         </Badge>
                       )}
-                      {!platform.enabled && (
-                        <Badge variant="outline" className="text-xs">
-                          Em breve
-                        </Badge>
-                      )}
                     </div>
                     <p className="text-sm text-muted-foreground">{platform.description}</p>
-                    {platform.connected && platform.accountInfo && (
+                    {connected && connection?.account_info && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        {platform.accountInfo.email || platform.accountInfo.name}
+                        {connection.account_info.email || connection.account_info.display_name || connection.account_info.name}
                       </p>
                     )}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {platform.connected ? (
+                  {connected ? (
                     <>
                       <Button
                         variant="ghost"
@@ -191,13 +144,16 @@ export function PlatformConnector() {
                     </>
                   ) : (
                     <Button
-                      variant={platform.enabled ? "neon" : "outline"}
+                      variant="neon"
                       size="sm"
                       onClick={() => handleConnect(platform.id)}
-                      disabled={!platform.enabled || isConnecting}
+                      disabled={isConnecting}
                     >
                       {isConnecting ? (
-                        <>Conectando...</>
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Conectando...
+                        </>
                       ) : (
                         <>
                           <Link2 className="h-4 w-4 mr-2" />
