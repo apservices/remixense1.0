@@ -9,7 +9,7 @@ import { Heart, Play, Pause, MessageCircle, MoreVertical, Music2, Upload } from 
 import { cn } from "@/lib/utils";
 import WaveformWithComments from './WaveformWithComments';
 import CommentsPanel from './CommentsPanel';
-import { ExportDialog } from './ExportDialog';
+
 
 interface EnhancedDJCardProps {
   id: string;
@@ -213,20 +213,14 @@ export function EnhancedDJCard({
               Wave
             </Button>
             
-            <ExportDialog
-              trackId={id}
-              trackTitle={title}
-              trackArtist={artist}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs"
             >
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs"
-              >
-                <Upload className="h-3 w-3 mr-1" />
-                Export
-              </Button>
-            </ExportDialog>
+              <Upload className="h-3 w-3 mr-1" />
+              Export
+            </Button>
             
             <span className="text-xs text-muted-foreground">
               {duration}

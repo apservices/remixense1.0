@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TransparentLogo } from '@/components/TransparentLogo';
+
 import { Mail, Lock, User, Music, ArrowLeft } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 

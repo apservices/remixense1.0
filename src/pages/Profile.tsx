@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { PlatformConnector } from "@/components/PlatformConnector";
+
 import { 
   User, 
   Edit3, 
@@ -311,7 +311,14 @@ export default function Profile() {
           </TabsContent>
 
           <TabsContent value="platforms" className="space-y-4">
-            <PlatformConnector />
+            <Card className="glass border-glass-border p-4">
+              <h3 className="font-semibold text-foreground mb-4">
+                Conectar Plataformas
+              </h3>
+              <p className="text-muted-foreground text-sm">
+                Em breve: conecte suas contas Spotify, SoundCloud e Dropbox para export automático.
+              </p>
+            </Card>
           </TabsContent>
 
           <TabsContent value="account" className="space-y-4">
