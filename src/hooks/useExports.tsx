@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -42,13 +43,14 @@ export function useExports() {
     if (!user) return;
 
     try {
-      // For now, use localStorage to persist exports until DB table is ready
-      const savedExports = localStorage.getItem(`exports_${user.id}`);
-      if (savedExports) {
-        setExports(JSON.parse(savedExports));
-      } else {
-        setExports([]);
-      }
+      const { data, error } = await supabase
+        .from('exports')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setExports(data || []);
     } catch (error) {
       console.error('Error fetching exports:', error);
       setExports([]);
@@ -61,34 +63,59 @@ export function useExports() {
     if (!user) return { error: 'No user found' };
 
     try {
-      // Create a mock export for now
-      const mockExport: Export = {
-        id: crypto.randomUUID(),
-        user_id: user.id,
-        track_id: exportData.track_id,
-        platform: exportData.platform,
-        status: 'pending',
-        metadata: exportData.metadata || {},
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
+      const { data, error } = await supabase
+        .from('exports')
+        .insert({
+          user_id: user.id,
+          track_id: exportData.track_id,
+          platform: exportData.platform,
+          status: 'pending',
+          metadata: exportData.metadata || {},
+        })
+        .select()
+        .single();
 
-      setExports(prev => {
-        const updated = [mockExport, ...prev];
-        // Save to localStorage
-        localStorage.setItem(`exports_${user.id}`, JSON.stringify(updated));
-        return updated;
-      });
+      if (error) throw error;
+
+      setExports(prev => [data, ...prev]);
       
       toast({
         title: "Exportação iniciada",
         description: "A exportação foi adicionada à fila.",
       });
+
+      // Start the actual export process
+      startExportProcess(data.id, exportData);
       
-      return { data: mockExport };
+      return { data };
     } catch (error) {
       console.error('Error creating export:', error);
       return { error };
+    }
+  };
+
+  const startExportProcess = async (exportId: string, exportData: ExportCreateData) => {
+    try {
+      // Update status to uploading
+      await updateExportStatus(exportId, 'uploading');
+
+      // Call the appropriate edge function based on platform
+      const { data, error } = await supabase.functions.invoke(`export-to-${exportData.platform}`, {
+        body: {
+          export_id: exportId,
+          track_id: exportData.track_id,
+          metadata: exportData.metadata,
+        },
+      });
+
+      if (error) throw error;
+
+      // The edge function will handle updating the final status
+    } catch (error) {
+      console.error('Export process error:', error);
+      await updateExportStatus(exportId, 'error', {
+        error_message: error.message || 'Export failed',
+      });
     }
   };
 
@@ -100,24 +127,22 @@ export function useExports() {
     if (!user) return { error: 'No user found' };
 
     try {
-      // Update local state
-      const updatedExport = exports.find(exp => exp.id === id);
-      if (!updatedExport) return { error: 'Export not found' };
+      const { data, error } = await supabase
+        .from('exports')
+        .update({
+          status,
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .select()
+        .single();
 
-      const updated: Export = {
-        ...updatedExport,
-        status,
-        ...updates,
-        updated_at: new Date().toISOString(),
-      };
+      if (error) throw error;
 
-      setExports(prev => {
-        const updatedList = prev.map(exp => exp.id === id ? updated : exp);
-        // Save to localStorage
-        localStorage.setItem(`exports_${user.id}`, JSON.stringify(updatedList));
-        return updatedList;
-      });
-      return { data: updated };
+      setExports(prev => prev.map(exp => exp.id === id ? data : exp));
+      return { data };
     } catch (error) {
       console.error('Error updating export status:', error);
       return { error };

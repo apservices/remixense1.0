@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useExports } from "@/hooks/useExports";
+import { usePlatformAuth } from "@/hooks/usePlatformAuth";
 import { 
   Upload, 
   CheckCircle, 
@@ -17,7 +18,9 @@ import {
   ArrowRight,
   Cloud,
   Music2,
-  Droplets
+  Droplets,
+  Link2,
+  Loader2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -29,11 +32,13 @@ interface ExportDialogProps {
 }
 
 export function ExportDialog({ trackId, trackTitle, trackArtist, children }: ExportDialogProps) {
-  const { createExport, getExportsByTrack, updateExportStatus } = useExports();
+  const { createExport, getExportsByTrack } = useExports();
+  const { isConnected, connectPlatform } = usePlatformAuth();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<'dropbox' | 'soundcloud' | 'spotify'>('dropbox');
   const [isExporting, setIsExporting] = useState(false);
+  const [connecting, setConnecting] = useState<string | null>(null);
   const [exportForm, setExportForm] = useState({
     title: trackTitle,
     artist: trackArtist,
@@ -59,8 +64,8 @@ export function ExportDialog({ trackId, trackTitle, trackArtist, children }: Exp
       icon: Cloud,
       color: 'text-orange-500',
       bgColor: 'bg-orange-500/10',
-      enabled: false,
-      description: 'Publicar no SoundCloud (em breve)'
+      enabled: true,
+      description: 'Publicar no SoundCloud'
     },
     {
       id: 'spotify' as const,
@@ -68,12 +73,13 @@ export function ExportDialog({ trackId, trackTitle, trackArtist, children }: Exp
       icon: Music2,
       color: 'text-green-500',
       bgColor: 'bg-green-500/10',
-      enabled: false,
-      description: 'Distribuir no Spotify (em breve)'
+      enabled: true,
+      description: 'Distribuir no Spotify'
     }
   ];
 
   const selectedPlatformData = platforms.find(p => p.id === selectedPlatform);
+  const platformConnected = isConnected(selectedPlatform);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -97,11 +103,20 @@ export function ExportDialog({ trackId, trackTitle, trackArtist, children }: Exp
     }
   };
 
+  const handleConnect = async (platformId: 'dropbox' | 'soundcloud' | 'spotify') => {
+    setConnecting(platformId);
+    try {
+      await connectPlatform(platformId);
+    } finally {
+      setConnecting(null);
+    }
+  };
+
   const handleExport = async () => {
-    if (!selectedPlatformData?.enabled) {
+    if (!platformConnected) {
       toast({
-        title: "Plataforma não disponível",
-        description: "Esta plataforma ainda não está implementada.",
+        title: "Plataforma não conectada",
+        description: "Conecte sua conta primeiro para continuar.",
         variant: "destructive",
       });
       return;
@@ -110,8 +125,7 @@ export function ExportDialog({ trackId, trackTitle, trackArtist, children }: Exp
     setIsExporting(true);
     
     try {
-      // Create export record
-      const { data: exportRecord, error } = await createExport({
+      const { error } = await createExport({
         track_id: trackId,
         platform: selectedPlatform,
         metadata: {
@@ -122,32 +136,14 @@ export function ExportDialog({ trackId, trackTitle, trackArtist, children }: Exp
         }
       });
 
-      if (error || !exportRecord) {
+      if (error) {
         throw new Error('Failed to create export record');
       }
 
-      // Update status to uploading
-      await updateExportStatus(exportRecord.id, 'uploading');
-
-      // TODO: Implement actual platform upload logic here
-      // For now, simulate upload process
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      if (selectedPlatform === 'dropbox') {
-        // Simulate successful Dropbox upload
-        await updateExportStatus(exportRecord.id, 'success', {
-          external_url: `https://dropbox.com/s/example/${trackTitle.replace(/\s+/g, '_')}.mp3`,
-          metadata: {
-            ...exportRecord.metadata,
-            dropbox_path: `/RemiXense/${trackTitle}.mp3`
-          }
-        });
-
-        toast({
-          title: "✅ Exportado com sucesso!",
-          description: `Track enviado para o Dropbox em /RemiXense/${trackTitle}.mp3`,
-        });
-      }
+      toast({
+        title: "✅ Exportação iniciada!",
+        description: `Track sendo enviado para ${selectedPlatformData?.name}`,
+      });
 
       setOpen(false);
       
@@ -198,17 +194,18 @@ export function ExportDialog({ trackId, trackTitle, trackArtist, children }: Exp
             <div className="grid grid-cols-1 gap-2">
               {platforms.map((platform) => {
                 const Icon = platform.icon;
+                const connected = isConnected(platform.id);
+                const isConnectingThis = connecting === platform.id;
+                
                 return (
                   <Card
                     key={platform.id}
                     className={`glass border-glass-border p-3 cursor-pointer transition-all ${
                       selectedPlatform === platform.id
                         ? 'border-primary/50 bg-primary/5'
-                        : platform.enabled
-                        ? 'hover:border-primary/30'
-                        : 'opacity-50 cursor-not-allowed'
+                        : 'hover:border-primary/30'
                     }`}
-                    onClick={() => platform.enabled && setSelectedPlatform(platform.id)}
+                    onClick={() => setSelectedPlatform(platform.id)}
                   >
                     <div className="flex items-center gap-3">
                       <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${platform.bgColor}`}>
@@ -217,17 +214,41 @@ export function ExportDialog({ trackId, trackTitle, trackArtist, children }: Exp
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <h3 className="font-medium text-foreground">{platform.name}</h3>
-                          {!platform.enabled && (
+                          {connected ? (
+                            <Badge variant="outline" className="border-green-500/30 text-green-600 text-xs">
+                              <Check className="h-3 w-3 mr-1" />
+                              Conectado
+                            </Badge>
+                          ) : (
                             <Badge variant="outline" className="text-xs">
-                              Em breve
+                              Não conectado
                             </Badge>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground">{platform.description}</p>
                       </div>
-                      {selectedPlatform === platform.id && platform.enabled && (
-                        <CheckCircle className="h-5 w-5 text-primary" />
-                      )}
+                      <div className="flex items-center gap-2">
+                        {selectedPlatform === platform.id && (
+                          <CheckCircle className="h-5 w-5 text-primary" />
+                        )}
+                        {!connected && selectedPlatform === platform.id && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleConnect(platform.id);
+                            }}
+                            disabled={isConnectingThis}
+                          >
+                            {isConnectingThis ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Link2 className="h-3 w-3" />
+                            )}
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </Card>
                 );
@@ -235,8 +256,8 @@ export function ExportDialog({ trackId, trackTitle, trackArtist, children }: Exp
             </div>
           </div>
 
-          {/* Export Form */}
-          {selectedPlatformData?.enabled && (
+          {/* Export Form - only show if platform is connected */}
+          {selectedPlatformData && platformConnected && (
             <div className="space-y-4">
               <Separator />
               <div className="grid grid-cols-2 gap-4">
@@ -287,6 +308,34 @@ export function ExportDialog({ trackId, trackTitle, trackArtist, children }: Exp
             </div>
           )}
 
+          {/* Connection required message */}
+          {selectedPlatformData && !platformConnected && (
+            <div className="text-center p-4 bg-muted/30 rounded-lg">
+              <Link2 className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground mb-3">
+                Conecte sua conta {selectedPlatformData.name} para continuar
+              </p>
+              <Button
+                variant="neon"
+                size="sm"
+                onClick={() => handleConnect(selectedPlatform)}
+                disabled={connecting === selectedPlatform}
+              >
+                {connecting === selectedPlatform ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Conectando...
+                  </>
+                ) : (
+                  <>
+                    <Link2 className="h-4 w-4 mr-2" />
+                    Conectar {selectedPlatformData.name}
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+
           {/* Export History */}
           {trackExports.length > 0 && (
             <div>
@@ -327,7 +376,7 @@ export function ExportDialog({ trackId, trackTitle, trackArtist, children }: Exp
               variant="neon"
               className="flex-1"
               onClick={handleExport}
-              disabled={!selectedPlatformData?.enabled || isExporting}
+              disabled={!platformConnected || isExporting}
             >
               {isExporting ? (
                 <>
