@@ -1,0 +1,177 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 200 100% 60%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 200 100% 60%;
+    --radius: 0.75rem;
+    
+    /* Neon colors */
+    --neon-blue: 200 100% 60%;
+    --neon-violet: 271 91% 65%;
+    --neon-teal: 180 100% 50%;
+    --neon-green: 120 100% 50%;
+    --neon-pink: 320 100% 70%;
+    
+    /* Glass effect */
+    --glass-bg: 222.2 84% 4.9% / 0.8;
+    --glass-border: 217.2 32.6% 17.5% / 0.3;
+  }
+
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  .font-heading {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+  }
+  
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer utilities {
+  .text-heading-xl {
+    @apply text-2xl font-heading tracking-tight;
+  }
+  
+  .text-heading-lg {
+    @apply text-xl font-heading tracking-tight;
+  }
+  
+  .glass {
+    background: hsla(var(--glass-bg));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  
+  .glass-border {
+    border-color: hsla(var(--glass-border));
+  }
+  
+  .neon-glow {
+    box-shadow: 0 0 20px hsla(var(--primary), 0.3);
+  }
+  
+  .transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .backdrop-blur-glass {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  
+  .text-neon-blue {
+    color: hsl(var(--neon-blue));
+  }
+  
+  .text-neon-violet {
+    color: hsl(var(--neon-violet));
+  }
+  
+  /* Custom slider styles */
+  .slider {
+    background: hsl(var(--muted));
+    outline: none;
+    -webkit-appearance: none;
+  }
+  
+  .slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: hsl(var(--primary));
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px hsla(var(--primary), 0.5);
+  }
+  
+  .slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: hsl(var(--primary));
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 10px hsla(var(--primary), 0.5);
+  }
+  
+  .text-neon-teal {
+    color: hsl(var(--neon-teal));
+  }
+  
+  .text-neon-green {
+    color: hsl(var(--neon-green));
+  }
+  
+  .bg-neon-blue {
+    background-color: hsl(var(--neon-blue));
+  }
+  
+  .bg-neon-violet {
+    background-color: hsl(var(--neon-violet));
+  }
+  
+  .bg-neon-teal {
+    background-color: hsl(var(--neon-teal));
+  }
+  
+  .border-neon-blue {
+    border-color: hsl(var(--neon-blue));
+  }
+  
+  .border-neon-violet {
+    border-color: hsl(var(--neon-violet));
+  }
+  
+  .border-neon-teal {
+    border-color: hsl(var(--neon-teal));
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsla(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsla(var(--primary));
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsla(var(--primary) / 0.8);
+}
