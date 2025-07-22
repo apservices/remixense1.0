@@ -78,10 +78,11 @@ export default function Auth({ onBack }: AuthProps) {
           {/* Logo/Title */}
           <div className="text-center mb-6">
             <div className="inline-flex items-center justify-center mb-2">
-              <TransparentLogo
+              <img
                 src="/lovable-uploads/adab2ebc-d4fa-4203-af04-914b1e2fe21c.png"
                 alt="RemiXense"
                 className="w-40 h-auto drop-shadow-lg"
+                style={{ filter: 'brightness(0) invert(1)' }}
               />
             </div>
             <p className="text-muted-foreground">
