@@ -79,7 +79,7 @@ export const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
 
   // Simulate playback progress
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setTimeout>;
     if (isPlaying) {
       interval = setInterval(() => {
         setCurrentTime(prev => {
@@ -196,7 +196,7 @@ export const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
         {/* Add comment hint */}
         <div className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
           <MessageCircle className="h-3 w-3" />
-          Clique na waveform para adicionar comentário
+          Clique na waveform para adicionar comentÃ¡rio
         </div>
       </div>
     </div>

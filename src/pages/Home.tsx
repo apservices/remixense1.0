@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTracks } from "@/hooks/useTracks";
 import { useInsights } from "@/hooks/useInsights";
 import { Button } from "@/components/ui/button";
@@ -9,9 +9,15 @@ import { EnhancedAudioUploadDialog } from "@/components/EnhancedAudioUploadDialo
 import { Music, TrendingUp, Users, Zap, Plus, Play, Headphones, Mic } from "lucide-react";
 
 export default function Home() {
-  const { tracks, loading } = useTracks();
-  const { insights, loading: insightsLoading } = useInsights();
+  const { tracks, loading, refetch: refetchTracks } = useTracks();
+  const { insights, loading: insightsLoading, refetch: refetchInsights } = useInsights();
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  const handleUploadSuccess = useCallback(() => {
+    // Safely refresh data without full page reload
+    refetchTracks?.();
+    refetchInsights?.();
+  }, [refetchTracks, refetchInsights]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -114,7 +120,7 @@ export default function Home() {
             Ações Rápidas
           </h2>
           <div className="grid grid-cols-2 gap-3">
-            <EnhancedAudioUploadDialog onSuccess={() => window.location.reload()}>
+            <EnhancedAudioUploadDialog onSuccess={handleUploadSuccess}>
               <Button variant="neon" className="h-16 flex-col gap-2">
                 <Plus className="h-6 w-6" />
                 Upload Track
@@ -221,7 +227,7 @@ export default function Home() {
               Sua plataforma profissional para criação, análise e performance musical. 
               Comece fazendo upload do seu primeiro track.
             </p>
-            <EnhancedAudioUploadDialog onSuccess={() => window.location.reload()}>
+            <EnhancedAudioUploadDialog onSuccess={handleUploadSuccess}>
               <Button variant="neon" size="lg">
                 <Plus className="h-5 w-5 mr-2" />
                 Fazer Primeiro Upload

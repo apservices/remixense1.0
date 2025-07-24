@@ -5,6 +5,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Content-Security-Policy': "default-src 'self'",
+  'X-Frame-Options': 'DENY',
+  'X-Content-Type-Options': 'nosniff',
 }
 
 serve(async (req) => {
@@ -13,18 +16,43 @@ serve(async (req) => {
   }
 
   try {
+    // Get authorization header
+    const authHeader = req.headers.get('authorization')
+    if (!authHeader) {
+      throw new Error('Missing authorization header')
+    }
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     )
 
-    const { export_id, track_id, metadata } = await req.json()
+    // Verify user session
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    )
+    
+    if (authError || !user) {
+      throw new Error('Invalid authentication')
+    }
 
-    // Get the export record
+    const { export_id, track_id, metadata } = await req.json()
+    
+    // Input validation
+    if (!export_id || !track_id) {
+      throw new Error('Missing required parameters')
+    }
+    
+    if (typeof export_id !== 'string' || typeof track_id !== 'string') {
+      throw new Error('Invalid parameter types')
+    }
+
+    // Get the export record and verify ownership
     const { data: exportRecord, error: exportError } = await supabase
       .from('exports')
       .select('*')
       .eq('id', export_id)
+      .eq('user_id', user.id)
       .single()
 
     if (exportError) throw exportError
@@ -42,7 +70,7 @@ serve(async (req) => {
     const { data: connection, error: connectionError } = await supabase
       .from('platform_connections')
       .select('*')
-      .eq('user_id', exportRecord.user_id)
+      .eq('user_id', user.id)
       .eq('platform', 'dropbox')
       .single()
 

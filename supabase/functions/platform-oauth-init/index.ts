@@ -1,9 +1,13 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { checkRateLimit, getClientIP, createRateLimitResponse } from '../_shared/rate-limit.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Content-Security-Policy': "default-src 'self'",
+  'X-Frame-Options': 'DENY',
+  'X-Content-Type-Options': 'nosniff',
 }
 
 serve(async (req) => {
@@ -12,7 +16,29 @@ serve(async (req) => {
   }
 
   try {
+    // Rate limiting check
+    const clientIP = getClientIP(req);
+    const rateLimitOk = await checkRateLimit({
+      identifier: clientIP,
+      endpoint: 'oauth-init',
+      maxRequests: 10, // 10 requests per hour per IP
+      windowMinutes: 60
+    });
+
+    if (!rateLimitOk) {
+      return createRateLimitResponse();
+    }
+
     const { platform } = await req.json()
+    
+    // Input validation
+    if (!platform || typeof platform !== 'string') {
+      throw new Error('Invalid platform parameter')
+    }
+    
+    if (!['dropbox', 'soundcloud', 'spotify'].includes(platform)) {
+      throw new Error('Unsupported platform')
+    }
     
     const redirectUri = `${req.headers.get('origin')}/auth/callback/${platform}`
     
