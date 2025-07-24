@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EnhancedAudioUploadDialog } from "@/components/EnhancedAudioUploadDialog";
-import { Music, TrendingUp, Users, Zap, Plus, Play, Headphones, Mic } from "lucide-react";
+import { MultiFileUploadDialog } from "@/components/MultiFileUploadDialog";
+import { Music, TrendingUp, Users, Zap, Plus, Upload, Headphones, Mic } from "lucide-react";
 
 export default function Home() {
   const { tracks, loading, refetch: refetchTracks } = useTracks();
@@ -123,13 +124,16 @@ export default function Home() {
             <EnhancedAudioUploadDialog onSuccess={handleUploadSuccess}>
               <Button variant="neon" className="h-16 flex-col gap-2">
                 <Plus className="h-6 w-6" />
-                Upload Track
+                Upload Single
               </Button>
             </EnhancedAudioUploadDialog>
-            <Button variant="glass" className="h-16 flex-col gap-2">
-              <Play className="h-6 w-6" />
-              Quick Mix
-            </Button>
+            
+            <MultiFileUploadDialog onSuccess={handleUploadSuccess}>
+              <Button variant="glass" className="h-16 flex-col gap-2">
+                <Upload className="h-6 w-6" />
+                Upload Múltiplo
+              </Button>
+            </MultiFileUploadDialog>
           </div>
         </section>
 

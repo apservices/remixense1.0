@@ -132,6 +132,44 @@ export default function Trends() {
                 </div>
               </div>
             </Card>
+
+            {/* Community Trends */}
+            <Card className="glass border-glass-border p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4">
+                Tendências da Comunidade
+              </h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-card/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-neon-blue animate-pulse" />
+                    <span className="text-sm text-foreground">Deep House em alta</span>
+                  </div>
+                  <Badge variant="outline" className="text-neon-blue border-neon-blue/30">
+                    +45%
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 rounded-lg bg-card/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-neon-violet animate-pulse" />
+                    <span className="text-sm text-foreground">BPM 126-130 popular</span>
+                  </div>
+                  <Badge variant="outline" className="text-neon-violet border-neon-violet/30">
+                    Trending
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 rounded-lg bg-card/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-neon-teal animate-pulse" />
+                    <span className="text-sm text-foreground">Key Dm/Fm compatíveis</span>
+                  </div>
+                  <Badge variant="outline" className="text-neon-teal border-neon-teal/30">
+                    Mix Ready
+                  </Badge>
+                </div>
+              </div>
+            </Card>
           </div>
         </TabsContent>
 
