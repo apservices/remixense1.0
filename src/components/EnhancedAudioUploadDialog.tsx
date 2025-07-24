@@ -93,8 +93,8 @@ export function EnhancedAudioUploadDialog({ children, onSuccess }: EnhancedAudio
       }));
       
       toast({
-        title: "Análise IA completa! 🧠✨",
-        description: `Detectados: ${aiResult?.features.instruments.join(', ')} | Confiança: ${aiResult?.confidence}%`,
+        title: "✨ Análise IA Completa!",
+        description: `🎵 ${aiResult?.features.instruments.join(', ')} | 🎯 ${aiResult?.confidence}% confiança`,
       });
     } catch (error) {
       toast({
@@ -163,6 +163,13 @@ export function EnhancedAudioUploadDialog({ children, onSuccess }: EnhancedAudio
       });
       
       setOpen(false);
+      
+      // Success feedback with celebration
+      toast({
+        title: "🎉 Upload Realizado!",
+        description: `"${formData.title}" foi adicionado ao seu vault com sucesso!`,
+      });
+      
       onSuccess?.();
     } catch (error) {
       // Error is handled by the hook
