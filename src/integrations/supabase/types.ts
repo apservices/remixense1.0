@@ -196,6 +196,41 @@ export type Database = {
         }
         Relationships: []
       }
+      exports: {
+        Row: {
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          platform: string | null
+          status: string | null
+          track_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          platform?: string | null
+          status?: string | null
+          track_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          platform?: string | null
+          status?: string | null
+          track_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exports_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notes: {
         Row: {
           content: string | null
