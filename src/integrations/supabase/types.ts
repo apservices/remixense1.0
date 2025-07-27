@@ -231,6 +231,59 @@ export type Database = {
           },
         ]
       }
+      marketplace_transactions: {
+        Row: {
+          buyer_id: string
+          created_at: string
+          currency: string
+          gross_amount: number
+          id: string
+          platform_fee: number
+          seller_amount: number
+          seller_id: string
+          status: string
+          stripe_payment_intent_id: string
+          track_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          buyer_id: string
+          created_at?: string
+          currency?: string
+          gross_amount: number
+          id?: string
+          platform_fee: number
+          seller_amount: number
+          seller_id: string
+          status?: string
+          stripe_payment_intent_id: string
+          track_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          buyer_id?: string
+          created_at?: string
+          currency?: string
+          gross_amount?: number
+          id?: string
+          platform_fee?: number
+          seller_amount?: number
+          seller_id?: string
+          status?: string
+          stripe_payment_intent_id?: string
+          track_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_transactions_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notes: {
         Row: {
           content: string | null
@@ -408,6 +461,87 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_limits: {
+        Row: {
+          can_export: boolean | null
+          can_use_community: boolean | null
+          can_use_marketplace: boolean | null
+          created_at: string
+          id: string
+          marketplace_commission_rate: number
+          max_storage_mb: number
+          max_tracks: number
+          plan_type: string
+        }
+        Insert: {
+          can_export?: boolean | null
+          can_use_community?: boolean | null
+          can_use_marketplace?: boolean | null
+          created_at?: string
+          id?: string
+          marketplace_commission_rate?: number
+          max_storage_mb: number
+          max_tracks: number
+          plan_type: string
+        }
+        Update: {
+          can_export?: boolean | null
+          can_use_community?: boolean | null
+          can_use_marketplace?: boolean | null
+          created_at?: string
+          id?: string
+          marketplace_commission_rate?: number
+          max_storage_mb?: number
+          max_tracks?: number
+          plan_type?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          email: string
+          id: string
+          plan_type: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          email: string
+          id?: string
+          plan_type?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          email?: string
+          id?: string
+          plan_type?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       track_comments: {
         Row: {
           color_code: string | null
@@ -575,9 +709,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_user_upload_track: {
+        Args: { user_uuid?: string }
+        Returns: boolean
+      }
       get_comment_color: {
         Args: { comment_type: string }
         Returns: string
+      }
+      get_user_subscription_info: {
+        Args: { user_uuid?: string }
+        Returns: {
+          plan_type: string
+          status: string
+          max_tracks: number
+          max_storage_mb: number
+          can_export: boolean
+          can_use_community: boolean
+          can_use_marketplace: boolean
+          marketplace_commission_rate: number
+          current_period_end: string
+        }[]
       }
       is_admin: {
         Args: { user_id?: string }

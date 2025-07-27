@@ -27,7 +27,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -38,6 +38,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
             title: "Bem-vindo! 🎧",
             description: "Login realizado com sucesso.",
           });
+          
+          // Check subscription after login
+          try {
+            await supabase.functions.invoke('check-subscription');
+          } catch (error) {
+            console.error('Error checking subscription on login:', error);
+          }
         } else if (event === 'SIGNED_OUT') {
           toast({
             title: "Até logo! ✨",
@@ -48,10 +55,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      // Check subscription if user is already logged in
+      if (session?.user) {
+        try {
+          await supabase.functions.invoke('check-subscription');
+        } catch (error) {
+          console.error('Error checking subscription on startup:', error);
+        }
+      }
     });
 
     return () => subscription.unsubscribe();
