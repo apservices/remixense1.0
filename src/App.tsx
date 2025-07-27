@@ -9,6 +9,7 @@ import { AuthGuard } from "@/components/AuthGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Onboarding } from "@/components/Onboarding";
 import Index from "./pages/Index";
+import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ function AppContent() {
             <Index />
           </AuthGuard>
         } />
+        <Route path="/pricing" element={<Pricing />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

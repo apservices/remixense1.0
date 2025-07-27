@@ -2,16 +2,19 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTracks } from "@/hooks/useTracks";
 import { useInsights } from "@/hooks/useInsights";
+import { useSubscription } from '@/hooks/useSubscription';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EnhancedAudioUploadDialog } from "@/components/EnhancedAudioUploadDialog";
 import { MultiFileUploadDialog } from "@/components/MultiFileUploadDialog";
-import { Music, TrendingUp, Users, Zap, Plus, Upload, Headphones, Mic } from "lucide-react";
+import { Music, TrendingUp, Users, Zap, Plus, Upload, Headphones, Mic, Crown, Star } from "lucide-react";
+import { Link } from 'react-router-dom';
 
 export default function Home() {
   const { tracks, loading, refetch: refetchTracks } = useTracks();
   const { insights, loading: insightsLoading, refetch: refetchInsights } = useInsights();
+  const { subscription, getTrackLimit, isPro, isExpert, isFree } = useSubscription();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const handleUploadSuccess = useCallback(() => {
@@ -76,8 +79,12 @@ export default function Home() {
               <div className="text-lg font-heading text-neon-blue">
                 RemiXense
               </div>
-              <div className="text-xs text-muted-foreground">
-                Professional
+              <div className="flex items-center gap-1 text-xs">
+                {isExpert && <Crown className="h-3 w-3 text-yellow-500" />}
+                {isPro && <Star className="h-3 w-3 text-blue-500" />}
+                <span className={`${isExpert ? 'text-yellow-500' : isPro ? 'text-blue-500' : 'text-muted-foreground'}`}>
+                  {subscription?.plan_type?.toUpperCase() || 'FREE'}
+                </span>
               </div>
             </div>
           </div>
@@ -87,6 +94,9 @@ export default function Home() {
             <Card className="glass border-glass-border p-3 text-center">
               <div className="text-lg font-bold text-neon-blue font-heading">
                 {tracks.length}
+                {getTrackLimit() !== -1 && (
+                  <span className="text-xs text-muted-foreground">/{getTrackLimit()}</span>
+                )}
               </div>
               <div className="text-xs text-muted-foreground">Tracks</div>
             </Card>
@@ -215,6 +225,34 @@ export default function Home() {
                 </div>
               </Card>
             </div>
+          </section>
+        )}
+
+        {/* Upgrade Prompt for Free Users */}
+        {isFree && tracks.length >= 2 && (
+          <section>
+            <Card className="glass border-amber-500/30 bg-gradient-to-r from-amber-500/10 to-orange-500/10 p-6">
+              <div className="text-center">
+                <div className="w-16 h-16 glass rounded-full flex items-center justify-center mx-auto mb-4 bg-amber-500/20">
+                  <Star className="h-8 w-8 text-amber-500" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  Desbloqueie todo o potencial do RemiXense
+                </h3>
+                <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+                  Você já usou {tracks.length} de 3 uploads gratuitos. Upgrade para PRO e tenha uploads ilimitados, 
+                  exportação para plataformas e muito mais!
+                </p>
+                <div className="flex gap-3 justify-center">
+                  <Link to="/pricing">
+                    <Button variant="default" className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600">
+                      <Crown className="h-4 w-4 mr-2" />
+                      Ver Planos
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </Card>
           </section>
         )}
 
