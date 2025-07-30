@@ -8,7 +8,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EnhancedAudioUploadDialog } from "@/components/EnhancedAudioUploadDialog";
 import { MultiFileUploadDialog } from "@/components/MultiFileUploadDialog";
-import { Music, TrendingUp, Users, Zap, Plus, Upload, Headphones, Mic, Crown, Star } from "lucide-react";
+import { FinalStatsReport } from "@/components/FinalStatsReport";
+import { Music, TrendingUp, Users, Zap, Plus, Upload, Headphones, Mic, Crown, Star, BarChart3 } from "lucide-react";
 import { Link } from 'react-router-dom';
 
 export default function Home() {
@@ -227,6 +228,15 @@ export default function Home() {
             </div>
           </section>
         )}
+
+        {/* Final Stats Report - Show for all users */}
+        <section>
+          <h2 className="text-heading-lg text-foreground mb-4 flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            Status da Plataforma
+          </h2>
+          <FinalStatsReport />
+        </section>
 
         {/* Upgrade Prompt for Free Users */}
         {isFree && tracks.length >= 2 && (
