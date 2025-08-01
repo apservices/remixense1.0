@@ -10,6 +10,9 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Onboarding } from "@/components/Onboarding";
 import Index from "./pages/Index";
 import Pricing from "./pages/Pricing";
+import LaunchCalendar from "./pages/LaunchCalendar";
+import FeedbackRooms from "./pages/FeedbackRooms";
+import LandingPageGenerator from "./pages/LandingPageGenerator";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +56,21 @@ function AppContent() {
           </AuthGuard>
         } />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/calendar" element={
+          <AuthGuard>
+            <LaunchCalendar />
+          </AuthGuard>
+        } />
+        <Route path="/feedback" element={
+          <AuthGuard>
+            <FeedbackRooms />
+          </AuthGuard>
+        } />
+        <Route path="/landing-generator" element={
+          <AuthGuard>
+            <LandingPageGenerator />
+          </AuthGuard>
+        } />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

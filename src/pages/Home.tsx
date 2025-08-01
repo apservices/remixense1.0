@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { EnhancedAudioUploadDialog } from "@/components/EnhancedAudioUploadDialog";
 import { MultiFileUploadDialog } from "@/components/MultiFileUploadDialog";
 import { FinalStatsReport } from "@/components/FinalStatsReport";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { Music, TrendingUp, Users, Zap, Plus, Upload, Headphones, Mic, Crown, Star, BarChart3 } from "lucide-react";
 import { Link } from 'react-router-dom';
 
@@ -288,6 +289,8 @@ export default function Home() {
           </section>
         )}
       </div>
+      
+      <PWAInstallPrompt />
     </div>
   );
 }
