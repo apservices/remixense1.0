@@ -13,6 +13,9 @@ import Pricing from "./pages/Pricing";
 import LaunchCalendar from "./pages/LaunchCalendar";
 import FeedbackRooms from "./pages/FeedbackRooms";
 import LandingPageGenerator from "./pages/LandingPageGenerator";
+import AIStudio from "./pages/AIStudio";
+import RevenueAnalytics from "./pages/RevenueAnalytics";
+import MetadataManager from "./pages/MetadataManager";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -69,6 +72,21 @@ function AppContent() {
         <Route path="/landing-generator" element={
           <AuthGuard>
             <LandingPageGenerator />
+          </AuthGuard>
+        } />
+        <Route path="/ai-studio" element={
+          <AuthGuard>
+            <AIStudio />
+          </AuthGuard>
+        } />
+        <Route path="/analytics" element={
+          <AuthGuard>
+            <RevenueAnalytics />
+          </AuthGuard>
+        } />
+        <Route path="/metadata" element={
+          <AuthGuard>
+            <MetadataManager />
           </AuthGuard>
         } />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
