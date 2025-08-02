@@ -6,7 +6,7 @@ import Home from "./Home";
 import Vault from "./Vault";
 import Sessions from "./Sessions";
 import Trends from "./Trends";
-import Inspiration from "./Inspiration";
+import Explorer from "./Explorer";
 import Profile from "./Profile";
 
 const Index = () => {
@@ -22,8 +22,8 @@ const Index = () => {
         return <Sessions />;
       case "trends":
         return <Trends />;
-      case "inspiration":
-        return <Inspiration />;
+      case "explorer":
+        return <Explorer />;
       case "profile":
         return <Profile />;
       default:

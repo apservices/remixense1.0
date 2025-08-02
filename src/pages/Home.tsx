@@ -8,9 +8,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EnhancedAudioUploadDialog } from "@/components/EnhancedAudioUploadDialog";
 import { MultiFileUploadDialog } from "@/components/MultiFileUploadDialog";
-import { FinalStatsReport } from "@/components/FinalStatsReport";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
-import { Music, TrendingUp, Users, Zap, Plus, Upload, Headphones, Mic, Crown, Star, BarChart3 } from "lucide-react";
+import { Music, Zap, Plus, Upload, Crown, Star, BarChart3, TrendingUp, Clock, Headphones } from "lucide-react";
 import { Link } from 'react-router-dom';
 
 export default function Home() {
@@ -193,17 +192,25 @@ export default function Home() {
           </section>
         )}
 
-        {/* Weekly Insights */}
+        {/* Quick Insights */}
         {insights && (
           <section>
-            <h2 className="text-heading-lg text-foreground mb-4 flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-neon-teal" />
-              Insights da Semana
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-heading-lg text-foreground flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-neon-teal" />
+                Insights Rápidos
+              </h2>
+              <Link to="/explorer">
+                <Button variant="outline" size="sm">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Ver Completo
+                </Button>
+              </Link>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <Card className="glass border-glass-border p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Headphones className="h-4 w-4 text-neon-blue" />
+                  <Clock className="h-4 w-4 text-neon-blue" />
                   <span className="text-sm font-medium">Tempo Total</span>
                 </div>
                 <div className="text-xl font-bold text-neon-blue font-heading">
@@ -216,11 +223,11 @@ export default function Home() {
               
               <Card className="glass border-glass-border p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Mic className="h-4 w-4 text-neon-violet" />
+                  <Headphones className="h-4 w-4 text-neon-violet" />
                   <span className="text-sm font-medium">Gênero Favorito</span>
                 </div>
                 <div className="text-xl font-bold text-neon-violet font-heading">
-                  {insights.trackAnalytics.favoriteGenre}
+                  {insights.trackAnalytics.favoriteGenre || 'N/A'}
                 </div>
                 <div className="text-xs text-muted-foreground">
                   mais tocado
@@ -229,15 +236,6 @@ export default function Home() {
             </div>
           </section>
         )}
-
-        {/* Final Stats Report - Show for all users */}
-        <section>
-          <h2 className="text-heading-lg text-foreground mb-4 flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-primary" />
-            Status da Plataforma
-          </h2>
-          <FinalStatsReport />
-        </section>
 
         {/* Upgrade Prompt for Free Users */}
         {isFree && tracks.length >= 2 && (
