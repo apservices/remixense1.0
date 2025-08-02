@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,7 @@ export function AudioUploadDialog({ children, onSuccess }: AudioUploadDialogProp
     if (selectedFile) {
       // Check if it's an audio file
       if (!selectedFile.type.startsWith('audio/')) {
-        alert('Por favor, selecione apenas arquivos de áudio');
+        alert('Por favor, selecione apenas arquivos de Ã¡udio');
         return;
       }
       setFile(selectedFile);
@@ -62,7 +63,7 @@ export function AudioUploadDialog({ children, onSuccess }: AudioUploadDialogProp
     e.preventDefault();
     
     if (!file || !title || !artist) {
-      alert('Por favor, preencha todos os campos obrigatórios');
+      alert('Por favor, preencha todos os campos obrigatÃ³rios');
       return;
     }
 
@@ -104,14 +105,14 @@ export function AudioUploadDialog({ children, onSuccess }: AudioUploadDialogProp
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-foreground">
             <Music className="h-5 w-5" />
-            Upload de Áudio
+            Upload de Ãudio
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* File Upload */}
           <div>
-            <Label htmlFor="file">Arquivo de Áudio *</Label>
+            <Label htmlFor="file">Arquivo de Ãudio *</Label>
             <div className="mt-1">
               <input
                 id="file"
@@ -131,7 +132,7 @@ export function AudioUploadDialog({ children, onSuccess }: AudioUploadDialogProp
 
           {/* Title */}
           <div>
-            <Label htmlFor="title">Título *</Label>
+            <Label htmlFor="title">TÃ­tulo *</Label>
             <Input
               id="title"
               value={title}
@@ -173,7 +174,7 @@ export function AudioUploadDialog({ children, onSuccess }: AudioUploadDialogProp
           <div className="grid grid-cols-2 gap-3">
             {/* Genre */}
             <div>
-              <Label htmlFor="genre">Gênero</Label>
+              <Label htmlFor="genre">GÃªnero</Label>
               <Input
                 id="genre"
                 value={genre}
@@ -199,7 +200,7 @@ export function AudioUploadDialog({ children, onSuccess }: AudioUploadDialogProp
 
           {/* Energy Level */}
           <div>
-            <Label htmlFor="energy">Nível de Energia (1-10)</Label>
+            <Label htmlFor="energy">NÃ­vel de Energia (1-10)</Label>
             <Input
               id="energy"
               type="number"

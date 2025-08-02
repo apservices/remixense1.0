@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useState, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -43,10 +44,10 @@ export function MultiFileUploadDialog({ children, onSuccess }: MultiFileUploadDi
 
   const validateFile = (file: File): string | null => {
     if (!file.type.startsWith('audio/')) {
-      return 'Arquivo deve ser de áudio';
+      return 'Arquivo deve ser de Ã¡udio';
     }
     if (file.size > MAX_FILE_SIZE) {
-      return `Arquivo muito grande (máx: ${MAX_FILE_SIZE / 1024 / 1024}MB)`;
+      return `Arquivo muito grande (mÃ¡x: ${MAX_FILE_SIZE / 1024 / 1024}MB)`;
     }
     return null;
   };
@@ -57,7 +58,7 @@ export function MultiFileUploadDialog({ children, onSuccess }: MultiFileUploadDi
     if (files.length + selectedFiles.length > MAX_FILES) {
       toast({
         title: "Limite excedido",
-        description: `Máximo de ${MAX_FILES} arquivos por vez`,
+        description: `MÃ¡ximo de ${MAX_FILES} arquivos por vez`,
         variant: "destructive"
       });
       return;
@@ -69,7 +70,7 @@ export function MultiFileUploadDialog({ children, onSuccess }: MultiFileUploadDi
       const error = validateFile(file);
       if (error) {
         toast({
-          title: "Arquivo inválido",
+          title: "Arquivo invÃ¡lido",
           description: `${file.name}: ${error}`,
           variant: "destructive"
         });
@@ -129,7 +130,7 @@ export function MultiFileUploadDialog({ children, onSuccess }: MultiFileUploadDi
     } catch (error) {
       setFiles(prev => prev.map(f => 
         f.id === fileId 
-          ? { ...f, status: 'error', error: 'Erro na análise' }
+          ? { ...f, status: 'error', error: 'Erro na anÃ¡lise' }
           : f
       ));
     }
@@ -145,7 +146,7 @@ export function MultiFileUploadDialog({ children, onSuccess }: MultiFileUploadDi
     if (readyFiles.length === 0) {
       toast({
         title: "Nenhum arquivo pronto",
-        description: "Aguarde a análise dos arquivos",
+        description: "Aguarde a anÃ¡lise dos arquivos",
         variant: "destructive"
       });
       return;
@@ -194,7 +195,7 @@ export function MultiFileUploadDialog({ children, onSuccess }: MultiFileUploadDi
     const successCount = files.filter(f => f.status === 'success').length;
     
     toast({
-      title: "Upload concluído",
+      title: "Upload concluÃ­do",
       description: `${successCount} de ${total} arquivos enviados com sucesso`,
     });
 
@@ -258,7 +259,7 @@ export function MultiFileUploadDialog({ children, onSuccess }: MultiFileUploadDi
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5" />
-            Upload Múltiplo de Áudio
+            Upload MÃºltiplo de Ãudio
             <Badge variant="outline" className="ml-auto">
               {files.length}/{MAX_FILES}
             </Badge>
@@ -285,10 +286,10 @@ export function MultiFileUploadDialog({ children, onSuccess }: MultiFileUploadDi
                 <Music className="h-12 w-12 text-muted-foreground" />
                 <div>
                   <p className="text-sm text-foreground mb-1">
-                    Clique para selecionar arquivos de áudio
+                    Clique para selecionar arquivos de Ã¡udio
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Máximo {MAX_FILES} arquivos, até {MAX_FILE_SIZE / 1024 / 1024}MB cada
+                    MÃ¡ximo {MAX_FILES} arquivos, atÃ© {MAX_FILE_SIZE / 1024 / 1024}MB cada
                   </p>
                 </div>
               </label>

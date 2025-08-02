@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -68,7 +69,7 @@ export default function FeedbackRooms() {
         {
           id: '2',
           title: 'Techno Loop Arrangement',
-          description: 'Como posso melhorar a transição entre as seções?',
+          description: 'Como posso melhorar a transiÃ§Ã£o entre as seÃ§Ãµes?',
           creator_id: 'user2',
           creator_name: 'TechnoMaster',
           participants: 5,
@@ -95,8 +96,8 @@ export default function FeedbackRooms() {
     
     if (!formData.title) {
       toast({
-        title: "Campo obrigatório",
-        description: "Preencha o título da sala",
+        title: "Campo obrigatÃ³rio",
+        description: "Preencha o tÃ­tulo da sala",
         variant: "destructive"
       });
       return;
@@ -108,7 +109,7 @@ export default function FeedbackRooms() {
         title: formData.title,
         description: formData.description,
         creator_id: user?.id || '',
-        creator_name: user?.user_metadata?.name || 'Usuário',
+        creator_name: user?.user_metadata?.name || 'UsuÃ¡rio',
         participants: 1,
         status: 'active',
         privacy: formData.privacy,
@@ -118,8 +119,8 @@ export default function FeedbackRooms() {
       setRooms([newRoom, ...rooms]);
       
       toast({
-        title: "🎤 Sala de Feedback criada!",
-        description: `"${formData.title}" está aberta para colaboração`
+        title: "ðŸŽ¤ Sala de Feedback criada!",
+        description: `"${formData.title}" estÃ¡ aberta para colaboraÃ§Ã£o`
       });
 
       setFormData({
@@ -140,7 +141,7 @@ export default function FeedbackRooms() {
 
   const joinRoom = (roomId: string) => {
     toast({
-      title: "🎧 Entrando na sala...",
+      title: "ðŸŽ§ Entrando na sala...",
       description: "Conectando com outros produtores"
     });
   };
@@ -166,10 +167,10 @@ export default function FeedbackRooms() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-heading-xl text-foreground mb-1">
-                Salas de Feedback 🎤
+                Salas de Feedback ðŸŽ¤
               </h1>
               <p className="text-muted-foreground text-sm">
-                Colabore em tempo real e aprimorre suas músicas
+                Colabore em tempo real e aprimorre suas mÃºsicas
               </p>
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -188,7 +189,7 @@ export default function FeedbackRooms() {
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="title">Título da Sala *</Label>
+                    <Label htmlFor="title">TÃ­tulo da Sala *</Label>
                     <Input
                       id="title"
                       value={formData.title}
@@ -199,12 +200,12 @@ export default function FeedbackRooms() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description">Descrição</Label>
+                    <Label htmlFor="description">DescriÃ§Ã£o</Label>
                     <Textarea
                       id="description"
                       value={formData.description}
                       onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="O que você gostaria de melhorar na sua música?"
+                      placeholder="O que vocÃª gostaria de melhorar na sua mÃºsica?"
                       rows={3}
                     />
                   </div>
@@ -219,7 +220,7 @@ export default function FeedbackRooms() {
                         onClick={() => setFormData(prev => ({ ...prev, privacy: 'public' }))}
                         className="flex-1"
                       >
-                        Pública
+                        PÃºblica
                       </Button>
                       <Button
                         type="button"
@@ -252,7 +253,7 @@ export default function FeedbackRooms() {
               Nenhuma sala ativa
             </h3>
             <p className="text-muted-foreground mb-6 max-w-sm">
-              Crie sua primeira sala de feedback e receba comentários valiosos da comunidade
+              Crie sua primeira sala de feedback e receba comentÃ¡rios valiosos da comunidade
             </p>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
@@ -275,7 +276,7 @@ export default function FeedbackRooms() {
                           {room.title}
                         </CardTitle>
                         <Badge variant={room.privacy === 'public' ? 'secondary' : 'outline'} className="text-xs">
-                          {room.privacy === 'public' ? 'Pública' : 'Privada'}
+                          {room.privacy === 'public' ? 'PÃºblica' : 'Privada'}
                         </Badge>
                       </div>
                       <CardDescription className="flex items-center gap-2">
@@ -306,7 +307,7 @@ export default function FeedbackRooms() {
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3 text-muted-foreground" />
                         <span className="text-xs text-muted-foreground">
-                          Há {Math.floor(Math.random() * 30 + 1)} min
+                          HÃ¡ {Math.floor(Math.random() * 30 + 1)} min
                         </span>
                       </div>
                     </div>
@@ -345,16 +346,16 @@ export default function FeedbackRooms() {
           </CardHeader>
           <CardContent className="space-y-2">
             <p className="text-sm text-muted-foreground">
-              • Seja específico: "A batida no compasso 16 está muito alta"
+              â€¢ Seja especÃ­fico: "A batida no compasso 16 estÃ¡ muito alta"
             </p>
             <p className="text-sm text-muted-foreground">
-              • Dê feedback construtivo: sugira melhorias, não apenas critique
+              â€¢ DÃª feedback construtivo: sugira melhorias, nÃ£o apenas critique
             </p>
             <p className="text-sm text-muted-foreground">
-              • Use timestamps para indicar momentos específicos da música
+              â€¢ Use timestamps para indicar momentos especÃ­ficos da mÃºsica
             </p>
             <p className="text-sm text-muted-foreground">
-              • Seja respeitoso e apoie outros produtores da comunidade
+              â€¢ Seja respeitoso e apoie outros produtores da comunidade
             </p>
           </CardContent>
         </Card>

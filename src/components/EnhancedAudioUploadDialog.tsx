@@ -1,3 +1,4 @@
+import * as React from 'react';
 
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -47,8 +48,8 @@ export function EnhancedAudioUploadDialog({ children, onSuccess }: EnhancedAudio
 
     if (!selectedFile.type.startsWith('audio/')) {
       toast({
-        title: "Arquivo inválido",
-        description: "Por favor, selecione um arquivo de áudio",
+        title: "Arquivo invÃ¡lido",
+        description: "Por favor, selecione um arquivo de Ã¡udio",
         variant: "destructive"
       });
       return;
@@ -93,13 +94,13 @@ export function EnhancedAudioUploadDialog({ children, onSuccess }: EnhancedAudio
       }));
       
       toast({
-        title: "✨ Análise IA Completa!",
-        description: `🎵 ${aiResult?.features.instruments.join(', ')} | 🎯 ${aiResult?.confidence}% confiança`,
+        title: "âœ¨ AnÃ¡lise IA Completa!",
+        description: `ðŸŽµ ${aiResult?.features.instruments.join(', ')} | ðŸŽ¯ ${aiResult?.confidence}% confianÃ§a`,
       });
     } catch (error) {
       toast({
-        title: "Erro na análise",
-        description: "Análise básica realizada. IA indisponível.",
+        title: "Erro na anÃ¡lise",
+        description: "AnÃ¡lise bÃ¡sica realizada. IA indisponÃ­vel.",
         variant: "destructive"
       });
     } finally {
@@ -129,8 +130,8 @@ export function EnhancedAudioUploadDialog({ children, onSuccess }: EnhancedAudio
     
     if (!file || !formData.title || !formData.artist) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Preencha título e artista",
+        title: "Campos obrigatÃ³rios",
+        description: "Preencha tÃ­tulo e artista",
         variant: "destructive"
       });
       return;
@@ -166,7 +167,7 @@ export function EnhancedAudioUploadDialog({ children, onSuccess }: EnhancedAudio
       
       // Success feedback with celebration
       toast({
-        title: "🎉 Upload Realizado!",
+        title: "ðŸŽ‰ Upload Realizado!",
         description: `"${formData.title}" foi adicionado ao seu vault com sucesso!`,
       });
       
@@ -185,14 +186,14 @@ export function EnhancedAudioUploadDialog({ children, onSuccess }: EnhancedAudio
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5" />
-            Upload de Áudio
+            Upload de Ãudio
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* File Upload */}
           <div className="space-y-2">
-            <Label htmlFor="file">Arquivo de Áudio</Label>
+            <Label htmlFor="file">Arquivo de Ãudio</Label>
             <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
               <input
                 id="file"
@@ -219,7 +220,7 @@ export function EnhancedAudioUploadDialog({ children, onSuccess }: EnhancedAudio
               <div className="flex items-center gap-2">
                 <Brain className="h-4 w-4 text-primary animate-pulse" />
                 <span className="text-sm text-foreground">
-                  {isAnalyzing ? "IA analisando áudio..." : "Extraindo metadados..."}
+                  {isAnalyzing ? "IA analisando Ã¡udio..." : "Extraindo metadados..."}
                 </span>
               </div>
               <Progress value={isAnalyzing ? 90 : 45} className="h-1" />
@@ -232,10 +233,10 @@ export function EnhancedAudioUploadDialog({ children, onSuccess }: EnhancedAudio
               <div className="flex items-center gap-2">
                 <Cpu className="h-4 w-4 text-primary" />
                 <h4 className="font-semibold text-foreground text-sm">
-                  Análise IA Musical
+                  AnÃ¡lise IA Musical
                 </h4>
                 <Badge variant="secondary" className="text-xs">
-                  {aiAnalysis.confidence}% confiança
+                  {aiAnalysis.confidence}% confianÃ§a
                 </Badge>
               </div>
               
@@ -285,7 +286,7 @@ export function EnhancedAudioUploadDialog({ children, onSuccess }: EnhancedAudio
           {metadata && !aiAnalysis && (
             <div className="glass border-glass-border rounded-lg p-3 space-y-2">
               <h4 className="font-semibold text-foreground text-sm">
-                Metadados Básicos
+                Metadados BÃ¡sicos
               </h4>
               <div className="grid grid-cols-2 gap-3">
                 <div className="text-center">
@@ -298,7 +299,7 @@ export function EnhancedAudioUploadDialog({ children, onSuccess }: EnhancedAudio
                   <p className="text-sm font-bold text-primary">
                     {metadata.duration || 'N/A'}
                   </p>
-                  <p className="text-xs text-muted-foreground">Duração</p>
+                  <p className="text-xs text-muted-foreground">DuraÃ§Ã£o</p>
                 </div>
               </div>
             </div>
@@ -307,12 +308,12 @@ export function EnhancedAudioUploadDialog({ children, onSuccess }: EnhancedAudio
           {/* Basic Info */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="title">Título *</Label>
+              <Label htmlFor="title">TÃ­tulo *</Label>
               <Input
                 id="title"
                 value={formData.title}
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Nome da música"
+                placeholder="Nome da mÃºsica"
                 required
               />
             </div>
@@ -344,7 +345,7 @@ export function EnhancedAudioUploadDialog({ children, onSuccess }: EnhancedAudio
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="genre">Gênero</Label>
+              <Label htmlFor="genre">GÃªnero</Label>
               <Input
                 id="genre"
                 value={formData.genre}

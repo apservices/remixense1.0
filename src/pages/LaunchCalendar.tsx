@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,7 +48,7 @@ export default function LaunchCalendar() {
         {
           id: '1',
           title: 'Summer Vibes EP',
-          description: 'Lançamento do EP de verão com 4 faixas',
+          description: 'LanÃ§amento do EP de verÃ£o com 4 faixas',
           launch_date: '2024-08-15',
           status: 'planned',
           platform: 'Spotify, Apple Music',
@@ -83,8 +84,8 @@ export default function LaunchCalendar() {
     
     if (!formData.title || !formData.launch_date) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Preencha título e data de lançamento",
+        title: "Campos obrigatÃ³rios",
+        description: "Preencha tÃ­tulo e data de lanÃ§amento",
         variant: "destructive"
       });
       return;
@@ -106,7 +107,7 @@ export default function LaunchCalendar() {
       setEvents([...events, newEvent]);
       
       toast({
-        title: "📅 Evento criado!",
+        title: "ðŸ“… Evento criado!",
         description: `"${formData.title}" agendado para ${new Date(formData.launch_date).toLocaleDateString('pt-BR')}`
       });
 
@@ -137,7 +138,7 @@ export default function LaunchCalendar() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'completed': return 'Concluído';
+      case 'completed': return 'ConcluÃ­do';
       case 'in_progress': return 'Em Progresso';
       default: return 'Planejado';
     }
@@ -149,7 +150,7 @@ export default function LaunchCalendar() {
         <div className="glass border-glass-border rounded-lg p-8">
           <div className="flex items-center gap-3">
             <CalendarDays className="h-6 w-6 text-primary animate-pulse" />
-            <p className="text-foreground">Carregando calendário...</p>
+            <p className="text-foreground">Carregando calendÃ¡rio...</p>
           </div>
         </div>
       </div>
@@ -164,10 +165,10 @@ export default function LaunchCalendar() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-heading-xl text-foreground mb-1">
-                Calendário de Lançamentos 📅
+                CalendÃ¡rio de LanÃ§amentos ðŸ“…
               </h1>
               <p className="text-muted-foreground text-sm">
-                Organize seus lançamentos e mantenha tudo sob controle
+                Organize seus lanÃ§amentos e mantenha tudo sob controle
               </p>
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -181,34 +182,34 @@ export default function LaunchCalendar() {
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
-                    Criar Evento de Lançamento
+                    Criar Evento de LanÃ§amento
                   </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="title">Título *</Label>
+                    <Label htmlFor="title">TÃ­tulo *</Label>
                     <Input
                       id="title"
                       value={formData.title}
                       onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                      placeholder="Nome do lançamento"
+                      placeholder="Nome do lanÃ§amento"
                       required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description">Descrição</Label>
+                    <Label htmlFor="description">DescriÃ§Ã£o</Label>
                     <Textarea
                       id="description"
                       value={formData.description}
                       onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="Descreva seu lançamento..."
+                      placeholder="Descreva seu lanÃ§amento..."
                       rows={3}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="launch_date">Data de Lançamento *</Label>
+                    <Label htmlFor="launch_date">Data de LanÃ§amento *</Label>
                     <Input
                       id="launch_date"
                       type="date"
@@ -247,7 +248,7 @@ export default function LaunchCalendar() {
               Nenhum evento agendado
             </h3>
             <p className="text-muted-foreground mb-6 max-w-sm">
-              Crie seu primeiro evento de lançamento e mantenha sua carreira organizada
+              Crie seu primeiro evento de lanÃ§amento e mantenha sua carreira organizada
             </p>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>

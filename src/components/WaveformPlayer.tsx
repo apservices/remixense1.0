@@ -1,3 +1,4 @@
+import * as React from 'react';
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
@@ -196,7 +197,7 @@ export const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
         {/* Add comment hint */}
         <div className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
           <MessageCircle className="h-3 w-3" />
-          Clique na waveform para adicionar comentÃ¡rio
+          Clique na waveform para adicionar comentÃƒÂ¡rio
         </div>
       </div>
     </div>

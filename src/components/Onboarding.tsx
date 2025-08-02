@@ -1,3 +1,4 @@
+import * as React from 'react';
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -13,28 +14,28 @@ const steps = [
   {
     id: 'welcome',
     title: 'Bem-vindo ao RemiXense',
-    description: 'Sua jornada musical começa aqui',
+    description: 'Sua jornada musical comeÃ§a aqui',
     icon: Sparkles,
     content: 'welcome'
   },
   {
     id: 'role',
-    title: 'Como você se identifica?',
-    description: 'Escolha sua função principal',
+    title: 'Como vocÃª se identifica?',
+    description: 'Escolha sua funÃ§Ã£o principal',
     icon: Users,
     content: 'role'
   },
   {
     id: 'features',
     title: 'Funcionalidades Principais',
-    description: 'Conheça o que oferecemos',
+    description: 'ConheÃ§a o que oferecemos',
     icon: Zap,
     content: 'features'
   },
   {
     id: 'ready',
     title: 'Tudo Pronto!',
-    description: 'Comece sua experiência',
+    description: 'Comece sua experiÃªncia',
     icon: Check,
     content: 'ready'
   }
@@ -48,7 +49,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
     {
       id: 'mixer',
       title: 'Mixer',
-      description: 'Crio sets e mixagens incríveis',
+      description: 'Crio sets e mixagens incrÃ­veis',
       icon: Music,
       color: 'blue'
     },
@@ -70,23 +71,23 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
   const features = [
     {
-      title: 'Análise IA Musical',
+      title: 'AnÃ¡lise IA Musical',
       description: 'BPM, key, energia e instrumentos detectados automaticamente',
       icon: Sparkles
     },
     {
       title: 'Quick Mix Engine',
-      description: 'IA para mixagem inteligente com compatibilidade harmônica',
+      description: 'IA para mixagem inteligente com compatibilidade harmÃ´nica',
       icon: Zap
     },
     {
       title: 'Waveform Interativo',
-      description: 'Comentários temporais e análise visual avançada',
+      description: 'ComentÃ¡rios temporais e anÃ¡lise visual avanÃ§ada',
       icon: Music
     },
     {
-      title: 'Exportação Profissional',
-      description: 'Integração direta com Spotify, SoundCloud e Dropbox',
+      title: 'ExportaÃ§Ã£o Profissional',
+      description: 'IntegraÃ§Ã£o direta com Spotify, SoundCloud e Dropbox',
       icon: Upload
     }
   ];
@@ -151,10 +152,10 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                   />
                 </div>
                 <p className="text-foreground">
-                  O RemiXense é sua plataforma completa para criação, análise e compartilhamento musical.
+                  O RemiXense Ã© sua plataforma completa para criaÃ§Ã£o, anÃ¡lise e compartilhamento musical.
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Vamos configurar sua experiência em alguns passos simples.
+                  Vamos configurar sua experiÃªncia em alguns passos simples.
                 </p>
               </div>
             )}
@@ -219,24 +220,24 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               <div className="text-center space-y-6">
                 <div className="space-y-4">
                   <Badge variant="outline" className="text-primary border-primary/30">
-                    {roles.find(r => r.id === selectedRole)?.title || 'Usuário'}
+                    {roles.find(r => r.id === selectedRole)?.title || 'UsuÃ¡rio'}
                   </Badge>
                   <p className="text-foreground">
-                    Perfeito! Você está configurado como <strong>{roles.find(r => r.id === selectedRole)?.title}</strong>.
+                    Perfeito! VocÃª estÃ¡ configurado como <strong>{roles.find(r => r.id === selectedRole)?.title}</strong>.
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Agora você pode começar a explorar todas as funcionalidades do RemiXense.
+                    Agora vocÃª pode comeÃ§ar a explorar todas as funcionalidades do RemiXense.
                   </p>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-3 text-center">
                   <div className="p-3 rounded-lg bg-neon-blue/10">
-                    <div className="text-lg font-bold text-neon-blue">∞</div>
+                    <div className="text-lg font-bold text-neon-blue">âˆž</div>
                     <div className="text-xs text-muted-foreground">Uploads</div>
                   </div>
                   <div className="p-3 rounded-lg bg-neon-violet/10">
                     <div className="text-lg font-bold text-neon-violet">IA</div>
-                    <div className="text-xs text-muted-foreground">Análise</div>
+                    <div className="text-xs text-muted-foreground">AnÃ¡lise</div>
                   </div>
                   <div className="p-3 rounded-lg bg-neon-teal/10">
                     <div className="text-lg font-bold text-neon-teal">3</div>
@@ -267,7 +268,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               disabled={!canProceed()}
               className="flex items-center gap-2"
             >
-              {currentStep === steps.length - 1 ? 'Começar' : 'Próximo'}
+              {currentStep === steps.length - 1 ? 'ComeÃ§ar' : 'PrÃ³ximo'}
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

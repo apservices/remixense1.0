@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -39,14 +40,14 @@ export function ExportDialog({ children, trackId, trackTitle }: ExportDialogProp
       id: 'dropbox',
       name: 'Dropbox',
       description: 'Salvar na nuvem',
-      icon: '☁️',
+      icon: 'â˜ï¸',
       color: 'blue'
     },
     {
       id: 'spotify',
       name: 'Spotify',
       description: 'Distribuir para streaming',
-      icon: '🎵',
+      icon: 'ðŸŽµ',
       color: 'green'
     }
   ];
@@ -54,8 +55,8 @@ export function ExportDialog({ children, trackId, trackTitle }: ExportDialogProp
   const handleExport = async (platform: string) => {
     if (!canExport()) {
       toast({
-        title: "Upgrade necessário",
-        description: "Exportação disponível apenas para usuários PRO e EXPERT",
+        title: "Upgrade necessÃ¡rio",
+        description: "ExportaÃ§Ã£o disponÃ­vel apenas para usuÃ¡rios PRO e EXPERT",
         variant: "destructive"
       });
       return;
@@ -109,7 +110,7 @@ export function ExportDialog({ children, trackId, trackTitle }: ExportDialogProp
       }));
 
       toast({
-        title: `✅ Exportado para ${platform}!`,
+        title: `âœ… Exportado para ${platform}!`,
         description: `"${trackTitle}" foi enviado com sucesso`,
       });
 
@@ -121,12 +122,12 @@ export function ExportDialog({ children, trackId, trackTitle }: ExportDialogProp
         [platform]: {
           ...prev[platform],
           status: 'error',
-          error: error.message || 'Erro na exportação'
+          error: error.message || 'Erro na exportaÃ§Ã£o'
         }
       }));
 
       toast({
-        title: "Erro na exportação",
+        title: "Erro na exportaÃ§Ã£o",
         description: `Falha ao exportar para ${platform}`,
         variant: "destructive"
       });
@@ -164,10 +165,10 @@ export function ExportDialog({ children, trackId, trackTitle }: ExportDialogProp
             <div className="text-center">
               <Crown className="h-12 w-12 text-amber-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-2">
-                Exportação PRO
+                ExportaÃ§Ã£o PRO
               </h3>
               <p className="text-muted-foreground mb-4">
-                Exporte suas músicas para Dropbox, Spotify e outras plataformas
+                Exporte suas mÃºsicas para Dropbox, Spotify e outras plataformas
               </p>
               <Button variant="default" className="bg-gradient-to-r from-amber-500 to-orange-500">
                 <Crown className="h-4 w-4 mr-2" />
@@ -178,7 +179,7 @@ export function ExportDialog({ children, trackId, trackTitle }: ExportDialogProp
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Escolha as plataformas para exportar sua música:
+              Escolha as plataformas para exportar sua mÃºsica:
             </p>
 
             <div className="space-y-3">
@@ -246,7 +247,7 @@ export function ExportDialog({ children, trackId, trackTitle }: ExportDialogProp
                     {status.status === 'success' && (
                       <div className="mt-2">
                         <Badge variant="outline" className="text-green-600 border-green-600/30">
-                          ✅ Exportado com sucesso
+                          âœ… Exportado com sucesso
                         </Badge>
                       </div>
                     )}
@@ -254,7 +255,7 @@ export function ExportDialog({ children, trackId, trackTitle }: ExportDialogProp
                     {status.status === 'error' && (
                       <div className="mt-2">
                         <Badge variant="outline" className="text-red-600 border-red-600/30">
-                          ❌ {status.error || 'Erro na exportação'}
+                          âŒ {status.error || 'Erro na exportaÃ§Ã£o'}
                         </Badge>
                       </div>
                     )}
@@ -265,7 +266,7 @@ export function ExportDialog({ children, trackId, trackTitle }: ExportDialogProp
 
             <div className="border-t border-glass-border pt-4">
               <p className="text-xs text-muted-foreground text-center">
-                💡 Dica: Conecte suas contas nas configurações para exportação mais rápida
+                ðŸ’¡ Dica: Conecte suas contas nas configuraÃ§Ãµes para exportaÃ§Ã£o mais rÃ¡pida
               </p>
             </div>
           </div>

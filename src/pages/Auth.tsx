@@ -1,3 +1,4 @@
+import * as React from 'react';
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -85,7 +86,7 @@ export default function Auth({ onBack }: AuthProps) {
               />
             </div>
             <p className="text-muted-foreground">
-              Sua jornada musical começa aqui
+              Sua jornada musical comeÃ§a aqui
             </p>
           </div>
 
@@ -125,7 +126,7 @@ export default function Auth({ onBack }: AuthProps) {
                       <Input
                         id="signin-password"
                         type="password"
-                        placeholder="••••••••"
+                        placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10"
@@ -191,7 +192,7 @@ export default function Auth({ onBack }: AuthProps) {
                       <Input
                         id="signup-password"
                         type="password"
-                        placeholder="••••••••"
+                        placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10"
@@ -215,13 +216,13 @@ export default function Auth({ onBack }: AuthProps) {
 
             <div className="mt-6 pt-6 border-t border-glass-border">
               <p className="text-xs text-muted-foreground text-center">
-                Ao continuar, você concorda com nossos{' '}
+                Ao continuar, vocÃª concorda com nossos{' '}
                 <a href="#" className="text-primary hover:underline">
                   Termos de Uso
                 </a>{' '}
                 e{' '}
                 <a href="#" className="text-primary hover:underline">
-                  Política de Privacidade
+                  PolÃ­tica de Privacidade
                 </a>
               </p>
             </div>

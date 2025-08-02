@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -42,8 +43,8 @@ export function MarketplaceUploadDialog({ children, onSuccess }: MarketplaceUplo
 
     if (!selectedFile.type.startsWith('audio/')) {
       toast({
-        title: "Arquivo inválido",
-        description: "Por favor, selecione um arquivo de áudio",
+        title: "Arquivo invÃ¡lido",
+        description: "Por favor, selecione um arquivo de Ã¡udio",
         variant: "destructive"
       });
       return;
@@ -78,8 +79,8 @@ export function MarketplaceUploadDialog({ children, onSuccess }: MarketplaceUplo
     
     if (!canUseMarketplace()) {
       toast({
-        title: "Upgrade necessário",
-        description: "Marketplace disponível apenas para usuários PRO e EXPERT",
+        title: "Upgrade necessÃ¡rio",
+        description: "Marketplace disponÃ­vel apenas para usuÃ¡rios PRO e EXPERT",
         variant: "destructive"
       });
       return;
@@ -87,8 +88,8 @@ export function MarketplaceUploadDialog({ children, onSuccess }: MarketplaceUplo
 
     if (!file || !formData.title || !formData.price) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Preencha título, arquivo e preço",
+        title: "Campos obrigatÃ³rios",
+        description: "Preencha tÃ­tulo, arquivo e preÃ§o",
         variant: "destructive"
       });
       return;
@@ -125,8 +126,8 @@ export function MarketplaceUploadDialog({ children, onSuccess }: MarketplaceUplo
       if (itemError) throw itemError;
 
       toast({
-        title: "🛒 Item publicado no Marketplace!",
-        description: `"${formData.title}" está disponível para venda`,
+        title: "ðŸ›’ Item publicado no Marketplace!",
+        description: `"${formData.title}" estÃ¡ disponÃ­vel para venda`,
       });
 
       // Reset form
@@ -175,7 +176,7 @@ export function MarketplaceUploadDialog({ children, onSuccess }: MarketplaceUplo
                 Marketplace Exclusivo
               </h3>
               <p className="text-muted-foreground mb-4">
-                O Marketplace está disponível apenas para usuários PRO e EXPERT
+                O Marketplace estÃ¡ disponÃ­vel apenas para usuÃ¡rios PRO e EXPERT
               </p>
               <Button variant="default" className="bg-gradient-to-r from-amber-500 to-orange-500">
                 <Crown className="h-4 w-4 mr-2" />
@@ -190,17 +191,17 @@ export function MarketplaceUploadDialog({ children, onSuccess }: MarketplaceUplo
               <div className="flex items-center gap-2 mb-2">
                 {isExpert ? <Crown className="h-4 w-4 text-yellow-500" /> : <Star className="h-4 w-4 text-blue-500" />}
                 <span className="text-sm font-medium">
-                  {isExpert ? 'Expert' : 'PRO'} - Comissão: {getCommissionRate()}%
+                  {isExpert ? 'Expert' : 'PRO'} - ComissÃ£o: {getCommissionRate()}%
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">
-                Você recebe {100 - getCommissionRate()}% do valor de cada venda
+                VocÃª recebe {100 - getCommissionRate()}% do valor de cada venda
               </p>
             </Card>
 
             {/* File Upload */}
             <div className="space-y-2">
-              <Label htmlFor="file">Arquivo de Áudio *</Label>
+              <Label htmlFor="file">Arquivo de Ãudio *</Label>
               <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
                 <input
                   id="file"
@@ -224,7 +225,7 @@ export function MarketplaceUploadDialog({ children, onSuccess }: MarketplaceUplo
             {/* Basic Info */}
             <div className="space-y-3">
               <div className="space-y-2">
-                <Label htmlFor="title">Título *</Label>
+                <Label htmlFor="title">TÃ­tulo *</Label>
                 <Input
                   id="title"
                   value={formData.title}
@@ -235,7 +236,7 @@ export function MarketplaceUploadDialog({ children, onSuccess }: MarketplaceUplo
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Descrição</Label>
+                <Label htmlFor="description">DescriÃ§Ã£o</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
@@ -263,7 +264,7 @@ export function MarketplaceUploadDialog({ children, onSuccess }: MarketplaceUplo
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="price">Preço (R$) *</Label>
+                <Label htmlFor="price">PreÃ§o (R$) *</Label>
                 <Input
                   id="price"
                   type="number"
@@ -279,14 +280,14 @@ export function MarketplaceUploadDialog({ children, onSuccess }: MarketplaceUplo
 
             {/* License Type */}
             <div className="space-y-2">
-              <Label htmlFor="license">Tipo de Licença</Label>
+              <Label htmlFor="license">Tipo de LicenÃ§a</Label>
               <Select value={formData.license_type} onValueChange={(value: any) => setFormData(prev => ({ ...prev, license_type: value }))}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="exclusive">Exclusiva</SelectItem>
-                  <SelectItem value="non_exclusive">Não Exclusiva</SelectItem>
+                  <SelectItem value="non_exclusive">NÃ£o Exclusiva</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -315,7 +316,7 @@ export function MarketplaceUploadDialog({ children, onSuccess }: MarketplaceUplo
                         onClick={() => removeTag(tag)}
                         className="ml-1 hover:text-destructive"
                       >
-                        ×
+                        Ã—
                       </button>
                     </Badge>
                   ))}
