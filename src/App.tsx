@@ -1,9 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } import { useEffect } import { useEffect } from 'react';
+import { registerServiceWorker } from '@/pwa/register-sw';
+import { registerServiceWorker } from '@/pwa/register-sw';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } import { useEffect } import { useEffect } from 'react';
+import { registerServiceWorker } from '@/pwa/register-sw';
+import { registerServiceWorker } from '@/pwa/register-sw';
+import { BrowserRouter, Routes, Route } import { useEffect } import { useEffect } from 'react';
+import { registerServiceWorker } from '@/pwa/register-sw';
+import { registerServiceWorker } from '@/pwa/register-sw';
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { AuthGuard } from "@/components/AuthGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
