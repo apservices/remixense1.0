@@ -1,17 +1,31 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
     <meta name="theme-color" content="#111111" />
-    <title>RemiXense</title>
+    <meta name="description" content="RemiXense - IA musical para DJs, Mixers e Produtores." />
+    <meta name="keywords" content="Remix, IA, Música, DJ, Producer, PWA" />
+    <meta name="author" content="RemiXense Team" />
+
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
+
+    <!-- PWA: iOS & Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="RemiXense" />
+
+    <!-- CSP (Content Security Policy) básica segura -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+
+    <title>RemiXense</title>
   </head>
   <body>
-    <noscript>Voc� precisa habilitar o JavaScript para rodar este app.</noscript>
+    <noscript>Você precisa habilitar o JavaScript para rodar este app.</noscript>
     <div id="root"></div>
   </body>
 </html>
