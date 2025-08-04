@@ -9,6 +9,8 @@ import Trends from "./Trends";
 import Explorer from "./Explorer";
 import Studio from "./Studio";
 import Profile from "./Profile";
+import { SocialFeed } from '@/components/SocialFeed';
+import { MobileCompanion } from '@/components/MobileCompanion';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
@@ -29,6 +31,10 @@ const Index = () => {
         return <Studio />;
       case "profile":
         return <Profile />;
+      case "social":
+        return <div className="p-6"><SocialFeed /></div>;
+      case "mobile":
+        return <div className="p-6"><MobileCompanion /></div>;
       default:
         return <Home />;
     }
