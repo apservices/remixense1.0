@@ -1,4 +1,4 @@
-import { Music, TrendingUp, BarChart3, User, Home, History } from "lucide-react";
+import { Music, TrendingUp, BarChart3, User, Home, History, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 // Using BottomNav instead of MobileNav for consistency
 
@@ -11,8 +11,8 @@ const navItems = [
   { id: "home", label: "Início", icon: Home },
   { id: "vault", label: "Vault", icon: Music },
   { id: "sessions", label: "Sessões", icon: History },
-  { id: "trends", label: "Tendências", icon: TrendingUp },
   { id: "explorer", label: "Explorer", icon: BarChart3 },
+  { id: "studio", label: "Studio", icon: Zap },
   { id: "profile", label: "Perfil", icon: User },
 ];
 

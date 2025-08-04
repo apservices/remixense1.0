@@ -7,6 +7,7 @@ import Vault from "./Vault";
 import Sessions from "./Sessions";
 import Trends from "./Trends";
 import Explorer from "./Explorer";
+import Studio from "./Studio";
 import Profile from "./Profile";
 
 const Index = () => {
@@ -24,6 +25,8 @@ const Index = () => {
         return <Trends />;
       case "explorer":
         return <Explorer />;
+      case "studio":
+        return <Studio />;
       case "profile":
         return <Profile />;
       default:
