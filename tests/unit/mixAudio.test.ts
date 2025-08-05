@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { mixAudioTracks } from '../../src/utils/dualAudio';
 describe('mixAudioTracks', () => {
   it('should return a blob URL string', async () => {
