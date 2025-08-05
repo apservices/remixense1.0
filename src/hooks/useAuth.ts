@@ -15,13 +15,13 @@ type AuthProviderProps = {
 };
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [isAuthenticated] = useState(true); // mock
-  const [isPremium] = useState(true); // mock
+  const [isAuthenticated] = useState(true);
+  const [isPremium] = useState(true);
 
-  return (
-    <AuthContext.Provider value={{ isAuthenticated, isPremium }}>
-      {children}
-    </AuthContext.Provider>
+  return React.createElement(
+    AuthContext.Provider,
+    { value: { isAuthenticated, isPremium } },
+    children
   );
 };
 
