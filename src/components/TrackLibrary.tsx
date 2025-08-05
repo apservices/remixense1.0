@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTracks } from '@/hooks/useTracks';
-import { TrackRow } from './TrackRow';
+import { TrackRow } from '@/components/TrackRow';
 import { useAuth } from '@/hooks/useAuth';
 import { AutoMixPlayer } from './AutoMixPlayer';
 
