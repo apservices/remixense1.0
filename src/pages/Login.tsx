@@ -15,17 +15,17 @@ export default function Login() {
   };
 
   return (
-    <div className=\"max-w-md mx-auto p-4\">
-      <h1 className=\"text-2xl font-bold mb-4\">Login</h1>
-      <form onSubmit={handleSubmit} className=\"space-y-4\">
-        <input type=\"email\" placeholder=\"Email\" value={email}
+    <div className="max-w-md mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Login</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input type="email" placeholder="Email" value={email}
           onChange={e => setEmail(e.target.value)}
-          className=\"border p-2 w-full rounded\" />
-        <input type=\"password\" placeholder=\"Senha\" value={senha}
+          className="border p-2 w-full rounded" />
+        <input type="password" placeholder="Senha" value={senha}
           onChange={e => setSenha(e.target.value)}
-          className=\"border p-2 w-full rounded\" />
-        {error && <p className=\"text-red-500\">{error}</p>}
-        <button type=\"submit\" className=\"bg-blue-600 text-white py-2 px-4 rounded\">
+          className="border p-2 w-full rounded" />
+        {error && <p className="text-red-500">{error}</p>}
+        <button type="submit" className="bg-blue-600 text-white py-2 px-4 rounded">
           Entrar
         </button>
       </form>
