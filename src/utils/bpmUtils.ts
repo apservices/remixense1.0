@@ -6,6 +6,6 @@ import detector from 'web-audio-beat-detector';
 export async function analyzeBpmFromWav(filePath: string): Promise<number> {
   const buffer = fs.readFileSync(path.resolve(filePath));
   const decoded = await wavDecoder.decode(buffer);
-  const bpm = await detect(decoded);
+  const bpm = await detector(decoded);
   return bpm;
 }
