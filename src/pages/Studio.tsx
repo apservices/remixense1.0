@@ -4,8 +4,9 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdvancedTrackAnalysis } from '@/components/AdvancedTrackAnalysis';
-import { DualPlayer } from '@/components/DualPlayer';
+import DualPlayer from '@/components/DualPlayer';
 import { SmartMixSuggestions } from '@/components/SmartMixSuggestions';
+import TrackLibrary from '@/components/TrackLibrary';
 import { 
   Headphones, 
   Brain, 
@@ -19,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 export default function Studio() {
-  const { tracks, loading } = useTracks();
+  const { tracks, addTrack } = useTracks();
   const [selectedTrackForAnalysis, setSelectedTrackForAnalysis] = useState<string | null>(null);
   const [leftDeckTrack, setLeftDeckTrack] = useState<string | null>(null);
   const [rightDeckTrack, setRightDeckTrack] = useState<string | null>(null);
@@ -27,16 +28,17 @@ export default function Studio() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('analysis');
 
-  const filteredTracks = tracks.filter(track =>
-    track.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    track.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    track.genre?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filtros seguem normais
+  const filteredTracks = Array.isArray(tracks) ? tracks.filter(track =>
+    (track?.title || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (track?.artist || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (track?.genre || "").toLowerCase().includes(searchQuery.toLowerCase())
+  ) : [];
 
-  const selectedTrack = tracks.find(t => t.id === selectedTrackForAnalysis);
-  const leftTrack = tracks.find(t => t.id === leftDeckTrack);
-  const rightTrack = tracks.find(t => t.id === rightDeckTrack);
-  const mixTrack = tracks.find(t => t.id === currentMixTrack);
+  const selectedTrack = Array.isArray(tracks) ? tracks.find(t => t.id === selectedTrackForAnalysis) : null;
+  const leftTrack = Array.isArray(tracks) ? tracks.find(t => t.id === leftDeckTrack) : null;
+  const rightTrack = Array.isArray(tracks) ? tracks.find(t => t.id === rightDeckTrack) : null;
+  const mixTrack = Array.isArray(tracks) ? tracks.find(t => t.id === currentMixTrack) : null;
 
   const handleTrackSelect = (trackId: string, context: 'analysis' | 'left' | 'right' | 'mix') => {
     switch (context) {
@@ -60,7 +62,6 @@ export default function Studio() {
   };
 
   const handleDeckSelect = (side: 'left' | 'right') => {
-    // For now, just select the first available track
     if (filteredTracks.length > 0) {
       if (side === 'left') {
         setLeftDeckTrack(filteredTracks[0].id);
@@ -69,22 +70,6 @@ export default function Studio() {
       }
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background pb-20 flex items-center justify-center">
-        <div className="glass border-glass-border rounded-lg p-8 animate-pulse">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-primary/20 rounded-full animate-glow" />
-            <div className="space-y-2">
-              <div className="h-4 bg-primary/20 rounded w-32" />
-              <div className="h-3 bg-muted rounded w-24" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -111,6 +96,7 @@ export default function Studio() {
                 Biblioteca ({tracks.length})
               </h3>
               
+              {/* Campo de busca */}
               <div className="relative mb-4">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -121,75 +107,12 @@ export default function Studio() {
                 />
               </div>
 
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {filteredTracks.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Music className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">
-                      {searchQuery ? 'Nenhum track encontrado' : 'Nenhum track na biblioteca'}
-                    </p>
-                  </div>
-                ) : (
-                  filteredTracks.map((track) => (
-                    <div key={track.id} className="group">
-                      <div 
-                        className={cn(
-                          "p-3 rounded-lg border cursor-pointer transition-all hover:bg-primary/5",
-                          selectedTrackForAnalysis === track.id 
-                            ? "bg-primary/10 border-primary/30"
-                            : "bg-background/50 border-glass-border"
-                        )}
-                      >
-                        <div className="space-y-2">
-                          <div>
-                            <h4 className="font-medium text-foreground text-sm truncate">
-                              {track.title}
-                            </h4>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {track.artist}
-                            </p>
-                          </div>
-                          
-                          <div className="flex items-center gap-1 flex-wrap">
-                            {track.bpm && (
-                              <Badge variant="outline" className="text-xs text-neon-green border-neon-green/30">
-                                {track.bpm}
-                              </Badge>
-                            )}
-                            {track.key_signature && (
-                              <Badge variant="outline" className="text-xs text-neon-blue border-neon-blue/30">
-                                {track.key_signature}
-                              </Badge>
-                            )}
-                          </div>
-                          
-                          {/* Quick Action Buttons */}
-                          <div className="grid grid-cols-2 gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs h-7"
-                              onClick={() => handleTrackSelect(track.id, 'analysis')}
-                            >
-                              <BarChart3 className="h-3 w-3 mr-1" />
-                              Analisar
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs h-7"
-                              onClick={() => handleTrackSelect(track.id, 'mix')}
-                            >
-                              <Brain className="h-3 w-3 mr-1" />
-                              Sugerir
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
+              {/* TrackLibrary centralizado */}
+              <TrackLibrary
+                tracks={filteredTracks}
+                addTrack={addTrack}
+                onSelect={(id) => handleTrackSelect(id, "analysis")}
+              />
             </Card>
           </div>
 
@@ -251,7 +174,6 @@ export default function Studio() {
                   onSelectTrack={(track) => handleTrackSelect(track.id, 'analysis')}
                   onAddToMix={(suggestion) => {
                     console.log('Adding to mix:', suggestion);
-                    // Here you would handle adding to mix queue
                   }}
                 />
               </TabsContent>
