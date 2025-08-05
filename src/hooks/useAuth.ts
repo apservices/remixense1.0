@@ -1,3 +1,28 @@
-export const useAuth = () => ({
-  user: { id: 'user123', name: 'Thiago', isPremium: true }
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+
+type AuthContextType = {
+  isAuthenticated: boolean;
+  isPremium: boolean;
+};
+
+const AuthContext = createContext<AuthContextType>({
+  isAuthenticated: false,
+  isPremium: false,
 });
+
+type AuthProviderProps = {
+  children: ReactNode;
+};
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
+  const [isAuthenticated] = useState(true); // mock
+  const [isPremium] = useState(true); // mock
+
+  return (
+    <AuthContext.Provider value={{ isAuthenticated, isPremium }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => useContext(AuthContext);
