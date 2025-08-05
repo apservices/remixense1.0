@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import { AuthProvider } from './hooks/useAuth';
 import ProtectedRoutes from './routes/ProtectedRoutes';
 import Dashboard from './pages/Dashboard';
+import Studio from './pages/Studio';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route element={<ProtectedRoutes />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/studio" element={<Studio />} />
           </Route>
         </Routes>
       </BrowserRouter>
