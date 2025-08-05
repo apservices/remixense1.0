@@ -1,17 +1,16 @@
-import { useState, useEffect } from 'react';
-import { Track } from '../types';
+// ... Importe ou defina Track interface
+export interface Track { id: string; title: string; url: string; /* outras props */ }
 
+// Mock ou fetch das faixas
+import { useState, useEffect } from 'react';
 export function useTracks() {
   const [tracks, setTracks] = useState<Track[]>([]);
-  const [filterMode, setFilterMode] = useState<'single' | 'dual'>('single');
-
   useEffect(() => {
-    // carregar tracks se necessário
+    // substitua com fetch real se precisar
+    setTracks([
+      { id: '1', title: 'Track A', url: '/audio/trackA.mp3' },
+      { id: '2', title: 'Track B', url: '/audio/trackB.mp3' },
+    ]);
   }, []);
-
-  const filtered = tracks.filter(track =>
-    filterMode === 'dual' ? track.isDual === true : track.isDual !== true
-  );
-
-  return { tracks: filtered, setFilterMode };
+  return { tracks };
 }
