@@ -1,13 +1,16 @@
 import React from 'react';
-import { useTracks } from '../hooks/useTracks';
+import { useTracks } from '@/hooks/useTracks';
 import { TrackRow } from './TrackRow';
+import { useAuth } from '@/hooks/useAuth';
+import { AutoMixPlayer } from './AutoMixPlayer';
 
 export const TrackLibrary: React.FC = () => {
   const { tracks, setFilterMode } = useTracks();
+  const { user } = useAuth();
 
   return (
     <div>
-      <div className='controls'>
+      <div className='controls flex gap-2 mb-4'>
         <button onClick={() => setFilterMode('single')}>Single</button>
         <button onClick={() => setFilterMode('dual')}>Dual</button>
       </div>
@@ -16,6 +19,7 @@ export const TrackLibrary: React.FC = () => {
       ) : (
         <div>Nenhuma faixa encontrada para o modo selecionado.</div>
       )}
+      {user.isPremium && tracks.length > 0 && <AutoMixPlayer />}
     </div>
   );
 };
