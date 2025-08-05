@@ -1,29 +1,28 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Studio from './pages/Studio';
 import Tracks from './pages/Tracks';
 import ProtectedRoutes from './routes/ProtectedRoutes';
-import { AuthProvider } from './hooks/useAuth';
 import Header from './components/Header';
+import { AuthProvider } from './hooks/useAuth';
 
-function App() {
+export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <Router>
         <Header />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route element={<ProtectedRoutes />}>
+            <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/studio" element={<Studio />} />
             <Route path="/tracks" element={<Tracks />} />
           </Route>
         </Routes>
-      </BrowserRouter>
+      </Router>
     </AuthProvider>
   );
 }
-
-export default App;
