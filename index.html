@@ -1,28 +1,21 @@
-
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang='pt-BR'>
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" href="/lovable-uploads/c1c954f5-c309-4801-ad61-f7b8a413082e.png" type="image/png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RemiXense - Professional DJ Platform</title>
-    <meta name="description" content="Professional DJ platform for music creators - Upload, analyze, mix, and perform with AI-powered tools" />
-    <meta name="theme-color" content="#0f172a" />
-    
-    <!-- Security Headers -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' https://xmjwutsmvshcfnowarnf.supabase.co https://api.dropboxapi.com https://content.dropboxapi.com https://api.soundcloud.com https://accounts.spotify.com https://api.spotify.com; font-src 'self' data:; worker-src 'self' blob:;">
-    <meta http-equiv="X-Frame-Options" content="DENY">
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
-    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=()">
-    
-    <!-- PWA Icons -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/lovable-uploads/c1c954f5-c309-4801-ad61-f7b8a413082e.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/lovable-uploads/c1c954f5-c309-4801-ad61-f7b8a413082e.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/lovable-uploads/c1c954f5-c309-4801-ad61-f7b8a413082e.png">
+    <meta charset='UTF-8' />
+    <meta name='theme-color' content='#0f172a' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <link rel='manifest' href='/manifest.webmanifest' />
+    <link rel='icon' type='image/png' href='/icons/icon-192.png' />
+    <link rel='stylesheet' href='/fonts/fonts.css' />
+    <title>Remixense</title>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <div id='root'></div>
+    <script type='module' src='/src/main.tsx'></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js');
+      }
+    </script>
   </body>
 </html>
