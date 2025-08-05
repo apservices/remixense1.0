@@ -10,9 +10,9 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path=\"/login\" element={<Login />} />
+          <Route path="/login" element={<Login />} />
           <Route element={<ProtectedRoutes />}>
-            <Route path=\"/dashboard\" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
           </Route>
         </Routes>
       </BrowserRouter>
