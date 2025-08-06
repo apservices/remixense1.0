@@ -15,20 +15,30 @@ export default function Login() {
   };
 
   return (
-    <div className="max-w-md mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Login</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input type="email" placeholder="Email" value={email}
-          onChange={e => setEmail(e.target.value)}
-          className="border p-2 w-full rounded" />
-        <input type="password" placeholder="Senha" value={senha}
-          onChange={e => setSenha(e.target.value)}
-          className="border p-2 w-full rounded" />
-        {error && <p className="text-red-500">{error}</p>}
-        <button type="submit" className="bg-blue-600 text-white py-2 px-4 rounded">
-          Entrar
-        </button>
-      </form>
+    <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+      <div className="bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md">
+        <h1 className="text-3xl font-bold mb-6 text-center">Login</h1>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            className="w-full p-3 rounded bg-gray-700 text-white placeholder-gray-400"
+          />
+          <input
+            type="password"
+            placeholder="Senha"
+            value={senha}
+            onChange={e => setSenha(e.target.value)}
+            className="w-full p-3 rounded bg-gray-700 text-white placeholder-gray-400"
+          />
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          <button type="submit" className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded text-white font-semibold">
+            Entrar
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
