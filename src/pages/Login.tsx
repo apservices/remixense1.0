@@ -15,18 +15,29 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-700 text-white">
-      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-sm w-full text-black">
-        <h1 className="text-2xl font-bold mb-6 text-center">Entrar no Remixense</h1>
+    <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">
+      <div className="bg-slate-800 rounded-xl p-8 max-w-sm w-full shadow-xl">
+        <h1 className="text-2xl font-bold mb-6 text-center">?? Remixense</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input type="email" placeholder="Email" value={email}
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
             onChange={e => setEmail(e.target.value)}
-            className="border p-2 w-full rounded" />
-          <input type="password" placeholder="Senha" value={senha}
+            className="w-full p-2 rounded bg-slate-700 text-white placeholder-slate-400"
+          />
+          <input
+            type="password"
+            placeholder="Senha"
+            value={senha}
             onChange={e => setSenha(e.target.value)}
-            className="border p-2 w-full rounded" />
-          {error && <p className="text-red-600 text-sm">{error}</p>}
-          <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">
+            className="w-full p-2 rounded bg-slate-700 text-white placeholder-slate-400"
+          />
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+          <button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
+          >
             Entrar
           </button>
         </form>
