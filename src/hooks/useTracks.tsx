@@ -1,179 +1,99 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect, useCallback } from "react";
+import bpmDetective from "bpm-detective";
+import { Track } from "@/types";
 
-interface Track {
-  id: string;
-  user_id: string;
-  title: string;
-  artist: string;
-  duration: string;
-  file_path: string | null;
-  file_url: string | null;
-  type: 'track' | 'remix' | 'sample';
-  bpm: number | null;
-  genre: string | null;
-  key_signature: string | null;
-  energy_level: number | null;
-  tags: string[] | null;
-  is_liked: boolean;
-  is_featured: boolean;
-  play_count: number;
-  created_at: string;
-  updated_at: string;
+type FilterMode = "single" | "dual";
+
+interface UseTracksReturn {
+  tracks: Track[];
+  loading: boolean;
+  refetch: () => Promise<void>;
+  setFilterMode: (mode: FilterMode) => void;
+  toggleLike: (id: string) => Promise<void>;
+  addTrack: (file: File) => Promise<void>;
+  filterMode: FilterMode;
 }
 
-export function useTracks() {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [loading, setLoading] = useState(true);
+export function useTracks(): UseTracksReturn {
+  const [tracks, setTracks] = useState<Track[]>(() => {
+    try {
+      const stored = localStorage.getItem("remixense_tracks");
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [] as Track[];
+    }
+  });
+  const [loading, setLoading] = useState(false);
+  const [filterMode, setFilterMode] = useState<FilterMode>("single");
 
   useEffect(() => {
-    if (user) {
-      fetchTracks();
-    } else {
-      setTracks([]);
-      setLoading(false);
-    }
-  }, [user]);
+    localStorage.setItem("remixense_tracks", JSON.stringify(tracks));
+  }, [tracks]);
 
-  const fetchTracks = async () => {
-    if (!user) return;
+  const refetch = useCallback(async () => {
+    return Promise.resolve();
+  }, []);
 
-    try {
-      const { data, error } = await supabase
-        .from('tracks')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+  const toggleLike = useCallback(async (id: string) => {
+    setTracks((prev) => prev.map(t => t.id === id ? { ...t, is_liked: !t.is_liked } : t));
+    return Promise.resolve();
+  }, []);
 
-      if (error) {
-        console.error('Error fetching tracks:', error);
-        toast({
-          title: "Erro ao carregar tracks",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        setTracks((data || []) as Track[]);
-      }
-    } catch (error) {
-      console.error('Error fetching tracks:', error);
-    } finally {
-      setLoading(false);
-    }
+  const addTrack = async (file: File) => {
+    const id = file.name + "-" + Date.now();
+    const base: Track = {
+      id,
+      name: file.name,
+      title: file.name,
+      artist: "Unknown",
+      duration: "00:00",
+      bpm: null,
+      key_signature: null,
+      genre: null,
+      energy_level: null,
+      type: "track",
+      is_liked: false,
+      created_at: new Date().toISOString(),
+      status: "pending",
+    };
+
+    setTracks((prev) => [...prev, base]);
+    analyzeTrackAsync(file, id);
+    return Promise.resolve();
   };
 
-  const addTrack = async (trackData: Omit<Track, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'is_liked' | 'is_featured' | 'play_count'>) => {
-    if (!user) return { error: 'No user found' };
-
+  const analyzeTrackAsync = async (file: File, id: string) => {
+    setTracks((prev) => prev.map((t) => (t.id === id ? { ...t, status: "processing" } : t)));
     try {
-      const { data, error } = await supabase
-        .from('tracks')
-        .insert([{
-          ...trackData,
-          user_id: user.id,
-        }])
-        .select()
-        .single();
-
-      if (error) {
-        toast({
-          title: "Erro ao adicionar track",
-          description: error.message,
-          variant: "destructive",
-        });
-        return { error };
-      } else {
-        setTracks(prev => [data as Track, ...prev]);
-        toast({
-          title: "Track adicionado! 🎵",
-          description: "Nova música foi adicionada ao seu vault.",
-        });
-        return { data };
-      }
-    } catch (error) {
-      console.error('Error adding track:', error);
-      return { error };
+      const arrayBuffer = await file.arrayBuffer();
+      window.audioCtx = window.audioCtx || new (window.AudioContext || (window as any).webkitAudioContext)();
+      window.audioCtx.decodeAudioData(arrayBuffer, (audioBuffer) => {
+        const channelData = audioBuffer.getChannelData(0);
+        const bpm = Math.round(bpmDetective(channelData));
+        const seconds = Math.round(audioBuffer.duration);
+        const duration = `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, "0")}`;
+        setTracks((prev) =>
+          prev.map((t) =>
+            t.id === id ? { ...t, bpm, duration, status: "ready" } : t
+          )
+        );
+      });
+    } catch (e) {
+      setTracks((prev) =>
+        prev.map((t) =>
+          t.id === id ? { ...t, status: "error", errorMsg: String(e) } : t
+        )
+      );
     }
-  };
-
-  const updateTrack = async (id: string, updates: Partial<Omit<Track, 'id' | 'user_id' | 'created_at' | 'updated_at'>>) => {
-    if (!user) return { error: 'No user found' };
-
-    try {
-      const { data, error } = await supabase
-        .from('tracks')
-        .update(updates)
-        .eq('id', id)
-        .eq('user_id', user.id)
-        .select()
-        .single();
-
-      if (error) {
-        toast({
-          title: "Erro ao atualizar track",
-          description: error.message,
-          variant: "destructive",
-        });
-        return { error };
-      } else {
-        setTracks(prev => prev.map(track => track.id === id ? data as Track : track));
-        return { data };
-      }
-    } catch (error) {
-      console.error('Error updating track:', error);
-      return { error };
-    }
-  };
-
-  const deleteTrack = async (id: string) => {
-    if (!user) return { error: 'No user found' };
-
-    try {
-      const { error } = await supabase
-        .from('tracks')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
-
-      if (error) {
-        toast({
-          title: "Erro ao deletar track",
-          description: error.message,
-          variant: "destructive",
-        });
-        return { error };
-      } else {
-        setTracks(prev => prev.filter(track => track.id !== id));
-        toast({
-          title: "Track removido",
-          description: "A música foi removida do seu vault.",
-        });
-        return { success: true };
-      }
-    } catch (error) {
-      console.error('Error deleting track:', error);
-      return { error };
-    }
-  };
-
-  const toggleLike = async (id: string) => {
-    const track = tracks.find(t => t.id === id);
-    if (!track) return;
-
-    await updateTrack(id, { is_liked: !track.is_liked });
   };
 
   return {
     tracks,
     loading,
-    addTrack,
-    updateTrack,
-    deleteTrack,
+    refetch,
+    setFilterMode,
     toggleLike,
-    refetch: fetchTracks,
+    addTrack,
+    filterMode,
   };
 }

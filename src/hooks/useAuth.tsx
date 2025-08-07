@@ -7,9 +7,12 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  isAuthenticated: boolean;
+  email: string | null;
   signUp: (email: string, password: string, djName?: string) => Promise<{ error?: any }>;
   signIn: (email: string, password: string) => Promise<{ error?: any }>;
   signOut: () => Promise<void>;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -136,9 +139,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       user,
       session,
       loading,
+      isAuthenticated: !!user,
+      email: user?.email ?? null,
       signUp,
       signIn,
       signOut,
+      logout: signOut,
     }}>
       {children}
     </AuthContext.Provider>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Track } from '../types';
+import { Track } from '@/types';
 
 export function useStudio(tracks: Track[]) {
   const [dualSelection, setDualSelection] = useState<[string?, string?]>([undefined, undefined]);
