@@ -1,4 +1,4 @@
-﻿export interface TrackMetadata {
+export interface TrackMetadata {
   title: string;
   artist: string;
   bpm: number;
@@ -7,8 +7,7 @@
 }
 
 export function publishMetadata(meta: TrackMetadata): string[] {
-  return meta.platforms.map(platform => {
-    // Simula envio para cada plataforma
-    return \`Enviado para \${platform.toUpperCase()}: \${meta.title} - \${meta.artist} [\${meta.bpm} BPM / \${meta.key}]\`;
+  return meta.platforms.map((platform) => {
+    return `Enviado para ${platform.toUpperCase()}: ${meta.title} - ${meta.artist} [${meta.bpm} BPM / ${meta.key}]`;
   });
 }
