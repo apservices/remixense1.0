@@ -3,10 +3,12 @@ import { useTracks } from '@/hooks/useTracks';
 import { TrackRow } from '@/components/TrackRow';
 import { useAuth } from '@/hooks/useAuth';
 import { AutoMixPlayer } from './AutoMixPlayer';
+import { useSubscription } from '@/hooks/useSubscription';
 
 export const TrackLibrary: React.FC = () => {
   const { tracks, setFilterMode } = useTracks();
   const { user } = useAuth();
+  const { isPro, isExpert } = useSubscription();
 
   return (
     <div>
@@ -19,7 +21,7 @@ export const TrackLibrary: React.FC = () => {
       ) : (
         <div>Nenhuma faixa encontrada para o modo selecionado.</div>
       )}
-      {user.isPremium && tracks.length > 0 && <AutoMixPlayer />}
+      {(isPro || isExpert) && tracks.length > 0 && <AutoMixPlayer />}
     </div>
   );
 };

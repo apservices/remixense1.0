@@ -15,6 +15,6 @@ export async function mixAudioTracks(url1: string, url2: string, volume1 = 1, vo
   s2.connect(g2).connect(output);
   s1.start(); s2.start();
 
-  const audioUrl = URL.createObjectURL(output.stream);
+  const audioUrl = URL.createObjectURL(output.stream as any);
   return audioUrl;
 }
