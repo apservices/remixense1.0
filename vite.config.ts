@@ -8,11 +8,12 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    allowedHosts: true, // Permite qualquer host externo (útil para ngrok)
   },
   plugins: [
     react(),
-    mode === 'development' &&
-    componentTagger(),
+    mode === "development" &&
+      componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {
