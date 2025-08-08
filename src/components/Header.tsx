@@ -1,11 +1,17 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Header() {
-  const { isAuthenticated, email, logout } = useAuth();
+  const { isAuthenticated, email, signOut } = useAuth();
+  const navigate = useNavigate();
 
   if (!isAuthenticated) return null;
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <header className="bg-background text-foreground border-b border-border">
@@ -25,7 +31,7 @@ export default function Header() {
         <div className="flex gap-3 items-center">
           <span className="text-xs md:text-sm">{email}</span>
           <button 
-            onClick={logout} 
+            onClick={handleSignOut} 
             className="px-3 py-1 rounded border border-border hover:bg-muted transition-smooth"
             aria-label="Sair da conta"
           >
