@@ -20,6 +20,13 @@ import Marketplace from './pages/Marketplace';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 
+const rrFuture = {
+  v7_startTransition: true,
+  v7_relativeSplatPath: true,
+  v7_fetcherPersist: true,
+  v7_normalizeFormMethod: true,
+} as const;
+
 const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   {
@@ -44,15 +51,14 @@ const router = createBrowserRouter([
       { path: '*', element: <NotFound /> },
     ],
   },
-]);
+], { future: rrFuture as any });
 
 function App() {
-  const futureFlags = { v7_startTransition: true, v7_relativeSplatPath: true } as any;
   return (
     <AuthProvider>
       <RouterProvider 
         router={router} 
-        future={futureFlags}
+        future={rrFuture as any}
       />
     </AuthProvider>
   );
