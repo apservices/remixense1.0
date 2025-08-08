@@ -66,7 +66,7 @@ export default function Home() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-heading-xl text-foreground mb-1">
-                {greeting()}, DJ 👋
+                {greeting()}, RemiXer 👋
               </h1>
               <p className="text-muted-foreground text-sm">
                 {currentTime.toLocaleDateString('pt-BR', { 
