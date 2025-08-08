@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import { AuthProvider } from './hooks/useAuth';
 import ProtectedRoutes from './routes/ProtectedRoutes';
-import Dashboard from './pages/Dashboard';
+import Index from './pages/Index';
 import Studio from './pages/Studio';
 import Tracks from './pages/Tracks';
 
@@ -14,8 +14,8 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route element={<ProtectedRoutes />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/" element={<Index />} />
+            <Route path="/dashboard" element={<Index />} />
             <Route path="/studio" element={<Studio />} />
             <Route path="/tracks" element={<Tracks />} />
           </Route>
