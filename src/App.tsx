@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Login from './pages/Login';
 import { AuthProvider } from './hooks/useAuth';
 import ProtectedRoutes from './routes/ProtectedRoutes';
@@ -20,35 +20,43 @@ import Marketplace from './pages/Marketplace';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 
+const router = createBrowserRouter([
+  { path: '/login', element: <Login /> },
+  {
+    element: <ProtectedRoutes />,
+    children: [
+      { path: '/', element: <Home /> },
+      { path: '/dashboard', element: <Home /> },
+      { path: '/explorer', element: <Explorer /> },
+      { path: '/vault', element: <Vault /> },
+      { path: '/trends', element: <Trends /> },
+      { path: '/pricing', element: <Pricing /> },
+      { path: '/calendar', element: <LaunchCalendar /> },
+      { path: '/feedback', element: <FeedbackRooms /> },
+      { path: '/landing-generator', element: <LandingPageGenerator /> },
+      { path: '/ai-studio', element: <AIStudio /> },
+      { path: '/analytics', element: <RevenueAnalytics /> },
+      { path: '/metadata', element: <MetadataManager /> },
+      { path: '/marketplace', element: <Marketplace /> },
+      { path: '/profile', element: <Profile /> },
+      { path: '/studio', element: <Studio /> },
+      { path: '/tracks', element: <Tracks /> },
+      { path: '*', element: <NotFound /> },
+    ],
+  },
+]);
+
 function App() {
+  const futureFlags = { v7_startTransition: true, v7_relativeSplatPath: true } as any;
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route element={<ProtectedRoutes />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/dashboard" element={<Home />} />
-            <Route path="/explorer" element={<Explorer />} />
-            <Route path="/vault" element={<Vault />} />
-            <Route path="/trends" element={<Trends />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/calendar" element={<LaunchCalendar />} />
-            <Route path="/feedback" element={<FeedbackRooms />} />
-            <Route path="/landing-generator" element={<LandingPageGenerator />} />
-            <Route path="/ai-studio" element={<AIStudio />} />
-            <Route path="/analytics" element={<RevenueAnalytics />} />
-            <Route path="/metadata" element={<MetadataManager />} />
-            <Route path="/marketplace" element={<Marketplace />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/studio" element={<Studio />} />
-            <Route path="/tracks" element={<Tracks />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <RouterProvider 
+        router={router} 
+        future={futureFlags}
+      />
     </AuthProvider>
   );
 }
 
 export default App;
+
