@@ -4,14 +4,15 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
 interface Profile {
-  id: string;
-  user_id: string;
-  dj_name: string | null;
-  bio: string | null;
+  id: string; // equals auth.user.id
+  username: string | null;
+  dj_name?: string | null;
+  bio?: string | null;
   avatar_url: string | null;
-  location: string | null;
-  favorite_genres: string[] | null;
-  social_links: any;
+  location?: string | null;
+  favorite_genres?: string[] | null;
+  social_links?: Record<string, string> | null;
+  subscription_plan?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -35,10 +36,10 @@ export function useProfile() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+const { data, error } = await (supabase as any)
         .from('profiles')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .single();
 
       if (error) {
@@ -49,7 +50,7 @@ export function useProfile() {
           variant: "destructive",
         });
       } else {
-        setProfile(data);
+        setProfile(data as Profile);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -58,14 +59,14 @@ export function useProfile() {
     }
   };
 
-  const updateProfile = async (updates: Partial<Omit<Profile, 'id' | 'user_id' | 'created_at' | 'updated_at'>>) => {
+  const updateProfile = async (updates: Partial<Omit<Profile, 'id' | 'created_at' | 'updated_at'>>) => {
     if (!user || !profile) return { error: 'No user or profile found' };
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('profiles')
         .update(updates)
-        .eq('user_id', user.id)
+.eq('id', user.id)
         .select()
         .single();
 
@@ -77,7 +78,7 @@ export function useProfile() {
         });
         return { error };
       } else {
-        setProfile(data);
+        setProfile(data as Profile);
         toast({
           title: "Perfil atualizado! ✨",
           description: "Suas alterações foram salvas.",
