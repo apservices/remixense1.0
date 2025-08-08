@@ -258,7 +258,7 @@ export function QuickMixEngine({ onClose }: QuickMixEngineProps) {
                 variant="secondary"
               >
                 <Save className="h-4 w-4 mr-2" />
-                Salvar como Sessão DJ
+                Salvar como Sessão RemiXer
               </Button>
             </div>
           </CardContent>

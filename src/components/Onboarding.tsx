@@ -55,7 +55,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
     },
     {
       id: 'dj',
-      title: 'DJ',
+      title: 'RemiXer',
       description: 'Artista profissional de performances',
       icon: Users,
       color: 'violet'

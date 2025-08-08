@@ -46,7 +46,7 @@ const PricingPage = () => {
         'Exportação para Dropbox, Spotify, SoundCloud',
         'Acesso limitado à comunidade',
         'Quick Mix com IA',
-        'Sessões DJ avançadas'
+        'Sessões RemiXer avançadas'
       ],
       limitations: [
         'Retenção de 30% nas monetizações'
@@ -67,7 +67,7 @@ const PricingPage = () => {
         '10GB de armazenamento premium',
         'Acesso completo à comunidade',
         'Colaborações pagas e gratuitas',
-        'Sessões DJ IA ao vivo',
+        'Sessões RemiXer IA ao vivo',
         'Preferências de destaque',
         'Marketplace premium',
         'Suporte prioritário'
