@@ -1,4 +1,3 @@
-import * as React from 'react';
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -126,7 +125,7 @@ export default function Auth({ onBack }: AuthProps) {
                       <Input
                         id="signin-password"
                         type="password"
-                        placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                        placeholder="senha"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10"
@@ -192,7 +191,7 @@ export default function Auth({ onBack }: AuthProps) {
                       <Input
                         id="signup-password"
                         type="password"
-                        placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                        placeholder="senha"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10"
