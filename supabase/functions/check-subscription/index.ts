@@ -26,9 +26,6 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
 
@@ -38,6 +35,36 @@ serve(async (req) => {
     const user = userData.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
+
+    // Stripe key (optional in dev). If missing, return FREE plan gracefully (Sprint 1 mock).
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") || Deno.env.get("STRIPE_SECRET") || Deno.env.get("STRIPE_API_KEY");
+    if (!stripeKey) {
+      logStep("Stripe key missing - returning FREE plan");
+      try {
+        await supabaseClient.from("subscriptions").upsert({
+          user_id: user.id,
+          email: user.email,
+          plan_type: "free",
+          status: "active",
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' });
+      } catch (_) { /* noop */ }
+
+      return new Response(JSON.stringify({ 
+        plan_type: "free", 
+        status: "active",
+        limits: {
+          max_tracks: 3,
+          max_storage_mb: 100,
+          can_export: false,
+          can_use_community: false,
+          can_use_marketplace: false
+        }
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
