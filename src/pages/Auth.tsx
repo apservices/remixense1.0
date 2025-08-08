@@ -9,13 +9,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { Mail, Lock, User, Music, ArrowLeft } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthProps {
   onBack?: () => void;
 }
 
 export default function Auth({ onBack }: AuthProps) {
-  const { user, loading, signUp, signIn, devLogin } = useAuth();
+  const { user, loading, signIn } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
 
@@ -23,6 +24,7 @@ export default function Auth({ onBack }: AuthProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [djName, setDjName] = useState('');
+  const [inviteToken, setInviteToken] = useState('');
 
   // Redirect if already authenticated
   if (user) {
@@ -41,10 +43,22 @@ export default function Auth({ onBack }: AuthProps) {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    await signUp(email, password, djName);
-    
-    setIsSubmitting(false);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('accept-invite', {
+        body: { email, password, token: inviteToken, dj_name: djName },
+      });
+
+      if (error || (data as any)?.error) {
+        throw new Error((error as any)?.message || (data as any)?.error || 'Convite inválido');
+      }
+
+      await signIn(email, password);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (loading) {
@@ -148,6 +162,24 @@ export default function Auth({ onBack }: AuthProps) {
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
+                    <Label htmlFor="signup-token" className="text-foreground">
+                      Token de Convite
+                    </Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="signup-token"
+                        type="text"
+                        placeholder="Cole seu token de convite"
+                        value={inviteToken}
+                        onChange={(e) => setInviteToken(e.target.value)}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="signup-djname" className="text-foreground">
                       Nome DJ
                     </Label>
@@ -213,15 +245,6 @@ export default function Auth({ onBack }: AuthProps) {
               </TabsContent>
               </Tabs>
 
-              <div className="mt-6">
-                <div className="text-xs text-muted-foreground mb-2">Logins de teste (sem Supabase):</div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <Button variant="secondary" onClick={() => devLogin('testefree@remixense.com','free')}>Free</Button>
-                  <Button variant="secondary" onClick={() => devLogin('testepremium@remixense.com','premium')}>Premium</Button>
-                  <Button variant="secondary" onClick={() => devLogin('testepro@remixense.com','pro')}>Pro</Button>
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">Se o login com email/senha falhar, o Supabase está exigindo CAPTCHA. Posso integrar Turnstile/hCaptcha assim que você me passar a chave do site, ou desative temporariamente o CAPTCHA nas configurações do Supabase.</p>
-              </div>
 
               <div className="mt-6 pt-6 border-t border-glass-border">
                 <p className="text-xs text-muted-foreground text-center">
