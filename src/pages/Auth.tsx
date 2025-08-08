@@ -15,7 +15,7 @@ interface AuthProps {
 }
 
 export default function Auth({ onBack }: AuthProps) {
-  const { user, loading, signUp, signIn } = useAuth();
+  const { user, loading, signUp, signIn, devLogin } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
 
@@ -211,20 +211,25 @@ export default function Auth({ onBack }: AuthProps) {
                   </Button>
                 </form>
               </TabsContent>
-            </Tabs>
+              </Tabs>
 
-            <div className="mt-6 pt-6 border-t border-glass-border">
-              <p className="text-xs text-muted-foreground text-center">
-                Ao continuar, você concorda com nossos{' '}
-                <a href="#" className="text-primary hover:underline">
-                  Termos de Uso
-                </a>{' '}
-                e{' '}
-                <a href="#" className="text-primary hover:underline">
-                  Política de Privacidade
-                </a>
-              </p>
-            </div>
+              <div className="mt-6">
+                <div className="text-xs text-muted-foreground mb-2">Logins de teste (sem Supabase):</div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <Button variant="secondary" onClick={() => devLogin('testefree@remixense.com','free')}>Free</Button>
+                  <Button variant="secondary" onClick={() => devLogin('testepremium@remixense.com','premium')}>Premium</Button>
+                  <Button variant="secondary" onClick={() => devLogin('testepro@remixense.com','pro')}>Pro</Button>
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">Se o login com email/senha falhar, o Supabase está exigindo CAPTCHA. Posso integrar Turnstile/hCaptcha assim que você me passar a chave do site, ou desative temporariamente o CAPTCHA nas configurações do Supabase.</p>
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-glass-border">
+                <p className="text-xs text-muted-foreground text-center">
+                  Ao continuar, você concorda com nossos{' '}
+                  <a href="#" className="text-primary hover:underline">Termos de Uso</a>{' '}e{' '}
+                  <a href="#" className="text-primary hover:underline">Política de Privacidade</a>
+                </p>
+              </div>
           </Card>
         </div>
       </div>
