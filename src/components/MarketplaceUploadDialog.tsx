@@ -40,10 +40,19 @@ export function MarketplaceUploadDialog({ children, onSuccess }: MarketplaceUplo
     const selectedFile = event.target.files?.[0];
     if (!selectedFile) return;
 
+    const MAX_SIZE = 50 * 1024 * 1024; // 50MB para marketplace
     if (!selectedFile.type.startsWith('audio/')) {
       toast({
         title: "Arquivo inválido",
         description: "Por favor, selecione um arquivo de áudio",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (selectedFile.size > MAX_SIZE) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "Limite para marketplace: 50MB",
         variant: "destructive"
       });
       return;
@@ -101,7 +110,7 @@ export function MarketplaceUploadDialog({ children, onSuccess }: MarketplaceUplo
       const fileName = `marketplace/${user?.id}/${Date.now()}-${file.name}`;
       const { error: uploadError } = await supabase.storage
         .from('tracks')
-        .upload(fileName, file);
+        .upload(fileName, file, { contentType: file.type, upsert: false, cacheControl: '3600' });
 
       if (uploadError) throw uploadError;
 

@@ -26,27 +26,34 @@ export function useAudioUpload() {
       setUploading(true);
       setProgress({ loaded: 0, total: file.size, percentage: 0 });
 
+      // Client-side validation: audio type and size limit (100MB)
+      const MAX_SIZE = 100 * 1024 * 1024;
+      if (!file.type.startsWith('audio/')) {
+        throw new Error('Apenas arquivos de áudio são permitidos.');
+      }
+      if (file.size > MAX_SIZE) {
+        throw new Error('Arquivo muito grande. Limite: 100MB');
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Faça login com e-mail e senha para enviar. Logins de teste (Free/Premium/Pro) não permitem upload.');
+      if (!user) throw new Error('Faça login com e-mail e senha para enviar.');
 
       // Create unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${crypto.randomUUID()}.${fileExt}`;
 
-      // Upload file to storage
+      // Upload file to storage (private bucket)
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('audio-files')
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
+          contentType: file.type,
         });
 
       if (uploadError) throw uploadError;
 
-      // Get file URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('audio-files')
-        .getPublicUrl(fileName);
+      // No public URL for private buckets; signed URLs can be generated on demand
 
       // Get audio duration (approximate)
       const audio = new Audio();
@@ -72,7 +79,7 @@ export function useAudioUpload() {
           bpm: metadata.bpm,
           energy_level: metadata.energy_level,
           tags: metadata.tags,
-          file_url: publicUrl,
+          file_url: null,
           file_path: fileName,
           original_filename: file.name,
           file_size: file.size,
