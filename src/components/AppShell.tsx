@@ -1,5 +1,6 @@
 import React, { ReactNode } from "react";
 import Header from "@/components/Header";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 interface AppShellProps {
   children: ReactNode;
@@ -16,6 +17,7 @@ export default function AppShell({ children }: AppShellProps) {
       <main role="main" className="min-h-[calc(100vh-4rem)]">
         {children}
       </main>
+      <PWAInstallPrompt />
     </div>
   );
 }
