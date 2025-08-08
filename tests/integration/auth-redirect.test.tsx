@@ -13,7 +13,6 @@ vi.mock('../../src/hooks/useAuth', () => ({
     signUp: vi.fn(),
     signIn: vi.fn(),
     signOut: vi.fn(),
-    logout: vi.fn(),
   }),
 }));
 
