@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,7 @@ import { useAudioAnalysis } from "@/hooks/useAudioAnalysis";
 import { extractAudioMetadata } from "@/utils/audioMetadata";
 import { Upload, Music, X, Zap, Clock, Brain, Cpu } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
+import { useAuth } from "@/hooks/useAuth";
 interface EnhancedAudioUploadDialogProps {
   children: React.ReactNode;
   onSuccess?: () => void;
@@ -40,6 +40,7 @@ export function EnhancedAudioUploadDialog({ children, onSuccess }: EnhancedAudio
   const { uploadAudio, uploading, progress } = useAudioUpload();
   const { analyzeAudioFile, isAnalyzing } = useAudioAnalysis();
   const { toast } = useToast();
+  const { session } = useAuth();
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -187,7 +188,16 @@ export function EnhancedAudioUploadDialog({ children, onSuccess }: EnhancedAudio
             <Upload className="h-5 w-5" />
             Upload de Áudio
           </DialogTitle>
+          <DialogDescription>
+            Selecione um arquivo de áudio e preencha os detalhes para enviar ao seu vault.
+          </DialogDescription>
         </DialogHeader>
+
+        {!session && (
+          <div className="rounded-md border border-border bg-muted/20 p-3 text-sm text-muted-foreground">
+            Para enviar arquivos, faça login com e-mail e senha. Os botões Free/Premium/Pro são apenas para demo e não permitem upload.
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* File Upload */}
@@ -200,6 +210,7 @@ export function EnhancedAudioUploadDialog({ children, onSuccess }: EnhancedAudio
                 accept="audio/*"
                 onChange={handleFileSelect}
                 className="hidden"
+                disabled={!session}
               />
               <label
                 htmlFor="file"
@@ -431,7 +442,7 @@ export function EnhancedAudioUploadDialog({ children, onSuccess }: EnhancedAudio
           <Button
             type="submit"
             className="w-full"
-            disabled={!file || uploading || analyzing || isAnalyzing}
+            disabled={!session || !file || uploading || analyzing || isAnalyzing}
           >
             {uploading ? "Enviando..." : (analyzing || isAnalyzing) ? "Analisando com IA..." : "Fazer Upload"}
           </Button>

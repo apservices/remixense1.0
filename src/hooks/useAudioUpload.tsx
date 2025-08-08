@@ -27,7 +27,7 @@ export function useAudioUpload() {
       setProgress({ loaded: 0, total: file.size, percentage: 0 });
 
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+      if (!user) throw new Error('Faça login com e-mail e senha para enviar. Logins de teste (Free/Premium/Pro) não permitem upload.');
 
       // Create unique filename
       const fileExt = file.name.split('.').pop();
