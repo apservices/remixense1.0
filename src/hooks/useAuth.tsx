@@ -105,20 +105,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+  
+      if (error) {
+        const status = (error as any).status;
+        const description = status === 500
+          ? "Erro no servidor de autenticação. Tente novamente em alguns minutos."
+          : error.message;
+        toast({
+          title: "Erro no login",
+          description,
+          variant: "destructive",
+        });
+      }
+  
+      return { error };
+    } catch (err: any) {
       toast({
         title: "Erro no login",
-        description: error.message,
+        description: "Falha de rede. Verifique sua conexão e tente novamente.",
         variant: "destructive",
       });
+      return { error: err };
     }
-
-    return { error };
   };
 
   const signOut = async () => {
