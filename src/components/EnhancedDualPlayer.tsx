@@ -50,6 +50,12 @@ export default function EnhancedDualPlayer() {
     right.ws?.setVolume((right.volume ?? 1) * rightGain);
   }, [leftGain, rightGain, left.volume, right.volume, left.ws, right.ws]);
 
+  // Apply playback rate based on semitone keyShift (affects pitch and tempo)
+  useEffect(() => {
+    const rate = Math.pow(2, ((right.keyShift ?? 0) / 12));
+    if (right.ws) right.ws.setPlaybackRate(rate);
+  }, [right.keyShift, right.ws]);
+
   const loadFileToDeck = async (side: "left" | "right") => {
     const input = document.createElement("input");
     input.type = "file";
