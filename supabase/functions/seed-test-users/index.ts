@@ -59,7 +59,20 @@ serve(async (req) => {
             results.push({ email: u.email, status: 'exists', warn: fetchErr.message });
           } else {
             if (found?.id) {
-              await supabase.from('profiles').upsert({ id: found.id, username: u.email.split('@')[0], subscription_plan: u.plan });
+              const mappedPlan = u.plan === 'premium' ? 'pro' : (u.plan === 'pro' ? 'expert' : 'free');
+              await supabase.from('profiles').upsert({ id: found.id, username: u.email.split('@')[0], subscription_plan: mappedPlan });
+              // Seed test subscription (simulated) - ignore errors
+              const now = new Date();
+              const end = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+              await supabase.from('subscriptions').upsert({
+                user_id: found.id,
+                status: 'active',
+                current_period_start: now.toISOString(),
+                current_period_end: end.toISOString(),
+                stripe_customer_id: `sim_${found.id}`,
+                stripe_subscription_id: `sim_sub_${found.id}`,
+                plan_id: mappedPlan
+              }).catch(() => {});
             }
             results.push({ email: u.email, status: 'exists' });
           }
@@ -69,7 +82,20 @@ serve(async (req) => {
       } else {
         const userId = data?.user?.id ?? null;
         if (userId) {
-          await supabase.from('profiles').upsert({ id: userId, username: u.email.split('@')[0], subscription_plan: u.plan });
+          const mappedPlan = u.plan === 'premium' ? 'pro' : (u.plan === 'pro' ? 'expert' : 'free');
+          await supabase.from('profiles').upsert({ id: userId, username: u.email.split('@')[0], subscription_plan: mappedPlan });
+          // Seed test subscription (simulated) - ignore errors
+          const now = new Date();
+          const end = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+          await supabase.from('subscriptions').upsert({
+            user_id: userId,
+            status: 'active',
+            current_period_start: now.toISOString(),
+            current_period_end: end.toISOString(),
+            stripe_customer_id: `sim_${userId}`,
+            stripe_subscription_id: `sim_sub_${userId}`,
+            plan_id: mappedPlan
+          }).catch(() => {});
         }
         results.push({ email: u.email, status: 'created', id: userId });
       }
