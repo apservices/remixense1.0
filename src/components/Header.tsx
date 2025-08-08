@@ -8,15 +8,30 @@ export default function Header() {
   if (!isAuthenticated) return null;
 
   return (
-    <header className="bg-gray-800 text-white px-4 py-2 flex justify-between items-center">
-      <div className="flex gap-4">
-        <Link to="/dashboard">Dashboard</Link>
-        <Link to="/studio">Studio</Link>
-        <Link to="/tracks">Histórico</Link>
-      </div>
-      <div className="flex gap-4 items-center">
-        <span className="text-sm">{email}</span>
-        <button onClick={logout} className="bg-red-600 px-3 py-1 rounded">Logout</button>
+    <header className="bg-background text-foreground border-b border-border">
+      <div className="max-w-7xl mx-auto px-4 py-2 flex justify-between items-center">
+        <nav className="flex flex-wrap gap-4 text-sm">
+          <Link to="/dashboard">Dashboard</Link>
+          <Link to="/vault">Vault</Link>
+          <Link to="/explorer">Explorer</Link>
+          <Link to="/ai-studio">AI Studio</Link>
+          <Link to="/calendar">Calendar</Link>
+          <Link to="/feedback">Feedback</Link>
+          <Link to="/metadata">Metadata</Link>
+          <Link to="/analytics">Analytics</Link>
+          <Link to="/marketplace">Marketplace</Link>
+          <Link to="/pricing">Pricing</Link>
+        </nav>
+        <div className="flex gap-3 items-center">
+          <span className="text-xs md:text-sm">{email}</span>
+          <button 
+            onClick={logout} 
+            className="px-3 py-1 rounded border border-border hover:bg-muted transition-smooth"
+            aria-label="Sair da conta"
+          >
+            Logout
+          </button>
+        </div>
       </div>
     </header>
   );
