@@ -3,8 +3,6 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-const DEV_AUTH_KEY = 'dev_auth_override';
-const DEV_SUBS_KEY = 'dev_subscription_plan';
 
 interface AuthContextType {
   user: User | null;
@@ -15,8 +13,6 @@ interface AuthContextType {
   signUp: (email: string, password: string, djName?: string) => Promise<{ error?: any }>;
   signIn: (email: string, password: string) => Promise<{ error?: any }>;
   signOut: () => Promise<void>;
-  logout: () => void;
-  devLogin: (email: string, plan: 'free' | 'premium' | 'pro') => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -57,16 +53,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (session) {
         setSession(session);
         setUser(session.user);
-      } else {
-        // Fallback to dev override
-        const raw = localStorage.getItem(DEV_AUTH_KEY);
-        if (raw) {
-          try {
-            const dev = JSON.parse(raw) as { email: string };
-            const fakeUser = { id: 'dev-user', email: dev.email } as unknown as User;
-            setUser(fakeUser);
-          } catch {}
-        }
       }
       setLoading(false);
     });
@@ -144,20 +130,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const signOut = async () => {
-    localStorage.removeItem(DEV_AUTH_KEY);
-    localStorage.removeItem(DEV_SUBS_KEY);
     const { error } = await supabase.auth.signOut();
     if (error) {
       toast({ title: "Erro no logout", description: error.message, variant: "destructive" });
     }
-  };
-  const devLogin = (email: string, plan: 'free' | 'premium' | 'pro') => {
-    localStorage.setItem(DEV_AUTH_KEY, JSON.stringify({ email }));
-    localStorage.setItem(DEV_SUBS_KEY, plan);
-    const fakeUser = { id: 'dev-user', email } as unknown as User;
-    setUser(fakeUser);
-    setSession(null);
-    toast({ title: `Login de teste (${plan})`, description: `Autenticado como ${email}` });
   };
 
   return (
@@ -170,8 +146,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       signUp,
       signIn,
       signOut,
-      logout: signOut,
-      devLogin,
     }}>
       {children}
     </AuthContext.Provider>
