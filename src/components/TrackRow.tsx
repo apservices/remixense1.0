@@ -2,7 +2,7 @@ import React from 'react';
 import { Track } from '@/types';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Heart } from 'lucide-react';
+import { Clock, Heart, Activity } from 'lucide-react';
 
 export const TrackRow: React.FC<{ track: Track; onLikeToggle?: (id: string) => void }>
   = ({ track, onLikeToggle }) => (
@@ -10,9 +10,10 @@ export const TrackRow: React.FC<{ track: Track; onLikeToggle?: (id: string) => v
     <div className="min-w-0">
       <div className="font-medium truncate">{track.title || track.name}</div>
       <div className="text-xs text-muted-foreground truncate">{track.artist || 'Unknown'}</div>
-      <div className="mt-1 flex items-center gap-2 text-xs">
+      <div className="mt-1 flex items-center gap-2 text-xs flex-wrap">
         {track.bpm ? <Badge variant="outline">{track.bpm} BPM</Badge> : <Badge variant="secondary">Analisando…</Badge>}
         {track.key_signature && <Badge variant="outline">Key {track.key_signature}</Badge>}
+        {typeof track.energy_level === 'number' && <Badge variant="outline" className="flex items-center gap-1"><Activity className="h-3 w-3"/>Energia {track.energy_level}/10</Badge>}
         {track.genre && <Badge variant="outline">{track.genre}</Badge>}
       </div>
     </div>
