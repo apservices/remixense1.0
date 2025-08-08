@@ -124,7 +124,7 @@ export default function Profile() {
             <Avatar className="w-24 h-24 border-4 border-background mx-auto">
               <AvatarImage src={profile?.avatar_url || undefined} />
               <AvatarFallback className="text-xl font-bold bg-primary text-primary-foreground">
-                {profile?.dj_name?.charAt(0) || user?.email?.charAt(0) || 'DJ'}
+                {profile?.dj_name?.charAt(0) || user?.email?.charAt(0) || 'R'}
               </AvatarFallback>
             </Avatar>
           </div>
@@ -134,14 +134,14 @@ export default function Profile() {
               <div className="space-y-3">
                 <div>
                   <Label htmlFor="dj_name" className="text-foreground text-sm">
-                    Nome DJ
+                    RemiXer Username
                   </Label>
                   <Input 
                     id="dj_name"
                     value={formData.dj_name}
                     onChange={(e) => setFormData(prev => ({ ...prev, dj_name: e.target.value }))}
                     className="text-center text-xl font-bold"
-                    placeholder="Seu nome DJ"
+                    placeholder="Seu RemiXer Username"
                   />
                 </div>
                 <div>
@@ -183,7 +183,7 @@ export default function Profile() {
             ) : (
               <>
                 <h1 className="text-heading-xl text-foreground mb-2">
-                  {profile?.dj_name || 'DJ User'}
+                  {profile?.dj_name || 'RemiXer'}
                 </h1>
                 <p className="text-muted-foreground text-sm mb-2 max-w-xs mx-auto">
                   {profile?.bio || 'Adicione uma bio para contar sobre você...'}

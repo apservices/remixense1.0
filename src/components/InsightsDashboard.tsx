@@ -114,7 +114,7 @@ export default function InsightsDashboard() {
         <Card className="glass border-glass-border p-4">
           <div className="flex items-center gap-2 mb-2">
             <Headphones className="h-4 w-4 text-neon-green" />
-            <span className="text-sm font-medium">Sessões DJ</span>
+            <span className="text-sm font-medium">Sessões RemiXer</span>
           </div>
           <div className="text-2xl font-bold text-neon-green font-heading">
             {insights.mixSessions}

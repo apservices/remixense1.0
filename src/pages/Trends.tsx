@@ -74,7 +74,7 @@ export default function Trends() {
                     <span className="text-sm font-medium text-neon-blue">+12</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Sessões DJ</span>
+                    <span className="text-sm text-muted-foreground">Sessões RemiXer</span>
                     <span className="text-sm font-medium text-neon-violet">8</span>
                   </div>
                   <div className="flex justify-between">

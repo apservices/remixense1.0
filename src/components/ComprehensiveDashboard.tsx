@@ -80,7 +80,7 @@ export function ComprehensiveDashboard() {
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground">
-                DJ: {profile?.dj_name || 'Anônimo'}
+                RemiXer: {profile?.dj_name || 'Anônimo'}
               </p>
             </div>
           </div>
@@ -103,7 +103,7 @@ export function ComprehensiveDashboard() {
               <div className="text-2xl font-bold text-neon-teal font-heading">
                 {sessionStats.totalSessions}
               </div>
-              <div className="text-xs text-muted-foreground">Sessões DJ</div>
+              <div className="text-xs text-muted-foreground">Sessões RemiXer</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-neon-green font-heading">

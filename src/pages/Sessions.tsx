@@ -8,7 +8,7 @@ const Sessions = () => {
           {/* Header */}
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-              Sessões DJ
+              Sessões RemiXer
             </h1>
             <p className="text-muted-foreground text-sm">
               Histórico e análise das suas mixagens
