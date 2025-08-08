@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
+const DEV_SUBS_KEY = 'dev_subscription_plan';
+
 interface SubscriptionLimits {
   max_tracks: number;
   max_storage_mb: number;
@@ -37,46 +39,48 @@ export function useSubscription() {
   const checkSubscription = async () => {
     if (!user) return;
 
+    // Dev override
+    const override = (localStorage.getItem(DEV_SUBS_KEY) || '') as 'free' | 'premium' | 'pro' | '';
+    if (override) {
+      const map = {
+        free: {
+          plan_type: 'free' as const,
+          limits: { max_tracks: 3, max_storage_mb: 100, can_export: false, can_use_community: false, can_use_marketplace: false, marketplace_commission_rate: 50 }
+        },
+        premium: {
+          plan_type: 'pro' as const,
+          limits: { max_tracks: 50, max_storage_mb: 2048, can_export: true, can_use_community: true, can_use_marketplace: true, marketplace_commission_rate: 20 }
+        },
+        pro: {
+          plan_type: 'expert' as const,
+          limits: { max_tracks: -1, max_storage_mb: 10240, can_export: true, can_use_community: true, can_use_marketplace: true, marketplace_commission_rate: 10 }
+        }
+      };
+      const sel = map[override];
+      setSubscription({ plan_type: sel.plan_type, status: 'active', limits: sel.limits });
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase.functions.invoke('check-subscription');
-      
       if (error) {
         console.error('Error checking subscription:', error);
-        toast({
-          title: "Erro ao verificar assinatura",
-          description: error.message,
-          variant: "destructive",
-        });
-        // Set free plan as fallback
+        toast({ title: "Erro ao verificar assinatura", description: error.message, variant: "destructive" });
         setSubscription({
           plan_type: 'free',
           status: 'active',
-          limits: {
-            max_tracks: 3,
-            max_storage_mb: 100,
-            can_export: false,
-            can_use_community: false,
-            can_use_marketplace: false,
-            marketplace_commission_rate: 50
-          }
+          limits: { max_tracks: 3, max_storage_mb: 100, can_export: false, can_use_community: false, can_use_marketplace: false, marketplace_commission_rate: 50 }
         });
       } else {
         setSubscription(data);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error checking subscription:', error);
-      // Set free plan as fallback
       setSubscription({
         plan_type: 'free',
         status: 'active',
-        limits: {
-          max_tracks: 3,
-          max_storage_mb: 100,
-          can_export: false,
-          can_use_community: false,
-          can_use_marketplace: false,
-          marketplace_commission_rate: 50
-        }
+        limits: { max_tracks: 3, max_storage_mb: 100, can_export: false, can_use_community: false, can_use_marketplace: false, marketplace_commission_rate: 50 }
       });
     } finally {
       setLoading(false);

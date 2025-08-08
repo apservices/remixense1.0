@@ -17,6 +17,7 @@ interface DeckState {
   bpm?: number | null;
   key?: string | null;
   keyShift?: number; // simulated semitone shift
+  rate?: number; // BPM sync base playback rate
   ws?: WaveSurfer | null;
   volume: number; // 0..1
   isReady: boolean;
@@ -50,11 +51,13 @@ export default function EnhancedDualPlayer() {
     right.ws?.setVolume((right.volume ?? 1) * rightGain);
   }, [leftGain, rightGain, left.volume, right.volume, left.ws, right.ws]);
 
-  // Apply playback rate based on semitone keyShift (affects pitch and tempo)
+  // Apply playback rate combining BPM Sync (rate) and KeyShift semitone rate
   useEffect(() => {
-    const rate = Math.pow(2, ((right.keyShift ?? 0) / 12));
-    if (right.ws) right.ws.setPlaybackRate(rate);
-  }, [right.keyShift, right.ws]);
+    const semitoneRate = Math.pow(2, ((right.keyShift ?? 0) / 12));
+    const baseRate = right.rate ?? 1;
+    const final = Math.max(0.5, Math.min(2.0, baseRate * semitoneRate));
+    if (right.ws) right.ws.setPlaybackRate(final);
+  }, [right.keyShift, right.rate, right.ws]);
 
   const loadFileToDeck = async (side: "left" | "right") => {
     const input = document.createElement("input");
@@ -127,7 +130,7 @@ export default function EnhancedDualPlayer() {
     ws.setTime(next);
   };
 
-  // Indicators and Key Sync helpers
+  // Indicators and Key/BPM Sync helpers
   const bpmDelta = useMemo(() => {
     if (!left.bpm || !right.bpm) return null;
     return Math.abs(left.bpm - right.bpm);
@@ -161,6 +164,12 @@ export default function EnhancedDualPlayer() {
     setRight((p) => ({ ...p, key: left.key || p.key, keyShift: diff }));
   };
 
+  const handleBpmSync = () => {
+    if (!left.bpm || !right.bpm) return;
+    const ratio = left.bpm / right.bpm;
+    setRight((p) => ({ ...p, rate: ratio }));
+  };
+
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between">
@@ -180,6 +189,7 @@ export default function EnhancedDualPlayer() {
               {isPlaying ? 'Pausar' : 'Tocar ambos'}
             </Button>
             <Button variant="outline" size="sm" onClick={handleKeySync} className="gap-2"><Wand2 className="h-4 w-4"/>Key Sync</Button>
+            <Button variant="outline" size="sm" onClick={handleBpmSync} className="gap-2"><Wand2 className="h-4 w-4"/>BPM Sync</Button>
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <Music2 className="h-4 w-4"/>
               Key Shift
@@ -235,6 +245,7 @@ export default function EnhancedDualPlayer() {
                   <div className="text-xs text-muted-foreground flex items-center gap-2 mt-1">
                     <Badge variant="outline">{right.bpm ? `${right.bpm} BPM` : '—'}</Badge>
                     <Badge variant="secondary">{right.key || 'Key —'}</Badge>
+                    <Badge variant="outline">{(right.rate ?? 1).toFixed(2)}x</Badge>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
