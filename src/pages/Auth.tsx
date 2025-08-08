@@ -125,7 +125,7 @@ export default function Auth({ onBack }: AuthProps) {
                       <Input
                         id="signin-password"
                         type="password"
-                        placeholder="••••••••"
+                        placeholder="senha"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10"
@@ -191,7 +191,7 @@ export default function Auth({ onBack }: AuthProps) {
                       <Input
                         id="signup-password"
                         type="password"
-                        placeholder="••••••••"
+                        placeholder="senha"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10"
