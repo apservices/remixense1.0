@@ -28,62 +28,64 @@ export default function AppBottomNav() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-glass-border bg-background/80 backdrop-blur-glass">
-      <div className="max-w-7xl mx-auto px-2">
-        <div className="flex items-center justify-between py-2 gap-1">
-          {items.map(({ id, label, to, Icon }) => (
-            <NavLink
-              key={id}
-              to={to}
-              className={({ isActive: routeActive }) =>
-                [
-                  "flex-1 min-w-0 flex flex-col items-center gap-1 p-1.5 rounded-lg transition-smooth",
-                  routeActive || isActive(to) ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                ].join(" ")
-              }
-              end
-            >
-              <Icon className="h-5 w-5" />
-              <span className="text-[10px] font-medium leading-none truncate">{label}</span>
-            </NavLink>
-          ))}
+    <div className="fixed bottom-2 left-0 right-0 z-50 pointer-events-none">
+      <div className="max-w-3xl mx-auto px-3 pointer-events-auto">
+        <div className="glass border border-glass-border backdrop-blur-glass rounded-2xl shadow-lg pb-[env(safe-area-inset-bottom)]">
+          <div className="flex items-center justify-between py-2 gap-1">
+            {items.map(({ id, label, to, Icon }) => (
+              <NavLink
+                key={id}
+                to={to}
+                className={({ isActive: routeActive }) =>
+                  [
+                    "flex-1 min-w-0 flex flex-col items-center gap-1 p-1.5 rounded-lg transition-smooth",
+                    routeActive || isActive(to) ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                  ].join(" ")
+                }
+                end
+              >
+                <Icon className="h-5 w-5" />
+                <span className="text-[10px] font-medium leading-none truncate">{label}</span>
+              </NavLink>
+            ))}
 
-          {/* More */}
-          <Drawer>
-            <DrawerTrigger asChild>
-              <Button variant="ghost" size="icon" className="flex flex-col items-center h-10 w-10">
-                <Menu className="h-5 w-5" />
-                <span className="text-[10px] leading-none">Mais</span>
-              </Button>
-            </DrawerTrigger>
-            <DrawerContent className="max-w-3xl mx-auto">
-              <DrawerHeader>
-                <DrawerTitle>Navegação</DrawerTitle>
-              </DrawerHeader>
-              <div className="grid grid-cols-2 gap-2 p-4">
-                {[
-                  { to: "/trends", label: "Trends" },
-                  { to: "/analytics", label: "Analytics" },
-                  { to: "/calendar", label: "Calendário" },
-                  { to: "/feedback", label: "Feedback" },
-                  { to: "/landing-generator", label: "Landing Generator" },
-                  { to: "/metadata", label: "Metadata" },
-                  { to: "/marketplace", label: "Marketplace" },
-                  { to: "/pricing", label: "Pricing" },
-                  { to: "/studio", label: "Studio" },
-                  { to: "/tracks", label: "Tracks" },
-                ].map((link) => (
-                  <NavLink
-                    key={link.to}
-                    to={link.to}
-                    className="block px-3 py-2 rounded-lg border border-border hover:bg-muted/60 transition-smooth text-sm"
-                  >
-                    {link.label}
-                  </NavLink>
-                ))}
-              </div>
-            </DrawerContent>
-          </Drawer>
+            {/* More */}
+            <Drawer>
+              <DrawerTrigger asChild>
+                <Button variant="ghost" size="icon" className="flex flex-col items-center h-10 w-10">
+                  <Menu className="h-5 w-5" />
+                  <span className="text-[10px] leading-none">Mais</span>
+                </Button>
+              </DrawerTrigger>
+              <DrawerContent className="max-w-3xl mx-auto">
+                <DrawerHeader>
+                  <DrawerTitle>Navegação</DrawerTitle>
+                </DrawerHeader>
+                <div className="grid grid-cols-2 gap-2 p-4">
+                  {[
+                    { to: "/trends", label: "Trends" },
+                    { to: "/analytics", label: "Analytics" },
+                    { to: "/calendar", label: "Calendário" },
+                    { to: "/feedback", label: "Feedback" },
+                    { to: "/landing-generator", label: "Landing Generator" },
+                    { to: "/metadata", label: "Metadata" },
+                    { to: "/marketplace", label: "Marketplace" },
+                    { to: "/pricing", label: "Pricing" },
+                    { to: "/studio", label: "Studio" },
+                    { to: "/tracks", label: "Tracks" },
+                  ].map((link) => (
+                    <NavLink
+                      key={link.to}
+                      to={link.to}
+                      className="block px-3 py-2 rounded-lg border border-border hover:bg-muted/60 transition-smooth text-sm"
+                    >
+                      {link.label}
+                    </NavLink>
+                  ))}
+                </div>
+              </DrawerContent>
+            </Drawer>
+          </div>
         </div>
       </div>
     </div>
