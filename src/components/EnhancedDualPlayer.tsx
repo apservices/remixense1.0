@@ -8,6 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Play, Pause, Upload, Volume2, Rewind, FastForward, ChevronLeft, ChevronRight, Wand2, Music2 } from "lucide-react";
 import bpmDetective from "bpm-detective";
+import { extractAudioMetadata, analyzeHarmony } from "@/utils/audioMetadata";
 
 interface DeckState {
   file?: File;
@@ -15,6 +16,7 @@ interface DeckState {
   title?: string;
   bpm?: number | null;
   key?: string | null;
+  keyShift?: number; // simulated semitone shift
   ws?: WaveSurfer | null;
   volume: number; // 0..1
   isReady: boolean;
@@ -93,8 +95,11 @@ export default function EnhancedDualPlayer() {
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
       const bpm = Math.round(bpmDetective(audioBuffer.getChannelData(0)));
+      // Lightweight metadata for key (simulated)
+      const meta = await extractAudioMetadata(file);
+      const detectedKey = meta.key ?? null;
 
-      const deckUpdate: Partial<DeckState> = { file, url, title: file.name, bpm, ws };
+      const deckUpdate: Partial<DeckState> = { file, url, title: file.name, bpm, key: detectedKey, ws };
       if (side === "left") setLeft((p) => ({ ...p, ...deckUpdate } as DeckState));
       else setRight((p) => ({ ...p, ...deckUpdate } as DeckState));
     };
@@ -116,6 +121,40 @@ export default function EnhancedDualPlayer() {
     ws.setTime(next);
   };
 
+  // Indicators and Key Sync helpers
+  const bpmDelta = useMemo(() => {
+    if (!left.bpm || !right.bpm) return null;
+    return Math.abs(left.bpm - right.bpm);
+  }, [left.bpm, right.bpm]);
+
+  const keyStatus = useMemo(() => {
+    if (!left.key || !right.key) return null;
+    if (left.key === right.key) return 'match';
+    const { compatibleKeys } = analyzeHarmony(left.key, left.bpm ?? right.bpm ?? 120);
+    return compatibleKeys.includes(right.key) ? 'compatible' : 'clash';
+  }, [left.key, right.key, left.bpm, right.bpm]);
+
+  const bpmVariant = (bpmDelta == null) ? 'outline' : bpmDelta <= 2 ? 'default' : bpmDelta <= 6 ? 'secondary' : 'destructive';
+  const keyVariant = keyStatus === 'match' ? 'default' : keyStatus === 'compatible' ? 'secondary' : 'destructive';
+
+  const chroma = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  const getRoot = (k: string) => k.split(' ')[0];
+  const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+  const semitoneDiff = (target: string, current: string) => {
+    const a = chroma.indexOf(getRoot(target));
+    const b = chroma.indexOf(getRoot(current));
+    if (a < 0 || b < 0) return 0;
+    let d = a - b;
+    d = ((d + 6) % 12) - 6; // minimal signed distance
+    return d;
+  };
+
+  const handleKeySync = () => {
+    if (!left.key || !right.key) return;
+    const diff = semitoneDiff(left.key, right.key);
+    setRight((p) => ({ ...p, key: left.key || p.key, keyShift: diff }));
+  };
+
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between">
@@ -134,14 +173,19 @@ export default function EnhancedDualPlayer() {
               {isPlaying ? <Pause className="h-4 w-4"/> : <Play className="h-4 w-4"/>}
               {isPlaying ? 'Pausar' : 'Tocar ambos'}
             </Button>
-            <Button variant="outline" size="sm" className="gap-2"><Wand2 className="h-4 w-4"/>Key Sync</Button>
+            <Button variant="outline" size="sm" onClick={handleKeySync} className="gap-2"><Wand2 className="h-4 w-4"/>Key Sync</Button>
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <Music2 className="h-4 w-4"/>
               Key Shift
               <div className="flex items-center ml-1">
-                <Button variant="outline" size="sm" className="px-2">-</Button>
-                <Button variant="outline" size="sm" className="px-2 ml-1">+</Button>
+                <Button variant="outline" size="sm" className="px-2" onClick={() => setRight(p => ({ ...p, keyShift: clamp((p.keyShift ?? 0) - 1, -6, 6) }))}>-</Button>
+                <div className="px-2 text-foreground/80">{right.keyShift ? (right.keyShift > 0 ? `+${right.keyShift}` : right.keyShift) : 0} st</div>
+                <Button variant="outline" size="sm" className="px-2 ml-1" onClick={() => setRight(p => ({ ...p, keyShift: clamp((p.keyShift ?? 0) + 1, -6, 6) }))}>+</Button>
               </div>
+            </div>
+            <div className="flex items-center gap-2 ml-2">
+              <Badge variant={bpmVariant as any}>{bpmDelta == null ? 'Δ BPM —' : `Δ BPM ${bpmDelta}`}</Badge>
+              <Badge variant={keyStatus == null ? 'outline' : keyVariant as any}>{keyStatus == null ? 'Key —' : keyStatus === 'clash' ? 'Key clash' : 'Key OK'}</Badge>
             </div>
           </div>
 
@@ -154,6 +198,7 @@ export default function EnhancedDualPlayer() {
                   <div className="font-medium truncate">{left.title || 'Deck A'}</div>
                   <div className="text-xs text-muted-foreground flex items-center gap-2 mt-1">
                     <Badge variant="outline">{left.bpm ? `${left.bpm} BPM` : '—'}</Badge>
+                    <Badge variant="secondary">{left.key || 'Key —'}</Badge>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -183,6 +228,7 @@ export default function EnhancedDualPlayer() {
                   <div className="font-medium truncate">{right.title || 'Deck B'}</div>
                   <div className="text-xs text-muted-foreground flex items-center gap-2 mt-1">
                     <Badge variant="outline">{right.bpm ? `${right.bpm} BPM` : '—'}</Badge>
+                    <Badge variant="secondary">{right.key || 'Key —'}</Badge>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
