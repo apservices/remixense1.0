@@ -181,14 +181,14 @@ export default function Auth({ onBack }: AuthProps) {
 
                   <div className="space-y-2">
                     <Label htmlFor="signup-djname" className="text-foreground">
-                      Nome DJ
+                      RemiXer
                     </Label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="signup-djname"
                         type="text"
-                        placeholder="DJ Username"
+                        placeholder="RemiXer Username"
                         value={djName}
                         onChange={(e) => setDjName(e.target.value)}
                         className="pl-10"
