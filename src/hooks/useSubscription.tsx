@@ -107,7 +107,7 @@ export function useSubscription() {
       }
 
       if (data?.url) {
-        window.open(data.url, '_blank');
+        window.location.assign(data.url);
       }
     } catch (error) {
       console.error('Error creating checkout session:', error);
