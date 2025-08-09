@@ -1043,6 +1043,27 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limit_logs: {
+        Row: {
+          endpoint: string
+          id: string
+          identifier: string
+          ts: string
+        }
+        Insert: {
+          endpoint: string
+          id?: string
+          identifier: string
+          ts?: string
+        }
+        Update: {
+          endpoint?: string
+          id?: string
+          identifier?: string
+          ts?: string
+        }
+        Relationships: []
+      }
       recommendations_log: {
         Row: {
           confidence_score: number | null
@@ -1596,6 +1617,15 @@ export type Database = {
     Functions: {
       can_user_upload_track: {
         Args: { user_uuid?: string }
+        Returns: boolean
+      }
+      check_rate_limit: {
+        Args: {
+          p_identifier: string
+          p_endpoint: string
+          p_max_requests: number
+          p_window_minutes: number
+        }
         Returns: boolean
       }
       citext: {
