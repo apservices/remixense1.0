@@ -91,7 +91,7 @@ const PricingPage = () => {
     if (plan.current && (plan.planKey === 'pro' || plan.planKey === 'expert')) {
       await openCustomerPortal();
     } else if (plan.planKey) {
-      await createCheckoutSession(plan.planKey);
+      await createCheckoutSession(plan.planKey as 'pro' | 'expert', navigator.language || 'en');
     }
   };
 
