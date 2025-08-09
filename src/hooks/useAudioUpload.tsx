@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface UploadProgress {
   loaded: number;
@@ -12,6 +13,7 @@ export function useAudioUpload() {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState<UploadProgress | null>(null);
   const { toast } = useToast();
+  const { canUploadTrack, getTrackLimit, createCheckoutSession } = useSubscription();
 
   const uploadAudio = async (file: File, metadata: {
     title: string;
@@ -25,6 +27,17 @@ export function useAudioUpload() {
     try {
       setUploading(true);
       setProgress({ loaded: 0, total: file.size, percentage: 0 });
+
+      // Check subscription limits before proceeding
+      if (!canUploadTrack()) {
+        const limit = getTrackLimit();
+        toast({
+          title: "Limite de upload atingido",
+          description: `Seu plano atual permite ${limit} faixas. Abrindo a assinatura PRO...`
+        });
+        await createCheckoutSession('pro');
+        throw new Error('Limite de upload atingido');
+      }
 
       // Client-side validation: audio type and size limit (100MB)
       const MAX_SIZE = 100 * 1024 * 1024;
