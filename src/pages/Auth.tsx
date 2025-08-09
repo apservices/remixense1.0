@@ -9,14 +9,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { Mail, Lock, User, Music, ArrowLeft } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+
 
 interface AuthProps {
   onBack?: () => void;
 }
 
 export default function Auth({ onBack }: AuthProps) {
-  const { user, loading, signIn, signInWithGoogle } = useAuth();
+  const { user, loading, signIn, signInWithGoogle, signUp } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
 
@@ -24,7 +24,7 @@ export default function Auth({ onBack }: AuthProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [djName, setDjName] = useState('');
-  const [inviteToken, setInviteToken] = useState('');
+  
 
   // Redirect if already authenticated
   if (user) {
@@ -43,17 +43,12 @@ export default function Auth({ onBack }: AuthProps) {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
-      const { data, error } = await supabase.functions.invoke('accept-invite', {
-        body: { email, password, token: inviteToken, dj_name: djName },
-      });
-
-      if (error || (data as any)?.error) {
-        throw new Error((error as any)?.message || (data as any)?.error || 'Convite inválido');
+      const { error } = await signUp(email, password, djName);
+      if (!error) {
+        // Optional: switch to sign-in tab after sign up
+        setActiveTab('signin');
       }
-
-      await signIn(email, password);
     } catch (err) {
       console.error(err);
     } finally {
@@ -101,6 +96,7 @@ export default function Auth({ onBack }: AuthProps) {
             <p className="text-muted-foreground">
               Sua jornada musical começa aqui
             </p>
+            <p className="text-xs text-warning mt-1">Fase Beta - Release Candidate</p>
           </div>
 
           <Card className="glass border-glass-border p-6">
@@ -175,24 +171,6 @@ export default function Auth({ onBack }: AuthProps) {
 
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-token" className="text-foreground">
-                      Token de Convite
-                    </Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="signup-token"
-                        type="text"
-                        placeholder="Cole seu token de convite"
-                        value={inviteToken}
-                        onChange={(e) => setInviteToken(e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-
                   <div className="space-y-2">
                     <Label htmlFor="signup-djname" className="text-foreground">
                       RemiXer

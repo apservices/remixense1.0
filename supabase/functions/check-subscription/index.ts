@@ -36,6 +36,46 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
+    // Override for expert test users (no Stripe needed)
+    const expertTestEmails = new Set([
+      'expert1@remixense.com',
+      'expert2@remixense.com',
+      'expert3@remixense.com',
+      'expert4@remixense.com',
+      'expert5@remixense.com',
+    ].map(e => e.toLowerCase()));
+
+    if (expertTestEmails.has(user.email.toLowerCase())) {
+      await supabaseClient.from('subscriptions').upsert({
+        user_id: user.id,
+        email: user.email,
+        plan_type: 'expert',
+        status: 'active',
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+
+      const { data: limits } = await supabaseClient
+        .from('subscription_limits')
+        .select('*')
+        .eq('plan_type', 'expert')
+        .single();
+
+      return new Response(JSON.stringify({
+        plan_type: 'expert',
+        status: 'active',
+        limits: limits || {
+          max_tracks: 9999,
+          max_storage_mb: 102400,
+          can_export: true,
+          can_use_community: true,
+          can_use_marketplace: true
+        }
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    }
+
     // Stripe key (optional in dev). If missing, return FREE plan gracefully (Sprint 1 mock).
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") || Deno.env.get("STRIPE_SECRET") || Deno.env.get("STRIPE_API_KEY");
     if (!stripeKey) {
