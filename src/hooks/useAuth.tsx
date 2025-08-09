@@ -12,6 +12,7 @@ interface AuthContextType {
   email: string | null;
   signUp: (email: string, password: string, djName?: string) => Promise<{ error?: any }>;
   signIn: (email: string, password: string) => Promise<{ error?: any }>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -136,6 +137,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        }
+      });
+      if (error) {
+        toast({ title: "Erro no login Google", description: error.message, variant: "destructive" });
+      }
+    } catch (err: any) {
+      toast({ title: "Erro no login Google", description: "Falha de rede. Tente novamente.", variant: "destructive" });
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -145,6 +162,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       email: user?.email ?? null,
       signUp,
       signIn,
+      signInWithGoogle,
       signOut,
     }}>
       {children}

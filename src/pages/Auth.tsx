@@ -16,7 +16,7 @@ interface AuthProps {
 }
 
 export default function Auth({ onBack }: AuthProps) {
-  const { user, loading, signIn } = useAuth();
+  const { user, loading, signIn, signInWithGoogle } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
 
@@ -104,6 +104,25 @@ export default function Auth({ onBack }: AuthProps) {
           </div>
 
           <Card className="glass border-glass-border p-6">
+            <div className="space-y-3 mb-6">
+              <Button variant="outline" className="w-full" onClick={signInWithGoogle}>
+                <span className="mr-2 inline-flex">{/* Google Icon */}
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="h-4 w-4">
+                    <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12
+                    s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C35.202,7.163,29.902,5,24,5C12.955,5,4,13.955,4,25
+                    s8.955,20,20,20s20-8.955,20-20C44,23.659,43.862,21.822,43.611,20.083z"/>
+                    <path fill="#FF3D00" d="M6.306,14.691l6.571,4.817C14.475,16.042,18.884,13,24,13c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657
+                    C35.202,7.163,29.902,5,24,5C16.318,5,9.656,9.337,6.306,14.691z"/>
+                    <path fill="#4CAF50" d="M24,45c5.166,0,9.86-1.977,13.409-5.197l-6.192-5.238C29.211,36.091,26.715,37,24,37
+                    c-5.202,0-9.623-3.317-11.285-7.946l-6.536,5.036C9.5,40.556,16.227,45,24,45z"/>
+                    <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.093,5.565
+                    c0.001-0.001,0.002-0.001,0.003-0.002l6.192,5.238C36.969,39.682,44,34,44,25C44,23.659,43.862,21.822,43.611,20.083z"/>
+                  </svg>
+                </span>
+                Continuar com Google
+              </Button>
+              <div className="text-center text-xs text-muted-foreground">ou</div>
+            </div>
             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'signin' | 'signup')}>
               <TabsList className="grid w-full grid-cols-2 glass mb-6">
                 <TabsTrigger value="signin">Entrar</TabsTrigger>
