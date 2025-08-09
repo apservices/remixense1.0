@@ -12,6 +12,7 @@ export default function Trends() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
+      <Tabs value={activeView} onValueChange={setActiveView} className="w-full">
       {/* Header */}
       <div className="sticky top-0 z-40 glass border-b border-glass-border backdrop-blur-glass">
         <div className="px-4 py-4">
@@ -26,31 +27,29 @@ export default function Trends() {
           </div>
 
           {/* View Tabs */}
-          <Tabs value={activeView} onValueChange={setActiveView} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 glass">
-              <TabsTrigger 
-                value="dashboard" 
-                className="flex items-center gap-2 text-xs"
-              >
-                <BarChart3 className="h-4 w-4" />
-                Dashboard
-              </TabsTrigger>
-              <TabsTrigger 
-                value="weekly" 
-                className="flex items-center gap-2 text-xs"
-              >
-                <Calendar className="h-4 w-4" />
-                Semanal
-              </TabsTrigger>
-              <TabsTrigger 
-                value="performance" 
-                className="flex items-center gap-2 text-xs"
-              >
-                <Zap className="h-4 w-4" />
-                Performance
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <TabsList className="grid w-full grid-cols-3 glass">
+            <TabsTrigger 
+              value="dashboard" 
+              className="flex items-center gap-2 text-xs"
+            >
+              <BarChart3 className="h-4 w-4" />
+              Dashboard
+            </TabsTrigger>
+            <TabsTrigger 
+              value="weekly" 
+              className="flex items-center gap-2 text-xs"
+            >
+              <Calendar className="h-4 w-4" />
+              Semanal
+            </TabsTrigger>
+            <TabsTrigger 
+              value="performance" 
+              className="flex items-center gap-2 text-xs"
+            >
+              <Zap className="h-4 w-4" />
+              Performance
+            </TabsTrigger>
+          </TabsList>
         </div>
       </div>
 
@@ -295,6 +294,7 @@ export default function Trends() {
           </div>
         </TabsContent>
       </div>
+      </Tabs>
     </div>
   );
 }
