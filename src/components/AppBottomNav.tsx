@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Home, Music, BarChart3, Wand2, User, Menu } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -21,6 +22,7 @@ const items: Item[] = [
 
 export default function AppBottomNav() {
   const location = useLocation();
+  const [open, setOpen] = useState(false);
 
   const isActive = (path: string) => {
     if (path === "/dashboard" && location.pathname === "/") return true;
@@ -50,7 +52,7 @@ export default function AppBottomNav() {
             ))}
 
             {/* More */}
-            <Drawer>
+            <Drawer open={open} onOpenChange={setOpen}>
               <DrawerTrigger asChild>
                 <Button variant="ghost" size="icon" className="flex flex-col items-center h-10 w-10">
                   <Menu className="h-5 w-5" />
@@ -77,6 +79,7 @@ export default function AppBottomNav() {
                     <NavLink
                       key={link.to}
                       to={link.to}
+                      onClick={() => setOpen(false)}
                       className="block px-3 py-2 rounded-lg border border-border hover:bg-muted/60 transition-smooth text-sm"
                     >
                       {link.label}
