@@ -27,6 +27,9 @@
     --ring: 200 100% 60%;
     --radius: 0.75rem;
     
+    /* Status tokens */
+    --warning: 48 96% 53%;
+    
     /* Neon colors */
     --neon-blue: 200 100% 60%;
     --neon-violet: 271 91% 65%;
@@ -129,13 +132,17 @@
     color: hsl(var(--neon-teal));
   }
   
-  .text-neon-green {
-    color: hsl(var(--neon-green));
-  }
-  
-  .bg-neon-blue {
-    background-color: hsl(var(--neon-blue));
-  }
+   .text-neon-green {
+     color: hsl(var(--neon-green));
+   }
+
+   .text-warning {
+     color: hsl(var(--warning));
+   }
+   
+   .bg-neon-blue {
+     background-color: hsl(var(--neon-blue));
+   }
   
   .bg-neon-violet {
     background-color: hsl(var(--neon-violet));
