@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       filename: 'sw.js',
       manifest: {
         name: 'RemiXense',
@@ -32,7 +32,17 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         navigateFallback: '/index.html',
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
-        cleanupOutdatedCaches: true
+        cleanupOutdatedCaches: true,
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.origin.includes('supabase.co') && url.pathname.includes('/storage/v1/object'),
+            handler: 'NetworkOnly',
+          },
+          {
+            urlPattern: ({ url }) => url.origin.includes('supabase.co') && url.pathname.includes('/functions/v1/analyze-audio'),
+            handler: 'NetworkOnly',
+          }
+        ]
       }
     }),
     mode === "development" &&

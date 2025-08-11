@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AudioFeatures } from './useAudioAnalysis';
+import type { AudioFeatures } from '@/lib/audio/types';
 
 export interface TrackCompatibility {
   trackId: string;
