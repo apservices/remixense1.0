@@ -18,30 +18,6 @@ interface FileUploadItem {
   status: 'pending' | 'analyzing' | 'ready' | 'uploading' | 'success' | 'error';
   metadata?: any;
   error?: string;
-}
-
-interface MultiFileUploadDialogProps {
-  children: React.ReactNode;
-  onSuccess?: () => void;
-}
-
-const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB per file
-const MAX_FILES = 10; // Max 10 files per batch
-
-export function MultiFileUploadDialog({ children, onSuccess }: MultiFileUploadDialogProps) {
-  const [open, setOpen] = useState(false);
-  const [files, setFiles] = useState<FileUploadItem[]>([]);
-  const [globalProgress, setGlobalProgress] = useState(0);
-  
-  const { uploadAudio } = useAudioUpload();
-  const { toast } = useToast();
-
-  id: string;
-  file: File;
-  status: 'pending' | 'analyzing' | 'ready' | 'uploading' | 'success' | 'error';
-  metadata?: any;
-  aiAnalysis?: any;
-  error?: string;
   progress?: number;
 }
 
@@ -59,18 +35,22 @@ export function MultiFileUploadDialog({ children, onSuccess }: MultiFileUploadDi
   const [globalProgress, setGlobalProgress] = useState(0);
   
   const { uploadAudio } = useAudioUpload();
-  const { analyzeAudioFile } = useAudioAnalysis();
   const { toast } = useToast();
 
   const generateId = () => Math.random().toString(36).substr(2, 9);
 
   const validateFile = (file: File): string | null => {
+<<<<<<< HEAD
     if (!file.type.startsWith('audio/')) {
       return 'Arquivo deve ser de Ã¡udio';
     }
     if (file.size > MAX_FILE_SIZE) {
       return `Arquivo muito grande (mÃ¡x: ${MAX_FILE_SIZE / 1024 / 1024}MB)`;
     }
+=======
+    if (!file.type.startsWith('audio/')) return 'Arquivo deve ser de áudio';
+    if (file.size > MAX_FILE_SIZE) return `Arquivo muito grande (máx: ${MAX_FILE_SIZE / 1024 / 1024}MB)`;
+>>>>>>> 7c5dbb6 (feat: Integrate DJ tools and SmartMix)
     return null;
   };
 
@@ -78,213 +58,159 @@ export function MultiFileUploadDialog({ children, onSuccess }: MultiFileUploadDi
     const selectedFiles = Array.from(event.target.files || []);
     
     if (files.length + selectedFiles.length > MAX_FILES) {
+<<<<<<< HEAD
       toast({
         title: "Limite excedido",
         description: `MÃ¡ximo de ${MAX_FILES} arquivos por vez`,
         variant: "destructive"
       });
+=======
+      toast({ title: "Limite excedido", description: `Máximo de ${MAX_FILES} arquivos por vez`, variant: "destructive" });
+>>>>>>> 7c5dbb6 (feat: Integrate DJ tools and SmartMix)
       return;
     }
 
     const newFiles: FileUploadItem[] = [];
-    
     for (const file of selectedFiles) {
       const error = validateFile(file);
       if (error) {
+<<<<<<< HEAD
         toast({
           title: "Arquivo invÃ¡lido",
           description: `${file.name}: ${error}`,
           variant: "destructive"
         });
+=======
+        toast({ title: "Arquivo inválido", description: `${file.name}: ${error}`, variant: "destructive" });
+>>>>>>> 7c5dbb6 (feat: Integrate DJ tools and SmartMix)
         continue;
       }
-
-      const fileItem: FileUploadItem = {
-        id: generateId(),
-        file,
-        status: 'pending'
-      };
-      
-      newFiles.push(fileItem);
+      newFiles.push({ id: generateId(), file, status: 'pending' });
     }
 
     setFiles(prev => [...prev, ...newFiles]);
-    
-    // Start analyzing files
     for (const fileItem of newFiles) {
       analyzeFile(fileItem.id);
     }
   }, [files.length]);
 
   const analyzeFile = async (fileId: string) => {
-    setFiles(prev => prev.map(f => 
-      f.id === fileId ? { ...f, status: 'analyzing' } : f
-    ));
-
+    setFiles(prev => prev.map(f => f.id === fileId ? { ...f, status: 'analyzing' } : f));
     try {
-      const fileItem = files.find(f => f.id === fileId) || 
-                      files[files.length - 1]; // Fallback for new files
-      
-      if (!fileItem) return;
-
-      // Basic metadata
-      const metadata = await extractAudioMetadata(fileItem.file);
-      
-      setFiles(prev => prev.map(f => 
-        f.id === fileId ? { ...f, metadata } : f
-      ));
-
-      // AI Analysis
-      try {
-        const aiAnalysis = await analyzeAudioFile(fileItem.file);
-        
-        setFiles(prev => prev.map(f => 
-          f.id === fileId 
-            ? { ...f, aiAnalysis, status: 'ready' }
-            : f
-        ));
-      } catch (aiError) {
-        console.warn('AI analysis failed:', aiError);
-        setFiles(prev => prev.map(f => 
-          f.id === fileId ? { ...f, status: 'ready' } : f
-        ));
-      }
+      const current = files.find(f => f.id === fileId) || files[files.length - 1];
+      if (!current) return;
+      const metadata = await extractAudioMetadata(current.file);
+      setFiles(prev => prev.map(f => f.id === fileId ? { ...f, metadata, status: 'ready' } : f));
     } catch (error) {
+<<<<<<< HEAD
       setFiles(prev => prev.map(f => 
         f.id === fileId 
           ? { ...f, status: 'error', error: 'Erro na anÃ¡lise' }
           : f
       ));
+=======
+      setFiles(prev => prev.map(f => f.id === fileId ? { ...f, status: 'error', error: 'Erro na análise' } : f));
+>>>>>>> 7c5dbb6 (feat: Integrate DJ tools and SmartMix)
     }
   };
 
-  const removeFile = (fileId: string) => {
-    setFiles(prev => prev.filter(f => f.id !== fileId));
-  };
+  const removeFile = (fileId: string) => setFiles(prev => prev.filter(f => f.id !== fileId));
 
   const uploadAllFiles = async () => {
     const readyFiles = files.filter(f => f.status === 'ready');
-    
     if (readyFiles.length === 0) {
+<<<<<<< HEAD
       toast({
         title: "Nenhum arquivo pronto",
         description: "Aguarde a anÃ¡lise dos arquivos",
         variant: "destructive"
       });
+=======
+      toast({ title: "Nenhum arquivo pronto", description: "Aguarde a análise dos arquivos", variant: "destructive" });
+>>>>>>> 7c5dbb6 (feat: Integrate DJ tools and SmartMix)
       return;
     }
 
-    let completed = 0;
-    const total = readyFiles.length;
-
+    let completed = 0; const total = readyFiles.length;
     for (const fileItem of readyFiles) {
       try {
-        setFiles(prev => prev.map(f => 
-          f.id === fileItem.id ? { ...f, status: 'uploading', progress: 0 } : f
-        ));
-
+        setFiles(prev => prev.map(f => f.id === fileItem.id ? { ...f, status: 'uploading', progress: 0 } : f));
         const baseTitle = fileItem.file.name.replace(/\.[^/.]+$/, "");
-        const metadata = fileItem.aiAnalysis || fileItem.metadata;
-
+        const metadata = fileItem.metadata;
         await uploadAudio(fileItem.file, {
           title: baseTitle,
-          artist: 'Unknown Artist', // Could be enhanced with form
+          artist: 'Unknown Artist',
           type: 'track',
-          bpm: metadata?.bpm || metadata?.features?.bpm,
-          energy_level: metadata?.features?.energy === 'low' ? 3 : 
-                       metadata?.features?.energy === 'medium' ? 6 : 
-                       metadata?.features?.energy === 'high' ? 9 : undefined,
-          genre: metadata?.features?.genre,
-          tags: metadata?.features?.instruments
+          bpm: metadata?.bpm,
+          energy_level: metadata?.energy,
+          genre: metadata?.genre,
+          tags: metadata?.instruments
         });
-
-        setFiles(prev => prev.map(f => 
-          f.id === fileItem.id ? { ...f, status: 'success', progress: 100 } : f
-        ));
-
-        completed++;
-        setGlobalProgress((completed / total) * 100);
-
+        setFiles(prev => prev.map(f => f.id === fileItem.id ? { ...f, status: 'success', progress: 100 } : f));
+        completed++; setGlobalProgress((completed / total) * 100);
       } catch (error) {
-        setFiles(prev => prev.map(f => 
-          f.id === fileItem.id 
-            ? { ...f, status: 'error', error: 'Falha no upload' }
-            : f
-        ));
+        setFiles(prev => prev.map(f => f.id === fileItem.id ? { ...f, status: 'error', error: 'Falha no upload' } : f));
       }
     }
 
     const successCount = files.filter(f => f.status === 'success').length;
+<<<<<<< HEAD
     
     toast({
       title: "Upload concluÃ­do",
       description: `${successCount} de ${total} arquivos enviados com sucesso`,
     });
 
+=======
+    toast({ title: "Upload concluído", description: `${successCount} de ${total} arquivos enviados com sucesso` });
+>>>>>>> 7c5dbb6 (feat: Integrate DJ tools and SmartMix)
     if (successCount > 0) {
       onSuccess?.();
-      // Reset after 2 seconds
-      setTimeout(() => {
-        setFiles([]);
-        setGlobalProgress(0);
-        setOpen(false);
-      }, 2000);
+      setTimeout(() => { setFiles([]); setGlobalProgress(0); setOpen(false); }, 2000);
     }
   };
 
   const getStatusIcon = (status: FileUploadItem['status']) => {
     switch (status) {
-      case 'pending':
-        return <FileAudio className="h-4 w-4 text-muted-foreground" />;
-      case 'analyzing':
-        return <Brain className="h-4 w-4 text-primary animate-pulse" />;
-      case 'ready':
-        return <Check className="h-4 w-4 text-green-500" />;
-      case 'uploading':
-        return <Upload className="h-4 w-4 text-blue-500 animate-pulse" />;
-      case 'success':
-        return <Check className="h-4 w-4 text-green-500" />;
-      case 'error':
-        return <AlertCircle className="h-4 w-4 text-red-500" />;
-      default:
-        return <FileAudio className="h-4 w-4" />;
+      case 'pending': return <FileAudio className="h-4 w-4 text-muted-foreground" />;
+      case 'analyzing': return <Brain className="h-4 w-4 text-primary animate-pulse" />;
+      case 'ready': return <Check className="h-4 w-4 text-green-500" />;
+      case 'uploading': return <Upload className="h-4 w-4 text-blue-500 animate-pulse" />;
+      case 'success': return <Check className="h-4 w-4 text-green-500" />;
+      case 'error': return <AlertCircle className="h-4 w-4 text-red-500" />;
+      default: return <FileAudio className="h-4 w-4" />;
     }
   };
 
   const getStatusColor = (status: FileUploadItem['status']) => {
     switch (status) {
-      case 'analyzing':
-        return 'bg-blue-500/10 border-blue-500/20';
-      case 'ready':
-        return 'bg-green-500/10 border-green-500/20';
-      case 'uploading':
-        return 'bg-primary/10 border-primary/20';
-      case 'success':
-        return 'bg-green-500/10 border-green-500/20';
-      case 'error':
-        return 'bg-red-500/10 border-red-500/20';
-      default:
-        return 'bg-muted/10 border-border';
+      case 'analyzing': return 'bg-blue-500/10 border-blue-500/20';
+      case 'ready': return 'bg-green-500/10 border-green-500/20';
+      case 'uploading': return 'bg-primary/10 border-primary/20';
+      case 'success': return 'bg-green-500/10 border-green-500/20';
+      case 'error': return 'bg-red-500/10 border-red-500/20';
+      default: return 'bg-muted/10 border-border';
     }
   };
 
-  const allReady = files.length > 0 && files.every(f => 
-    f.status === 'ready' || f.status === 'success' || f.status === 'error'
-  );
+  const allReady = files.length > 0 && files.every(f => f.status === 'ready' || f.status === 'success' || f.status === 'error');
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-w-2xl mx-auto glass max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5" />
+<<<<<<< HEAD
             Upload MÃºltiplo de Ãudio
             <Badge variant="outline" className="ml-auto">
               {files.length}/{MAX_FILES}
             </Badge>
+=======
+            Upload Múltiplo de Áudio
+            <Badge variant="outline" className="ml-auto">{files.length}/{MAX_FILES}</Badge>
+>>>>>>> 7c5dbb6 (feat: Integrate DJ tools and SmartMix)
           </DialogTitle>
         </DialogHeader>
 
@@ -293,26 +219,21 @@ export function MultiFileUploadDialog({ children, onSuccess }: MultiFileUploadDi
           <div className="space-y-2">
             <Label htmlFor="files">Selecionar Arquivos</Label>
             <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-              <input
-                id="files"
-                type="file"
-                accept="audio/*"
-                multiple
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              <label
-                htmlFor="files"
-                className="cursor-pointer flex flex-col items-center gap-3"
-              >
+              <input id="files" type="file" accept="audio/*" multiple onChange={handleFileSelect} className="hidden" />
+              <label htmlFor="files" className="cursor-pointer flex flex-col items-center gap-3">
                 <Music className="h-12 w-12 text-muted-foreground" />
                 <div>
+<<<<<<< HEAD
                   <p className="text-sm text-foreground mb-1">
                     Clique para selecionar arquivos de Ã¡udio
                   </p>
                   <p className="text-xs text-muted-foreground">
                     MÃ¡ximo {MAX_FILES} arquivos, atÃ© {MAX_FILE_SIZE / 1024 / 1024}MB cada
                   </p>
+=======
+                  <p className="text-sm text-foreground mb-1">Clique para selecionar arquivos de áudio</p>
+                  <p className="text-xs text-muted-foreground">Máximo {MAX_FILES} arquivos, até {MAX_FILE_SIZE / 1024 / 1024}MB cada</p>
+>>>>>>> 7c5dbb6 (feat: Integrate DJ tools and SmartMix)
                 </div>
               </label>
             </div>
@@ -333,70 +254,37 @@ export function MultiFileUploadDialog({ children, onSuccess }: MultiFileUploadDi
           {files.length > 0 && (
             <div className="space-y-3 max-h-96 overflow-y-auto">
               <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-foreground">
-                  Arquivos Selecionados
-                </h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setFiles([])}
-                  className="text-red-500 hover:text-red-600"
-                >
-                  Limpar Todos
-                </Button>
+                <h3 className="font-semibold text-foreground">Arquivos Selecionados</h3>
+                <Button variant="outline" size="sm" onClick={() => setFiles([])} className="text-red-500 hover:text-red-600">Limpar Todos</Button>
               </div>
-              
               {files.map((fileItem) => (
-                <Card 
-                  key={fileItem.id} 
-                  className={`p-4 ${getStatusColor(fileItem.status)}`}
-                >
+                <Card key={fileItem.id} className={`p-4 ${getStatusColor(fileItem.status)}`}>
                   <div className="flex items-center gap-3">
                     {getStatusIcon(fileItem.status)}
-                    
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-foreground truncate">
-                          {fileItem.file.name}
-                        </p>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeFile(fileItem.id)}
-                          className="h-6 w-6 p-0 text-muted-foreground hover:text-red-500"
-                        >
+                        <p className="text-sm font-medium text-foreground truncate">{fileItem.file.name}</p>
+                        <Button variant="ghost" size="sm" onClick={() => removeFile(fileItem.id)} className="h-6 w-6 p-0 text-muted-foreground hover:text-red-500">
                           <X className="h-3 w-3" />
                         </Button>
                       </div>
-                      
-                      <p className="text-xs text-muted-foreground">
-                        {(fileItem.file.size / 1024 / 1024).toFixed(1)} MB
-                      </p>
-
-                      {fileItem.error && (
-                        <p className="text-xs text-red-500 mt-1">
-                          {fileItem.error}
-                        </p>
-                      )}
-
+                      <p className="text-xs text-muted-foreground">{(fileItem.file.size / 1024 / 1024).toFixed(1)} MB</p>
+                      {fileItem.error && <p className="text-xs text-red-500 mt-1">{fileItem.error}</p>}
                       {fileItem.progress !== undefined && (
-                        <div className="mt-2">
-                          <Progress value={fileItem.progress} className="h-1" />
+                        <div className="mt-2"><Progress value={fileItem.progress} className="h-1" /></div>
+                      )}
+                      {/* Metadata preview */}
+                      {fileItem.metadata && (
+                        <div className="flex gap-2 mt-2">
+                          {fileItem.metadata.bpm && (
+                            <Badge variant="outline" className="text-xs">{fileItem.metadata.bpm} BPM</Badge>
+                          )}
+                          {fileItem.metadata.key && (
+                            <Badge variant="outline" className="text-xs">{fileItem.metadata.key}</Badge>
+                          )}
                         </div>
                       )}
                     </div>
-
-                    {/* AI Analysis Results Preview */}
-                    {fileItem.aiAnalysis && (
-                      <div className="flex gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          {fileItem.aiAnalysis.features.bpm} BPM
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          {fileItem.aiAnalysis.features.key}
-                        </Badge>
-                      </div>
-                    )}
                   </div>
                 </Card>
               ))}
@@ -406,18 +294,8 @@ export function MultiFileUploadDialog({ children, onSuccess }: MultiFileUploadDi
           {/* Actions */}
           {files.length > 0 && (
             <div className="flex gap-3 pt-4 border-t border-glass-border">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => setOpen(false)}
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={uploadAllFiles}
-                disabled={!allReady}
-                className="flex-1 flex items-center gap-2"
-              >
+              <Button variant="outline" className="flex-1" onClick={() => setOpen(false)}>Cancelar</Button>
+              <Button onClick={uploadAllFiles} disabled={!allReady} className="flex-1 flex items-center gap-2">
                 <Zap className="h-4 w-4" />
                 Enviar Todos ({files.filter(f => f.status === 'ready').length})
               </Button>
