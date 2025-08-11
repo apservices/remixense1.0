@@ -763,6 +763,41 @@ export type Database = {
           },
         ]
       }
+      news_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          news_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          news_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          news_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_comments_news_id_fkey"
+            columns: ["news_id"]
+            isOneToOne: false
+            referencedRelation: "real_news"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notes: {
         Row: {
           content: string | null
@@ -1061,6 +1096,48 @@ export type Database = {
           id?: string
           identifier?: string
           ts?: string
+        }
+        Relationships: []
+      }
+      real_news: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          published_at: string
+          source: string
+          summary: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          published_at: string
+          source: string
+          summary?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          published_at?: string
+          source?: string
+          summary?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          url?: string
         }
         Relationships: []
       }
@@ -1370,6 +1447,114 @@ export type Database = {
           },
         ]
       }
+      track_cues: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          label: string | null
+          position_ms: number
+          track_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          label?: string | null
+          position_ms: number
+          track_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          label?: string | null
+          position_ms?: number
+          track_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      track_features: {
+        Row: {
+          analysis: Json | null
+          bpm: number | null
+          camelot: string | null
+          created_at: string
+          energy_level: number | null
+          id: string
+          key_signature: string | null
+          mode: string | null
+          track_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analysis?: Json | null
+          bpm?: number | null
+          camelot?: string | null
+          created_at?: string
+          energy_level?: number | null
+          id?: string
+          key_signature?: string | null
+          mode?: string | null
+          track_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analysis?: Json | null
+          bpm?: number | null
+          camelot?: string | null
+          created_at?: string
+          energy_level?: number | null
+          id?: string
+          key_signature?: string | null
+          mode?: string | null
+          track_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      track_loops: {
+        Row: {
+          created_at: string
+          end_ms: number
+          id: string
+          label: string | null
+          start_ms: number
+          track_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_ms: number
+          id?: string
+          label?: string | null
+          start_ms: number
+          track_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_ms?: number
+          id?: string
+          label?: string | null
+          start_ms?: number
+          track_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tracks: {
         Row: {
           artist: string
@@ -1627,30 +1812,6 @@ export type Database = {
           p_window_minutes: number
         }
         Returns: boolean
-      }
-      citext: {
-        Args: { "": boolean } | { "": string } | { "": unknown }
-        Returns: string
-      }
-      citext_hash: {
-        Args: { "": string }
-        Returns: number
-      }
-      citextin: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      citextout: {
-        Args: { "": string }
-        Returns: unknown
-      }
-      citextrecv: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      citextsend: {
-        Args: { "": string }
-        Returns: string
       }
       get_comment_color: {
         Args: { comment_type: string }
