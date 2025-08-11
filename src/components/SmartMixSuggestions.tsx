@@ -17,6 +17,8 @@ import {
   Gauge
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getMixCompatibility } from '@/lib/audio/compat';
+import { mixAudioTracks } from '@/utils/dualAudio';
 
 interface Track {
   id: string;
@@ -27,6 +29,7 @@ interface Track {
   genre: string | null;
   key_signature: string | null;
   energy_level: number | null;
+  file_url?: string | null;
 }
 
 interface MixSuggestion {
@@ -57,6 +60,7 @@ export const SmartMixSuggestions: React.FC<SmartMixSuggestionsProps> = ({
 }) => {
   const [suggestions, setSuggestions] = useState<MixSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
+  const [quickMixUrls, setQuickMixUrls] = useState<Record<string, string>>({});
 
   // Generate smart suggestions based on current track
   useEffect(() => {
@@ -101,38 +105,8 @@ export const SmartMixSuggestions: React.FC<SmartMixSuggestionsProps> = ({
   };
 
   const calculateCompatibility = (track1: Track, track2: Track): number => {
-    let score = 50; // Base score
-    
-    // BPM compatibility
-    if (track1.bpm && track2.bpm) {
-      const bpmDiff = Math.abs(track1.bpm - track2.bpm);
-      if (bpmDiff <= 2) score += 25;
-      else if (bpmDiff <= 5) score += 15;
-      else if (bpmDiff <= 10) score += 5;
-    }
-    
-    // Key compatibility (simplified harmonic mixing)
-    if (track1.key_signature && track2.key_signature) {
-      const harmonicKeys = getHarmonicKeys(track1.key_signature);
-      if (harmonicKeys.includes(track2.key_signature)) {
-        score += 20;
-      }
-    }
-    
-    // Genre compatibility
-    if (track1.genre && track2.genre) {
-      if (track1.genre === track2.genre) score += 15;
-      else if (getCompatibleGenres(track1.genre).includes(track2.genre)) score += 10;
-    }
-    
-    // Energy level compatibility
-    if (track1.energy_level && track2.energy_level) {
-      const energyDiff = Math.abs(track1.energy_level - track2.energy_level);
-      if (energyDiff <= 1) score += 10;
-      else if (energyDiff <= 2) score += 5;
-    }
-    
-    return Math.min(100, Math.max(0, score));
+    const { score } = getMixCompatibility(track1 as any, track2 as any);
+    return score;
   };
 
   const generateReasons = (track1: Track, track2: Track): string[] => {

@@ -16,8 +16,9 @@ export const MixPointSuggest: React.FC<MixPointSuggestProps> = ({ trackId, onSug
       if (!trackId) { setSuggestion(null); return; }
       const feat = await fetchTrackFeatures(trackId);
       if (!feat) { setSuggestion(null); return; }
-      const drop = feat.analysis?.structure?.find((s: any) => s.section === 'drop');
-      const ms = drop ? drop.start * 1000 : (feat.analysis?.transients?.[0] ?? 0);
+      const analysis: any = (feat as any).analysis || {};
+      const drop = analysis?.structure?.find((s: any) => s.section === 'drop');
+      const ms = drop ? drop.start * 1000 : (analysis?.transients?.[0] ?? 0);
       setSuggestion(ms);
     };
     run();
