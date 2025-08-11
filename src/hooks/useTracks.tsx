@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import bpmDetective from "bpm-detective";
-import Meyda from "meyda";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Track } from "@/types";
 
 type FilterMode = "single" | "dual";
@@ -16,129 +16,126 @@ interface UseTracksReturn {
 }
 
 export function useTracks(): UseTracksReturn {
-  const [tracks, setTracks] = useState<Track[]>(() => {
-    try {
-      const stored = localStorage.getItem("remixense_tracks");
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [] as Track[];
-    }
-  });
+  const { user } = useAuth();
+  const [tracks, setTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState(false);
   const [filterMode, setFilterMode] = useState<FilterMode>("single");
 
+  const loadTracks = useCallback(async () => {
+    if (!user) {
+      setTracks([]);
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("tracks")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      setTracks((data as any) || []);
+    } catch (e) {
+      console.error("Failed to load tracks", e);
+      setTracks([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
   useEffect(() => {
-    localStorage.setItem("remixense_tracks", JSON.stringify(tracks));
-  }, [tracks]);
+    loadTracks();
+  }, [loadTracks]);
 
   const refetch = useCallback(async () => {
-    return Promise.resolve();
-  }, []);
+    await loadTracks();
+  }, [loadTracks]);
 
   const toggleLike = useCallback(async (id: string) => {
-    setTracks((prev) => prev.map(t => t.id === id ? { ...t, is_liked: !t.is_liked } : t));
-    return Promise.resolve();
-  }, []);
+    try {
+      const current = tracks.find((t) => t.id === id);
+      const next = !current?.is_liked;
+      setTracks((prev) => prev.map((t) => (t.id === id ? { ...t, is_liked: next } : t)));
+      const { error } = await supabase
+        .from("tracks")
+        .update({ is_liked: next })
+        .eq("id", id);
+      if (error) throw error;
+    } catch (e) {
+      console.error("toggleLike failed", e);
+    }
+  }, [tracks]);
 
   const addTrack = async (file: File) => {
-    const id = file.name + "-" + Date.now();
-    const base: Track = {
-      id,
-      name: file.name,
+    if (!navigator.onLine) {
+      throw new Error("Análise requer conexão ativa");
+    }
+    if (!user) {
+      throw new Error("É necessário estar logado para enviar faixas");
+    }
+
+    // Upload to Supabase Storage (no caching)
+    const path = `${user.id}/${Date.now()}_${file.name}`;
+    const { error: uploadError } = await supabase.storage
+      .from("tracks")
+      .upload(path, file, { cacheControl: "0", upsert: false, contentType: file.type || undefined });
+    if (uploadError) {
+      console.error("Storage upload failed", uploadError);
+      throw new Error("Falha no upload do arquivo");
+    }
+
+    // Insert initial track row with processing status
+    const insertPayload = {
+      user_id: user.id,
       title: file.name,
       artist: "Unknown",
-      duration: "00:00",
-      bpm: null,
-      key_signature: null,
-      genre: null,
-      energy_level: null,
       type: "track",
-      is_liked: false,
-      created_at: new Date().toISOString(),
-      status: "pending",
-    };
+      duration: "00:00",
+      file_path: path,
+      original_filename: file.name,
+      upload_status: "processing",
+    } as const;
 
-    setTracks((prev) => [...prev, base]);
-    analyzeTrackAsync(file, id);
-    return Promise.resolve();
-  };
+    const { data: inserted, error: insertError } = await supabase
+      .from("tracks")
+      .insert([insertPayload])
+      .select()
+      .single();
 
-  const analyzeTrackAsync = async (file: File, id: string) => {
-    setTracks((prev) => prev.map((t) => (t.id === id ? { ...t, status: "processing" } : t)));
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const audioCtx = (window as any).audioCtx || new ((window as any).AudioContext || (window as any).webkitAudioContext)();
-      (window as any).audioCtx = audioCtx;
+    if (insertError || !inserted) {
+      console.error("Insert track failed", insertError);
+      throw new Error("Não foi possível criar o registro da faixa");
+    }
 
-      const audioBuffer: AudioBuffer = await new Promise((resolve, reject) => {
-        audioCtx.decodeAudioData(arrayBuffer, resolve, reject);
-      });
+    setTracks((prev) => [{ ...(inserted as any), status: "processing" }, ...prev]);
 
-      const channelData = audioBuffer.getChannelData(0);
-      const bpm = Math.round(bpmDetective(channelData));
-      const seconds = Math.round(audioBuffer.duration);
-      const duration = `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, "0")}`;
-
-      // Meyda analysis (Key, Energy, basic Genre)
-      const sampleRate = audioBuffer.sampleRate;
-      const frameSize = 2048;
-      const hopSize = 1024;
-      const totalFrames = Math.max(0, Math.floor((channelData.length - frameSize) / hopSize));
-      const maxFrames = 200;
-      const step = Math.max(1, Math.floor(totalFrames / Math.max(1, maxFrames)));
-
-      let count = 0;
-      let rmsSum = 0;
-      let centroidSum = 0;
-      const chromaAcc = new Array(12).fill(0);
-
-      for (let i = 0; i + frameSize < channelData.length; i += hopSize * step) {
-        const frame = channelData.slice(i, i + frameSize);
-        const feats: any = (Meyda as any).extract(["rms", "spectralCentroid", "chroma"], frame, {
-          bufferSize: frameSize,
-          sampleRate,
-        });
-        if (!feats) continue;
-        if (typeof feats.rms === 'number') rmsSum += feats.rms;
-        if (typeof feats.spectralCentroid === 'number') centroidSum += feats.spectralCentroid;
-        if (Array.isArray(feats.chroma)) {
-          for (let j = 0; j < 12; j++) chromaAcc[j] += feats.chroma[j] || 0;
+    // Subscribe to realtime updates for this track to reflect status changes
+    const channel = supabase
+      .channel(`track_${inserted.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "tracks", filter: `id=eq.${inserted.id}` },
+        (payload: any) => {
+          const updated = payload.new;
+          setTracks((prev) => prev.map((t) => (t.id === updated.id ? { ...(t as any), ...(updated as any) } : t)));
+          // Auto-unsubscribe when completed or error
+          if (updated.upload_status === "completed" || updated.upload_status === "error") {
+            supabase.removeChannel(channel);
+          }
         }
-        count++;
-      }
+      )
+      .subscribe();
 
-      const avgRms = count ? rmsSum / count : 0;
-      const avgCentroid = count ? centroidSum / count : 0;
-      const avgChroma = chromaAcc.map((v) => (count ? v / count : 0));
-
-      const idx = avgChroma.indexOf(Math.max(...avgChroma));
-      const pitchNames = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"] as const;
-      const pitch = idx >= 0 ? pitchNames[idx] : null;
-      const key_signature = pitch ? `${pitch}${avgCentroid < 2000 ? 'm' : ''}` : null;
-
-      const energy_level = Math.min(10, Math.max(1, Math.round(avgRms * 20)));
-
-      const genre = (() => {
-        if (bpm && bpm >= 160) return "Drum & Bass";
-        if (bpm && bpm >= 128) return "House";
-        if (bpm && bpm <= 100) return "Hip-Hop";
-        if (avgCentroid > 3500) return "EDM";
-        return "Electronic";
-      })();
-
-      setTracks((prev) =>
-        prev.map((t) =>
-          t.id === id
-            ? { ...t, bpm, duration, key_signature, energy_level, genre, status: "ready" }
-            : t
-        )
-      );
+    // Kick off server-side analysis
+    try {
+      const { error: fnError } = await supabase.functions.invoke("analyze-audio", {
+        body: { trackId: inserted.id },
+      });
+      if (fnError) throw fnError;
     } catch (e) {
-      setTracks((prev) =>
-        prev.map((t) =>
-          t.id === id ? { ...t, status: "error", errorMsg: String(e) } : t
-        )
-      );
+      console.error("Failed to invoke analyze-audio", e);
+      // Mark as error; server may also set this later
+      setTracks((prev) => prev.map((t) => (t.id === inserted.id ? { ...t, upload_status: "error" } : t)));
+      throw new Error("Falha ao iniciar análise no servidor");
     }
   };
 
@@ -152,3 +149,4 @@ export function useTracks(): UseTracksReturn {
     filterMode,
   };
 }
+
