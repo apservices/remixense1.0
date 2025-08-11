@@ -7,12 +7,34 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Card } from "@/components/ui/card";
 import { useAudioUpload } from "@/hooks/useAudioUpload";
-import { useAudioAnalysis } from "@/hooks/useAudioAnalysis";
 import { extractAudioMetadata } from "@/utils/audioMetadata";
 import { Upload, Music, X, Check, AlertCircle, FileAudio, Brain, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface FileUploadItem {
+  id: string;
+  file: File;
+  status: 'pending' | 'analyzing' | 'ready' | 'uploading' | 'success' | 'error';
+  metadata?: any;
+  error?: string;
+}
+
+interface MultiFileUploadDialogProps {
+  children: React.ReactNode;
+  onSuccess?: () => void;
+}
+
+const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB per file
+const MAX_FILES = 10; // Max 10 files per batch
+
+export function MultiFileUploadDialog({ children, onSuccess }: MultiFileUploadDialogProps) {
+  const [open, setOpen] = useState(false);
+  const [files, setFiles] = useState<FileUploadItem[]>([]);
+  const [globalProgress, setGlobalProgress] = useState(0);
+  
+  const { uploadAudio } = useAudioUpload();
+  const { toast } = useToast();
+
   id: string;
   file: File;
   status: 'pending' | 'analyzing' | 'ready' | 'uploading' | 'success' | 'error';

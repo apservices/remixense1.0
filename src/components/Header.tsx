@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useSubscription } from '@/hooks/useSubscription';
 
 export default function Header() {
   const { isAuthenticated, email, signOut } = useAuth();
+  const { isFree } = useSubscription();
   const navigate = useNavigate();
 
   if (!isAuthenticated) return null;
@@ -29,6 +31,11 @@ export default function Header() {
           <Link to="/pricing">Pricing</Link>
         </nav>
         <div className="flex gap-3 items-center">
+          {isFree && (
+            <Link to="/pricing" className="px-3 py-1 rounded border border-primary text-primary hover:bg-primary/10 transition-smooth" aria-label="Upgrade para PRO">
+              Upgrade
+            </Link>
+          )}
           <span className="text-xs md:text-sm">{email}</span>
           <button 
             onClick={handleSignOut} 
