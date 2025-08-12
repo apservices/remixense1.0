@@ -84,6 +84,7 @@
     "wavesurfer.js": "^7.10.1",
     "web-audio-api": "^0.2.2",
     "web-audio-beat-detector": "^8.2.30",
+    "workbox-window": "^7.3.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -107,6 +108,7 @@
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
     "vite": "^5.4.1",
+    "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^1.6.1"
   }
 }

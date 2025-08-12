@@ -1,3 +1,4 @@
+﻿import { enablePWA } from './pwa/register-sw';
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
@@ -18,3 +19,6 @@ const updateSW = registerSW({
 
 // Expose updater for UI components
 window.__PWA_UPDATE_SW = updateSW
+
+ enablePWA();
+
