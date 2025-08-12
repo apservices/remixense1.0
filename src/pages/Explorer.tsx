@@ -1,4 +1,4 @@
-import { ComprehensiveDashboard } from "@/components/ComprehensiveDashboard";
+﻿import ComprehensiveDashboard from '@/components/ComprehensiveDashboard';
 
 export default function Explorer() {
   return (
@@ -9,7 +9,7 @@ export default function Explorer() {
             Dashboard Explorer
           </h1>
           <p className="text-muted-foreground text-sm">
-            Análise completa dos seus dados musicais
+            AnÃ¡lise completa dos seus dados musicais
           </p>
         </div>
       </div>

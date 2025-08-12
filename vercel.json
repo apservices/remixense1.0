@@ -1,26 +1,7 @@
-/* SPA fallback */
-/*
-  Vercel routes: send everything to index.html (client-side router),
-  and set no-store for version.json and no-cache for sw.js to ensure timely updates.
-*/
 {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ],
-  "headers": [
-    {
-      "source": "/version.json",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, proxy-revalidate" },
-        { "key": "Pragma", "value": "no-cache" },
-        { "key": "Expires", "value": "0" }
-      ]
-    },
-    {
-      "source": "/sw.js",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache" }
-      ]
-    }
-  ]
+  "version": 2,
+  "framework": "vite",
+  "buildCommand": "pnpm install --frozen-lockfile && pnpm run build",
+  "outputDirectory": "dist",
+  "routes": [{ "src": "/(.*)", "dest": "/index.html" }]
 }
