@@ -1,57 +1,62 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
-import path from "path";
-import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
+import tsconfigPaths from "vite-tsconfig-paths";
+import path from "path";
 
-// https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  server: {
-    host: "::",
-    port: 8080,
-    allowedHosts: true, // Permite qualquer host externo (útil para ngrok)
-  },
+export default defineConfig({
   plugins: [
+    tsconfigPaths(),
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
-      filename: 'sw.js',
+      registerType: "autoUpdate",
+      includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
       manifest: {
-        name: 'RemiXense',
-        short_name: 'RemiX',
-        start_url: '/',
-        scope: '/',
-        display: 'standalone',
-        background_color: '#0f172a',
-        theme_color: '#0f172a',
+        name: "RemiXense",
+        short_name: "RemiXense",
+        start_url: "/",
+        scope: "/",
+        display: "standalone",
+        background_color: "#0a0a0a",
+        theme_color: "#0a0a0a",
         icons: [
-          { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
-          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+          { src: "/pwa-192x192.png", sizes: "192x192", type: "image/png" },
+          { src: "/pwa-512x512.png", sizes: "512x512", type: "image/png" },
+          { src: "/pwa-512x512-maskable.png", sizes: "512x512", type: "image/png", purpose: "maskable" }
         ]
       },
       workbox: {
-        navigateFallback: '/index.html',
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff2}"],
+        navigateFallback: "/index.html",
         cleanupOutdatedCaches: true,
+        sourcemap: false,
+        clientsClaim: true,
+        skipWaiting: true,
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.origin.includes('supabase.co') && url.pathname.includes('/storage/v1/object'),
-            handler: 'NetworkOnly',
+            urlPattern: ({ request }) => request.destination === "document",
+            handler: "NetworkFirst",
+            options: { cacheName: "html-cache" }
           },
           {
-            urlPattern: ({ url }) => url.origin.includes('supabase.co') && url.pathname.includes('/functions/v1/analyze-audio'),
-            handler: 'NetworkOnly',
+            urlPattern: ({ request }) => ["style","script","worker"].includes(request.destination),
+            handler: "StaleWhileRevalidate",
+            options: { cacheName: "asset-cache" }
+          },
+          {
+            urlPattern: ({ url }) => url.origin === self.location.origin && url.pathname.startsWith("/"),
+            handler: "StaleWhileRevalidate",
+            options: { cacheName: "static-cache" }
           }
         ]
-      }
-    }),
-    mode === "development" &&
-      componentTagger(),
-  ].filter(Boolean),
+      },
+      devOptions: { enabled: false }
+    })
+  ],
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+    alias: { "@": path.resolve(__dirname, "./src") }
   },
-}));
-
+  build: {
+    rollupOptions: { external: [] }
+  }
+});

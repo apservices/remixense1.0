@@ -1,3 +1,20 @@
-package.json merge=ours
-package-lock.json merge=ours
-pnpm-lock.yaml merge=ours
+# EOL
+* text=auto eol=lf
+
+# Text files
+*.ts   text eol=lf
+*.tsx  text eol=lf
+*.js   text eol=lf
+*.jsx  text eol=lf
+*.json text eol=lf
+*.css  text eol=lf
+*.md   text eol=lf
+
+# Merge strategies
+.gitignore         merge=union
+package.json       merge=ours
+pnpm-lock.yaml     merge=ours
+package-lock.json  merge=ours
+
+# Binaries / builds
+dist/** -text
