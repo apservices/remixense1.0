@@ -55,7 +55,10 @@ export function useInsights() {
 
       // Calculate total listening time (approximate)
       const totalListeningTime = tracks.reduce((acc, track) => {
-        const [min, sec] = track.duration.split(':').map(Number);
+        if (!track.duration || typeof track.duration !== 'string') return acc;
+        const parts = track.duration.split(':');
+        const min = parseInt(parts[0]) || 0;
+        const sec = parseInt(parts[1]) || 0;
         return acc + (min * 60 + sec);
       }, 0);
 
@@ -74,7 +77,7 @@ export function useInsights() {
       }, {} as Record<string, number>);
 
       const topGenres = Object.entries(genreCounts)
-        .map(([genre, count]) => ({ genre, count }))
+        .map(([genre, count]) => ({ genre, count: count as number }))
         .sort((a, b) => b.count - a.count)
         .slice(0, 3);
 

@@ -44,7 +44,7 @@ export default defineConfig({
             options: { cacheName: "asset-cache" }
           },
           {
-            urlPattern: ({ url }) => url.origin === self.location.origin && url.pathname.startsWith("/"),
+            urlPattern: /^https?.*$/,
             handler: "StaleWhileRevalidate",
             options: { cacheName: "static-cache" }
           }
@@ -53,6 +53,9 @@ export default defineConfig({
       devOptions: { enabled: false }
     })
   ],
+  server: {
+    port: 8080
+  },
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") }
   },

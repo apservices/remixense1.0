@@ -9,6 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Play, Pause, Upload, Volume2, Rewind, FastForward, ChevronLeft, ChevronRight, Wand2, Music2 } from "lucide-react";
 import bpmDetective from "bpm-detective";
 import { extractAudioMetadata, analyzeHarmony } from "@/utils/audioMetadata";
+import { CueControls } from "@/components/dj/CueControls";
+import { LoopControls } from "@/components/dj/LoopControls";
+import { MixPointSuggest } from "@/components/dj/MixPointSuggest";
+import { DeckProvider, useDecks } from "@/store/decks";
 
 interface DeckState {
   file?: File;
@@ -29,7 +33,7 @@ function formatDuration(sec: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-export default function EnhancedDualPlayer() {
+function DualPlayerInner() {
   const leftContainer = useRef<HTMLDivElement>(null);
   const rightContainer = useRef<HTMLDivElement>(null);
 
@@ -235,6 +239,24 @@ export default function EnhancedDualPlayer() {
                   className="w-40 h-2 bg-muted rounded-lg appearance-none cursor-pointer slider"
                 />
               </div>
+              
+              {/* DJ Tools for Left Deck */}
+              <div className="border-t pt-3 space-y-2">
+                <CueControls 
+                  deck="A" 
+                  trackId={left.title} 
+                  currentMs={left.ws?.getCurrentTime() * 1000 || 0}
+                />
+                <LoopControls 
+                  deck="A" 
+                  trackId={left.title}
+                  currentMs={left.ws?.getCurrentTime() * 1000 || 0}
+                />
+                <MixPointSuggest 
+                  trackId={left.title}
+                  onSuggest={(ms) => left.ws?.seekTo(ms / 1000 / (left.ws?.getDuration() || 1))}
+                />
+              </div>
             </div>
 
             {/* Right Deck */}
@@ -266,6 +288,24 @@ export default function EnhancedDualPlayer() {
                   className="w-40 h-2 bg-muted rounded-lg appearance-none cursor-pointer slider"
                 />
               </div>
+              
+              {/* DJ Tools for Right Deck */}
+              <div className="border-t pt-3 space-y-2">
+                <CueControls 
+                  deck="B" 
+                  trackId={right.title} 
+                  currentMs={right.ws?.getCurrentTime() * 1000 || 0}
+                />
+                <LoopControls 
+                  deck="B" 
+                  trackId={right.title}
+                  currentMs={right.ws?.getCurrentTime() * 1000 || 0}
+                />
+                <MixPointSuggest 
+                  trackId={right.title}
+                  onSuggest={(ms) => right.ws?.seekTo(ms / 1000 / (right.ws?.getDuration() || 1))}
+                />
+              </div>
             </div>
           </div>
 
@@ -289,5 +329,13 @@ export default function EnhancedDualPlayer() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function EnhancedDualPlayer() {
+  return (
+    <DeckProvider>
+      <DualPlayerInner />
+    </DeckProvider>
   );
 }
