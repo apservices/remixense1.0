@@ -8,8 +8,8 @@ for = "/*"
   style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src 'self' data: https://fonts.gstatic.com;
   img-src 'self' data: blob: https://*.supabase.co;
-  media-src 'self' blob: https://xmjwutsmvshcfnowarnf.supabase.co;
-  connect-src 'self' https://xmjwutsmvshcfnowarnf.supabase.co https://xmjwutsmvshcfnowarnf.functions.supabase.co wss://*.supabase.co;
+  media-src 'self' blob: https://*.supabase.co;
+  connect-src 'self' https://*.supabase.co wss://*.supabase.co;
   worker-src 'self' blob:;
   manifest-src 'self';
   frame-ancestors 'self';
