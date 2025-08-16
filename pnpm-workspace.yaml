@@ -1,0 +1,9 @@
+ignoredBuiltDependencies:
+  - onnxruntime-node
+  - protobufjs
+  - sharp
+  - speaker
+
+onlyBuiltDependencies:
+  - '@swc/core'
+  - esbuild

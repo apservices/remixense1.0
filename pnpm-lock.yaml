@@ -274,7 +274,7 @@ importers:
         specifier: ^18.0.1
         version: 18.0.1
       lovable-tagger:
-        specifier: ^1.1.7
+        specifier: ^1.1.9
         version: 1.1.9(vite@5.4.19(@types/node@22.17.1)(terser@5.43.1))
       postcss:
         specifier: ^8.4.47
