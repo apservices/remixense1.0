@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Play, Shuffle, Filter, Zap } from 'lucide-react';
 import { useTracks } from '@/hooks/useTracks';
-import { getMixCompatibility } from '@/lib/audio/compat';
-import type { Track } from '@/types';
+import { getMixCompatibility, type CompatibilityResult } from '@/lib/audio/compat';
+import type { Track, TrackForMix } from '@/types';
 
 interface EnhancedTrackLibraryProps {
   selectedTrack?: Track;
@@ -36,11 +36,42 @@ export const EnhancedTrackLibrary: React.FC<EnhancedTrackLibraryProps> = ({
     if (selectedTrack && showCompatibility && sortBy === 'compatibility') {
       // Sort by compatibility with selected track
       filtered = filtered
-        .map(track => ({
-          ...track,
-          compatibility: track.id === selectedTrack.id ? 0 : getMixCompatibility(selectedTrack, track)
-        }))
-        .sort((a, b) => (b.compatibility?.score || 0) - (a.compatibility?.score || 0));
+        .map(track => {
+          if (track.id === selectedTrack.id) {
+            return { ...track, compatibility: null };
+          }
+          
+          // Convert Track to TrackForMix format
+          const trackForMix: TrackForMix = {
+            id: track.id,
+            title: track.title,
+            artist: track.artist,
+            bpm: track.bpm || null,
+            key_signature: track.key_signature || null,
+            energy_level: track.energy_level || null,
+            duration: track.duration
+          };
+          
+          const selectedForMix: TrackForMix = {
+            id: selectedTrack.id,
+            title: selectedTrack.title,
+            artist: selectedTrack.artist,
+            bpm: selectedTrack.bpm || null,
+            key_signature: selectedTrack.key_signature || null,
+            energy_level: selectedTrack.energy_level || null,
+            duration: selectedTrack.duration
+          };
+          
+          return {
+            ...track,
+            compatibility: getMixCompatibility(selectedForMix, trackForMix)
+          };
+        })
+        .sort((a, b) => {
+          const scoreA = (a.compatibility as CompatibilityResult)?.score || 0;
+          const scoreB = (b.compatibility as CompatibilityResult)?.score || 0;
+          return scoreB - scoreA;
+        });
     } else if (sortBy === 'bpm') {
       filtered.sort((a, b) => (a.bpm || 0) - (b.bpm || 0));
     } else if (sortBy === 'name') {
@@ -169,12 +200,12 @@ export const EnhancedTrackLibrary: React.FC<EnhancedTrackLibraryProps> = ({
                   <div className="flex items-center gap-2">
                     <Badge 
                       style={{ 
-                        backgroundColor: getCompatibilityColor(compatibility.score),
+                        backgroundColor: getCompatibilityColor((compatibility as CompatibilityResult).score),
                         color: 'white'
                       }}
                       className="text-xs font-bold"
                     >
-                      {compatibility.score}%
+                      {(compatibility as CompatibilityResult).score}%
                     </Badge>
                     <Button
                       size="sm"

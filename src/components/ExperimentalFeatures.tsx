@@ -12,7 +12,7 @@ import {
   Music, 
   AlertTriangle,
   Cpu,
-  Waveform
+  AudioWaveform
 } from 'lucide-react';
 import { getFeatureStatus, isFeatureEnabled } from '@/lib/experimentalFeatures';
 import { useToast } from '@/hooks/use-toast';
@@ -138,7 +138,7 @@ export const ExperimentalFeatures: React.FC = () => {
         {isFeatureEnabled('AUDIO_EXPERIMENTAL') && (
           <div className="space-y-4">
             <h4 className="font-medium flex items-center gap-2">
-              <Waveform className="h-4 w-4" />
+              <AudioWaveform className="h-4 w-4" />
               Pitch Shift em Tempo Real
             </h4>
             
