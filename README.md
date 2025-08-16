@@ -157,12 +157,12 @@ npx lhci autorun
 - 100MB storage
 - Recursos básicos
 
-### 💎 Pro ($4.90/mês)
+### 💎 Pro (R$19.90/mês)
 - Uploads ilimitados
 - Export de qualidade
 - Acesso à comunidade
 
-### 🚀 Expert ($9.90/mês)
+### 🚀 Expert (R$39.90/mês)
 - Storage premium
 - Marketplace completo
 - Recursos avançados de IA
