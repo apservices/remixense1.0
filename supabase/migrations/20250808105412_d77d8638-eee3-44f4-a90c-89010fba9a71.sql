@@ -1,0 +1,2 @@
+-- Add helpful uniqueness to prevent multiple pending invites per email (compatible with existing schema)
+CREATE UNIQUE INDEX IF NOT EXISTS unique_pending_invite_per_email ON public.invites (email) WHERE used_at IS NULL;
