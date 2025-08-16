@@ -47,7 +47,7 @@
   }
   
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
@@ -179,6 +179,59 @@
   border-radius: 3px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: hsla(var(--primary) / 0.8);
-}
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsla(var(--primary) / 0.8);
+  }
+
+  /* Focus states for accessibility */
+  .focus-visible {
+    @apply ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    :root {
+      --foreground: 0 0% 100%;
+      --background: 0 0% 0%;
+      --primary: 200 100% 70%;
+      --border: 0 0% 50%;
+    }
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Mobile-first responsive utilities */
+  @media (max-width: 640px) {
+    .mobile-padding {
+      @apply px-4 py-2;
+    }
+    
+    .mobile-text {
+      @apply text-sm;
+    }
+    
+    .mobile-stack {
+      @apply flex-col space-x-0 space-y-2;
+    }
+  }
+
+  /* Print styles */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+    
+    * {
+      color: black !important;
+      background: white !important;
+    }
+  }
