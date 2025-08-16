@@ -6,13 +6,20 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
-import { Play, Pause, Upload, Volume2, Rewind, FastForward, ChevronLeft, ChevronRight, Wand2, Music2 } from "lucide-react";
+import { Play, Pause, Upload, Volume2, Rewind, FastForward, ChevronLeft, ChevronRight, Wand2, Music2, Settings } from "lucide-react";
 import bpmDetective from "bpm-detective";
 import { extractAudioMetadata, analyzeHarmony } from "@/utils/audioMetadata";
 import { CueControls } from "@/components/dj/CueControls";
 import { LoopControls } from "@/components/dj/LoopControls";
 import { MixPointSuggest } from "@/components/dj/MixPointSuggest";
+import { WaveformGrid } from "@/components/dj/WaveformGrid";
+import { EnhancedTrackLibrary } from "@/components/dj/EnhancedTrackLibrary";
+import { QuickMixEngine } from "@/components/dj/QuickMixEngine";
 import { DeckProvider, useDecks } from "@/store/decks";
+import { loadCuePoints, loadLoopRanges } from "@/lib/djTools";
+import { isFeatureEnabled, ExperimentalAudioProcessor } from "@/lib/experimentalFeatures";
+import { useToast } from "@/hooks/use-toast";
+import type { Track } from "@/types";
 
 interface DeckState {
   file?: File;
