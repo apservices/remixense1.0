@@ -1,0 +1,29 @@
+{
+  "name": "music-app",
+  "version": "1.0.0",
+  "description": "A music application for managing and remixing tracks.",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "typescript": "^4.4.4"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.2",
+    "@types/react-dom": "^17.0.2"
+  },
+  "keywords": [
+    "music",
+    "remix",
+    "metadata",
+    "community"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
