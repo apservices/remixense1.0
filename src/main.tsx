@@ -1,8 +1,12 @@
-﻿import { enablePWA } from './pwa/register-sw';
+﻿import './fonts.css';
+import { enablePWA } from './pwa/register-sw';
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { registerSW } from 'virtual:pwa-register'
+import { bootAuth } from "./lib/auth-boot";
+bootAuth();
+
 
 createRoot(document.getElementById("root")!).render(<App />);
 
@@ -21,4 +25,5 @@ const updateSW = registerSW({
 window.__PWA_UPDATE_SW = updateSW
 
  enablePWA();
+
 

@@ -26,7 +26,6 @@
     />
     <link
       rel="preload"
-      href="/fonts/JetBrainsMono-Regular.woff2"
       as="font"
       type="font/woff2"
       crossorigin
@@ -34,21 +33,7 @@
     <link rel="stylesheet" href="/fonts/fonts.css" />
 
     <!-- CSP corrigida -->
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self';
-               script-src 'self' 'wasm-unsafe-eval';
-               style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-               style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com;
-               font-src 'self' data: https://fonts.gstatic.com;
-               img-src 'self' data: blob: https://*.supabase.co;
-               media-src 'self' blob: https://*.supabase.co;
-               connect-src 'self' https://*.supabase.co wss://*.supabase.co;
-               worker-src 'self' blob:;
-               manifest-src 'self';
-               frame-ancestors 'self';
-               base-uri 'self';"
-    />
+    
 
     <!-- PWA meta tags -->
     <meta name="mobile-web-app-capable" content="yes" />
@@ -76,9 +61,16 @@
         "description": "DJ AI Studio com mixagem, stems e QuickMix no navegador"
       }
     </script>
-  </head>
+  
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
+
+
+

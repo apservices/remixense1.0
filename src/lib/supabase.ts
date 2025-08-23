@@ -1,16 +1,11 @@
-import { supabase } from '@/integrations/supabase/client';
+﻿import { createClient } from '@supabase/supabase-js';
 
-export async function invokeServerAnalysis(trackId: string) {
-  const { error } = await supabase.functions.invoke('analyze-audio', { body: { trackId } });
-  if (error) throw error;
-}
+const url  = import.meta.env.VITE_SUPABASE_URL;
+const anon = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export async function fetchTrackFeatures(trackId: string) {
-  const { data, error } = await supabase
-    .from('track_features')
-    .select('*')
-    .eq('track_id', trackId)
-    .maybeSingle();
-  if (error) throw error;
-  return data;
-}
+if (!url)  throw new Error('Missing env: VITE_SUPABASE_URL');
+if (!anon) throw new Error('Missing env: VITE_SUPABASE_ANON_KEY');
+
+export const supabase = createClient(url, anon, {
+  auth: { persistSession: true, autoRefreshToken: true },
+});

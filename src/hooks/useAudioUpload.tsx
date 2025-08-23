@@ -1,3 +1,4 @@
+﻿import { uuid } from '../utils/uuid';
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -42,18 +43,18 @@ export function useAudioUpload() {
       // Client-side validation: audio type and size limit (100MB)
       const MAX_SIZE = 100 * 1024 * 1024;
       if (!file.type.startsWith('audio/')) {
-        throw new Error('Apenas arquivos de áudio são permitidos.');
+        throw new Error('Apenas arquivos de Ã¡udio sÃ£o permitidos.');
       }
       if (file.size > MAX_SIZE) {
         throw new Error('Arquivo muito grande. Limite: 100MB');
       }
 
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Faça login com e-mail e senha para enviar.');
+      if (!user) throw new Error('FaÃ§a login com e-mail e senha para enviar.');
 
       // Create unique filename
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${crypto.randomUUID()}.${fileExt}`;
+      const fileName = `${user.id}/${uuid()}.${fileExt}`;
 
       // Upload file to storage (private bucket)
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -104,7 +105,7 @@ export function useAudioUpload() {
       if (trackError) throw trackError;
 
       toast({
-        title: "Upload concluído!",
+        title: "Upload concluÃ­do!",
         description: `${metadata.title} foi adicionado ao seu vault.`
       });
 
