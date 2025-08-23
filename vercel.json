@@ -1,12 +1,12 @@
 {
+  "": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
+  "framework": "vite",
+  "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm build",
-  "installCommand": "pnpm i --frozen-lockfile",
   "outputDirectory": "dist",
-  "builds": [
-    { "src": "package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } }
-  ],
   "routes": [
-    { "src": "/(.*)", "dest": "/" }
+    { "handle": "filesystem" },
+    { "src": "/.*", "dest": "/" }
   ]
 }
