@@ -1,29 +1,22 @@
-name: build-and-test
+﻿name: build-and-test
 on:
-  pull_request: { branches: [ main, master ] }
-  push:        { branches: [ main, master, chore/** ] }
-concurrency:
-  group: build-${{ github.ref }}
-  cancel-in-progress: true
+  push:
+    branches: [ main ]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.14.0
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: "pnpm" }
-      - run: corepack enable
-      - run: corepack prepare pnpm@10.14.0 --activate
-      - run: pnpm install --frozen-lockfile
-      - name: Fallback envs (secrets opcionais)
-        shell: bash
-        run: |
-          : "${NEXT_PUBLIC_SUPABASE_ANON_KEY:=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}}"
-          if [ -z "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ]; then
-            echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=dev-placeholder" >> $GITHUB_ENV
-          else
-            echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY" >> $GITHUB_ENV
-          fi
-          echo "NEXT_PUBLIC_SUPABASE_URL=https://xmjwutsmvshcfnowarnf.supabase.co" >> $GITHUB_ENV
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - run: pnpm install --no-frozen-lockfile
       - name: Build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://xmjwutsmvshcfnowarnf.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: pnpm build
