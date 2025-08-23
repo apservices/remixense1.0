@@ -10,10 +10,10 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "sb:types": "supabase gen types typescript --project-id xmjwutsmvshcfnowarnf --schema public > src/types/supabase.ts",
-    "sb:mig:list": "supabase migration list",
-    "sb:mig:push": "supabase db push",
-    "sb:db:pull": "supabase db pull"
+    "sb:types": "pnpm dlx supabase gen types typescript --project-id xmjwutsmvshcfnowarnf --schema public > src/types/supabase.ts",
+    "sb:mig:list": "pnpm dlx supabase migration list",
+    "sb:mig:push": "pnpm dlx supabase db push",
+    "sb:db:pull": "pnpm dlx supabase db pull"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.2",
