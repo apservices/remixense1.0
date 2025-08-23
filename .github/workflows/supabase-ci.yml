@@ -15,11 +15,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: "pnpm" }
-      - run: corepack enable
-      - run: corepack prepare pnpm@10.14.0 --activate
-      - run: pnpm install --frozen-lockfile
+        with: { node-version: 20 }
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - run: pnpm i --frozen-lockfile
       - run: pnpm dlx supabase --version
+
       - name: Check migration filenames
         shell: bash
         run: |
@@ -32,6 +33,7 @@ jobs:
             fi
           done
           exit $FAIL
+
       - name: Types up-to-date
         run: |
           pnpm dlx supabase login --token "$SUPABASE_ACCESS_TOKEN"

@@ -1,16 +1,12 @@
 {
-    "framework":  "vite",
-    "buildCommand":  "corepack enable \u0026\u0026 corepack prepare pnpm@10.14.0 --activate \u0026\u0026 pnpm install --frozen-lockfile \u0026\u0026 pnpm build",
-    "version":  2,
-    "installCommand":  "corepack enable \u0026\u0026 corepack prepare pnpm@10.14.0 --activate \u0026\u0026 pnpm install --frozen-lockfile",
-    "outputDirectory":  "dist",
-    "cleanUrls":  true,
-    "trailingSlash":  "auto",
-    "$schema":  "https://openapi.vercel.sh/vercel.json",
-    "rewrites":  [
-                     {
-                         "destination":  "/",
-                         "source":  "/(.*)"
-                     }
-                 ]
+  "version": 2,
+  "buildCommand": "pnpm build",
+  "installCommand": "pnpm i --frozen-lockfile",
+  "outputDirectory": "dist",
+  "builds": [
+    { "src": "package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "/" }
+  ]
 }
