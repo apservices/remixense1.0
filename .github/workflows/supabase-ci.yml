@@ -10,7 +10,7 @@ jobs:
     if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
     runs-on: ubuntu-latest
     env:
-      SUPABASE_ACCESS_TOKEN: ${{ J4BRyIXwbFB/dYCX0v8F13Luu1PMkw1fiOOjLjdC+WMOfDP7KTy+3Zflde+LlcIgmuFEWtoZue2lPxv1RaB0qg== }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_PROJECT_ID: xmjwutsmvshcfnowarnf
     steps:
       - uses: actions/checkout@v4
@@ -20,6 +20,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm dlx supabase --version
       - name: Check migration filenames
+        shell: bash
         run: |
           shopt -s nullglob
           FAIL=0

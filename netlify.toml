@@ -1,21 +1,12 @@
-﻿[[headers]]
-  for = "/*"
-  [headers.values]
-  Content-Security-Policy = """
-  default-src 'self';
-  base-uri 'self';
-  frame-ancestors 'none';
-  script-src 'self';
-  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-  style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com;
-  img-src 'self' data: blob: https://*.supabase.co;
-  font-src 'self' data: https://fonts.gstatic.com;
-  connect-src 'self' https://*.supabase.co wss://*.supabase.co;
-  media-src 'self' data: blob: https://*.supabase.co;
-  worker-src 'self' blob:;
-  object-src 'none';
-  """
-  Referrer-Policy = "strict-origin-when-cross-origin"
-  X-Content-Type-Options = "nosniff"
-  X-Frame-Options = "DENY"
-  Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+[build]
+  command = "pnpm build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA rewrite: envia tudo para index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
