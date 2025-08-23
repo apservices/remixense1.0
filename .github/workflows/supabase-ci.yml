@@ -11,9 +11,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - run: npm ci
-      - run: npx supabase --version
+        with: { node-version: 20, cache: "pnpm" }
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm dlx supabase --version
       - name: Check migration filenames
         run: |
           shopt -s nullglob
@@ -27,9 +28,9 @@ jobs:
           exit $FAIL
       - name: Types up-to-date
         run: |
-          npx supabase login --token "$SUPABASE_ACCESS_TOKEN"
-          npx supabase gen types typescript --project-id "$SUPABASE_PROJECT_ID" --schema public > /tmp/types.ts
+          pnpm dlx supabase login --token "$SUPABASE_ACCESS_TOKEN"
+          pnpm dlx supabase gen types typescript --project-id "$SUPABASE_PROJECT_ID" --schema public > /tmp/types.ts
           if ! diff -u /tmp/types.ts src/types/supabase.ts; then
-            echo "::error ::Types are out of date. Run: npm run sb:types"
+            echo "::error ::Types are out of date. Run: pnpm sb:types"
             exit 1
           fi
