@@ -4,6 +4,9 @@ on:
     branches: [ main, master ]
   push:
     branches: [ main, master, chore/** ]
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
     runs-on: ubuntu-latest

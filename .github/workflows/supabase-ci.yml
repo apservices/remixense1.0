@@ -1,12 +1,16 @@
 name: supabase-ci
 on:
   pull_request: { branches: [ main, master ] }
-  push: { branches: [ main, master ] }
+  push:        { branches: [ main, master ] }
+concurrency:
+  group: supabase-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   check-supabase:
+    if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
     runs-on: ubuntu-latest
     env:
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_ACCESS_TOKEN: ${{ J4BRyIXwbFB/dYCX0v8F13Luu1PMkw1fiOOjLjdC+WMOfDP7KTy+3Zflde+LlcIgmuFEWtoZue2lPxv1RaB0qg== }}
       SUPABASE_PROJECT_ID: xmjwutsmvshcfnowarnf
     steps:
       - uses: actions/checkout@v4
