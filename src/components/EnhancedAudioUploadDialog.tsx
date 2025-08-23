@@ -77,8 +77,19 @@ export function EnhancedAudioUploadDialog({ children, onSuccess }: EnhancedAudio
       const audioUrl = URL.createObjectURL(selectedFile);
       const audioElement = new Audio(audioUrl);
       
-      await new Promise(resolve => {
-        audioElement.addEventListener('loadedmetadata', resolve);
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Timeout loading audio metadata'));
+        }, 5000);
+        
+        audioElement.addEventListener('loadedmetadata', () => {
+          clearTimeout(timeout);
+          resolve(undefined);
+        });
+        audioElement.addEventListener('error', () => {
+          clearTimeout(timeout);
+          reject(new Error('Error loading audio'));
+        });
         audioElement.load();
       });
 

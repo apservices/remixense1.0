@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Upload, Filter, Music2 } from 'lucide-react';
 
 export const TrackLibrary: React.FC = () => {
-  const { tracks, setFilterMode, toggleLike, addTrack } = useTracks();
+  const { tracks, setFilterMode, toggleLike, addTrack, deleteTrack } = useTracks();
   const { user } = useAuth();
   const { isPro, isExpert } = useSubscription();
   const [query, setQuery] = useState("");
@@ -67,7 +67,7 @@ export const TrackLibrary: React.FC = () => {
       {filtered.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {filtered.map((t) => (
-            <TrackRow key={t.id} track={t} onLikeToggle={toggleLike} />
+            <TrackRow key={t.id} track={t} onLikeToggle={toggleLike} onDelete={deleteTrack} />
           ))}
         </div>
       ) : (

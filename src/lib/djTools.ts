@@ -23,15 +23,19 @@ export interface DJToolsStore {
 }
 
 // Cue Points Management
-export async function saveCuePoint(trackId: string, positionMs: number, label?: string): Promise<CuePoint | null> {
+export async function saveCuePoint(trackId: string, positionMs: number, label?: string, userId?: string): Promise<CuePoint | null> {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user && !userId) throw new Error('No authenticated user');
+
     const { data, error } = await supabase
       .from('track_cues')
       .insert({
         track_id: trackId,
         position_ms: positionMs,
         label: label || `Cue ${Date.now()}`,
-        color: '#10b981'
+        color: '#10b981',
+        user_id: userId || user!.id
       })
       .select()
       .single();
@@ -75,15 +79,19 @@ export async function loadCuePoints(trackId: string): Promise<CuePoint[]> {
 }
 
 // Loop Management
-export async function saveLoopRange(trackId: string, startMs: number, endMs: number, label?: string): Promise<LoopRange | null> {
+export async function saveLoopRange(trackId: string, startMs: number, endMs: number, label?: string, userId?: string): Promise<LoopRange | null> {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user && !userId) throw new Error('No authenticated user');
+
     const { data, error } = await supabase
       .from('track_loops')
       .insert({
         track_id: trackId,
         start_ms: startMs,
         end_ms: endMs,
-        label: label || `Loop ${Date.now()}`
+        label: label || `Loop ${Date.now()}`,
+        user_id: userId || user!.id
       })
       .select()
       .single();

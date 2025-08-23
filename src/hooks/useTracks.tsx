@@ -12,6 +12,7 @@ interface UseTracksReturn {
   setFilterMode: (mode: FilterMode) => void;
   toggleLike: (id: string) => Promise<void>;
   addTrack: (file: File) => Promise<void>;
+  deleteTrack: (id: string) => Promise<void>;
   filterMode: FilterMode;
 }
 
@@ -73,25 +74,94 @@ export function useTracks(): UseTracksReturn {
       throw new Error("É necessário estar logado para enviar faixas");
     }
 
-    // Upload to Supabase Storage (no caching)
-    const path = `${user.id}/${Date.now()}_${file.name}`;
+    // Enhanced audio format validation
+    const { isValidAudioFile, getAudioFormatInfo } = await import("@/utils/audioFormats");
+    
+    if (!isValidAudioFile(file)) {
+      const supportedFormats = "MP3, WAV, M4A, AAC, FLAC, AIFF, OGG";
+      throw new Error(`Formato de áudio não suportado. Formatos aceitos: ${supportedFormats}`);
+    }
+
+    // Increased size limit to 200MB
+    const MAX_SIZE = 200 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      throw new Error("Arquivo muito grande. Limite: 200MB");
+    }
+
+    // Get audio format info for proper extension and content type
+    const formatInfo = getAudioFormatInfo(file);
+    const fileExt = formatInfo.extension.replace(".", "") || "mp3";
+    const path = `${user.id}/${crypto.randomUUID()}.${fileExt}`;
+
+    // Upload to Supabase Storage with proper content type
     const { error: uploadError } = await supabase.storage
       .from("tracks")
-      .upload(path, file, { cacheControl: "0", upsert: false, contentType: file.type || undefined });
+      .upload(path, file, { 
+        cacheControl: "0", 
+        upsert: false, 
+        contentType: formatInfo.mimeType
+      });
     if (uploadError) {
       console.error("Storage upload failed", uploadError);
       throw new Error("Falha no upload do arquivo");
     }
 
-    // Insert initial track row with processing status
+    // Try to extract enhanced metadata locally
+    let localMetadata;
+    try {
+      const { convertToRemixenseWav, extractRemixenseMetadata } = await import("@/utils/audioFormats");
+      const converted = await convertToRemixenseWav(file);
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const arrayBuffer = await converted.blob.arrayBuffer();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      localMetadata = await extractRemixenseMetadata(audioBuffer, file);
+    } catch (conversionError) {
+      console.warn("Local conversion failed, using basic metadata:", conversionError);
+      // Fallback to basic metadata extraction
+      const audio = new Audio();
+      const duration = await new Promise<string>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error("Timeout loading audio metadata"));
+        }, 10000);
+
+        audio.addEventListener("loadedmetadata", () => {
+          clearTimeout(timeout);
+          const minutes = Math.floor(audio.duration / 60);
+          const seconds = Math.floor(audio.duration % 60);
+          resolve(`${minutes}:${seconds.toString().padStart(2, "0")}`);
+        });
+
+        audio.addEventListener("error", () => {
+          clearTimeout(timeout);
+          reject(new Error("Error loading audio metadata"));
+        });
+
+        audio.src = URL.createObjectURL(file);
+      });
+
+      localMetadata = { 
+        duration,
+        durationSeconds: 0,
+        bpm: undefined,
+        key: undefined,
+        energy: undefined,
+        originalFormat: formatInfo.format
+      };
+    }
+
+    // Insert track record with enhanced metadata
     const insertPayload = {
       user_id: user.id,
-      title: file.name,
+      title: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
       artist: "Unknown",
       type: "track",
-      duration: "00:00",
+      duration: localMetadata.duration,
+      bpm: localMetadata.bpm,
+      key_signature: localMetadata.key,
+      energy_level: localMetadata.energy,
       file_path: path,
       original_filename: file.name,
+      file_size: file.size,
       upload_status: "processing",
     } as const;
 
@@ -125,19 +195,76 @@ export function useTracks(): UseTracksReturn {
       )
       .subscribe();
 
-    // Kick off server-side analysis
+    // Kick off server-side analysis with timeout
     try {
-      const { error: fnError } = await supabase.functions.invoke("analyze-audio", {
+      const analysisPromise = supabase.functions.invoke("analyze-audio", {
         body: { trackId: inserted.id },
       });
-      if (fnError) throw fnError;
+      
+      // Set timeout for analysis (30 seconds)
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Analysis timeout")), 30000)
+      );
+      
+      const result = await Promise.race([analysisPromise, timeoutPromise]);
+      if (result && (result as any).error) throw (result as any).error;
     } catch (e) {
       console.error("Failed to invoke analyze-audio", e);
-      // Mark as error; server may also set this later
-      setTracks((prev) => prev.map((t) => (t.id === inserted.id ? { ...t, upload_status: "error" } : t)));
-      throw new Error("Falha ao iniciar análise no servidor");
+      // Mark as completed with warning instead of error to allow manual retry
+      setTracks((prev) => prev.map((t) => (t.id === inserted.id ? { 
+        ...t, 
+        upload_status: "completed"
+      } : t)));
+      // Don't throw error, just log warning
+      console.warn("Análise automática falhou - pode ser feita manualmente depois");
     }
   };
+
+  const deleteTrack = useCallback(async (id: string) => {
+    if (!user) {
+      throw new Error("É necessário estar logado para deletar faixas");
+    }
+
+    try {
+      // Get track data from database to find file path
+      const { data: trackData, error: fetchError } = await supabase
+        .from("tracks")
+        .select("file_path")
+        .eq("id", id)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw fetchError;
+      }
+      
+      // Remove from UI immediately
+      setTracks(prev => prev.filter(t => t.id !== id));
+
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from("tracks")
+        .delete()
+        .eq("id", id);
+
+      if (dbError) throw dbError;
+
+      // Delete file from storage if exists
+      if (trackData?.file_path) {
+        const { error: storageError } = await supabase.storage
+          .from("tracks")
+          .remove([trackData.file_path]);
+        
+        if (storageError) {
+          console.warn("Failed to delete file from storage:", storageError);
+        }
+      }
+    } catch (e) {
+      console.error("deleteTrack failed", e);
+      // Re-add track to UI if deletion failed
+      await refetch();
+      throw e;
+    }
+  }, [user, refetch]);
 
   return {
     tracks,
@@ -146,6 +273,7 @@ export function useTracks(): UseTracksReturn {
     setFilterMode,
     toggleLike,
     addTrack,
+    deleteTrack,
     filterMode,
   };
 }

@@ -19,6 +19,8 @@ import { DeckProvider, useDecks } from "@/store/decks";
 import { loadCuePoints, loadLoopRanges } from "@/lib/djTools";
 import { isFeatureEnabled, ExperimentalAudioProcessor } from "@/lib/experimentalFeatures";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { getSignedUrl } from "@/utils/storage";
 import type { Track } from "@/types";
 
 interface DeckState {
@@ -70,6 +72,8 @@ function DualPlayerInner() {
     if (right.ws) right.ws.setPlaybackRate(final);
   }, [right.keyShift, right.rate, right.ws]);
 
+  const { toast } = useToast();
+
   const loadFileToDeck = async (side: "left" | "right") => {
     const input = document.createElement("input");
     input.type = "file";
@@ -77,51 +81,144 @@ function DualPlayerInner() {
     input.onchange = async (e: any) => {
       const file = e.target.files[0] as File;
       if (!file) return;
-      const url = URL.createObjectURL(file);
 
-      // Build wavesurfer instance
-      const container = side === "left" ? leftContainer.current : rightContainer.current;
-      if (!container) return;
-
-      const root = getComputedStyle(document.documentElement);
-      const waveColor = `hsl(${root.getPropertyValue('--muted').trim()})`;
-      const progressColor = `hsl(${root.getPropertyValue('--primary').trim()})`;
-      const cursorColor = `hsl(${root.getPropertyValue('--neon-teal').trim()})`;
-
-      const ws = WaveSurfer.create({
-        container,
-        height: 80,
-        waveColor,
-        progressColor,
-        cursorColor,
-        normalize: true,
-        barWidth: 2,
-        barGap: 1,
-        barRadius: 2,
-      });
-
-      ws.on('ready', () => {
-        if (side === 'left') {
-          setLeft((prev) => ({ ...prev, isReady: true }));
-        } else {
-          setRight((prev) => ({ ...prev, isReady: true }));
+      try {
+        // Get user for authentication
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast({
+            title: "Authentication Required",
+            description: "Please log in to load tracks",
+            variant: "destructive"
+          });
+          return;
         }
-      });
 
-      ws.load(url);
+        // Upload file to Supabase storage
+        const fileExt = file.name.split('.').pop();
+        const fileName = `dj-session/${user.id}/${crypto.randomUUID()}.${fileExt}`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('tracks')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
 
-      // Analyze BPM quickly in background
-      const arrayBuffer = await file.arrayBuffer();
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-      const bpm = Math.round(bpmDetective(audioBuffer.getChannelData(0)));
-      // Lightweight metadata for key (simulated)
-      const meta = await extractAudioMetadata(file);
-      const detectedKey = meta.key ?? null;
+        if (uploadError) throw uploadError;
 
-      const deckUpdate: Partial<DeckState> = { file, url, title: file.name, bpm, key: detectedKey, ws };
-      if (side === "left") setLeft((p) => ({ ...p, ...deckUpdate } as DeckState));
-      else setRight((p) => ({ ...p, ...deckUpdate } as DeckState));
+        // Get signed URL for playback
+        const signedUrl = await getSignedUrl('tracks', fileName);
+
+        // Build wavesurfer instance
+        const container = side === "left" ? leftContainer.current : rightContainer.current;
+        if (!container) return;
+
+        const root = getComputedStyle(document.documentElement);
+        const waveColor = `hsl(${root.getPropertyValue('--muted').trim()})`;
+        const progressColor = `hsl(${root.getPropertyValue('--primary').trim()})`;
+        const cursorColor = `hsl(${root.getPropertyValue('--neon-teal').trim()})`;
+
+        const ws = WaveSurfer.create({
+          container,
+          height: 80,
+          waveColor,
+          progressColor,
+          cursorColor,
+          normalize: true,
+          barWidth: 2,
+          barGap: 1,
+          barRadius: 2,
+        });
+
+        ws.on('ready', () => {
+          if (side === 'left') {
+            setLeft((prev) => ({ ...prev, isReady: true }));
+          } else {
+            setRight((prev) => ({ ...prev, isReady: true }));
+          }
+        });
+
+        // Load from signed URL instead of blob
+        ws.load(signedUrl);
+
+        // Analyze BPM with validation
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+          const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+          
+          // Validate audio data before BPM analysis
+          const channelData = audioBuffer.getChannelData(0);
+          if (!channelData || channelData.length === 0) {
+            throw new Error('Invalid audio data');
+          }
+
+          // Check for non-finite values
+          const hasValidData = Array.from(channelData).some((sample: number) => 
+            isFinite(sample) && !isNaN(sample)
+          );
+          
+          if (!hasValidData) {
+            throw new Error('Audio contains no valid data');
+          }
+
+          const bpm = Math.round(bpmDetective(channelData));
+          
+          // Validate BPM result
+          const validBpm = isFinite(bpm) && !isNaN(bpm) && bpm > 0 ? bpm : null;
+          
+          // Lightweight metadata for key (simulated)
+          const meta = await extractAudioMetadata(file);
+          const detectedKey = meta.key ?? null;
+
+          const deckUpdate: Partial<DeckState> = { 
+            file, 
+            url: signedUrl, 
+            title: file.name, 
+            bpm: validBpm, 
+            key: detectedKey, 
+            ws 
+          };
+          
+          if (side === "left") setLeft((p) => ({ ...p, ...deckUpdate } as DeckState));
+          else setRight((p) => ({ ...p, ...deckUpdate } as DeckState));
+
+          toast({
+            title: "Track Loaded",
+            description: `${file.name} loaded successfully${validBpm ? ` at ${validBpm} BPM` : ''}`
+          });
+
+        } catch (analysisError) {
+          console.error('Audio analysis error:', analysisError);
+          
+          // Still load the track even if analysis fails
+          const deckUpdate: Partial<DeckState> = { 
+            file, 
+            url: signedUrl, 
+            title: file.name, 
+            bpm: null, 
+            key: null, 
+            ws 
+          };
+          
+          if (side === "left") setLeft((p) => ({ ...p, ...deckUpdate } as DeckState));
+          else setRight((p) => ({ ...p, ...deckUpdate } as DeckState));
+
+          toast({
+            title: "Track Loaded",
+            description: `${file.name} loaded (analysis failed)`
+          });
+        }
+
+      } catch (error) {
+        console.error('File loading error:', error);
+        toast({
+          title: "Loading Failed",
+          description: error instanceof Error ? error.message : "Failed to load track",
+          variant: "destructive"
+        });
+      }
     };
     input.click();
   };
@@ -143,14 +240,16 @@ function DualPlayerInner() {
 
   // Indicators and Key/BPM Sync helpers
   const bpmDelta = useMemo(() => {
-    if (!left.bpm || !right.bpm) return null;
+    if (!left.bpm || !right.bpm || typeof left.bpm !== 'number' || typeof right.bpm !== 'number') return null;
     return Math.abs(left.bpm - right.bpm);
   }, [left.bpm, right.bpm]);
 
   const keyStatus = useMemo(() => {
     if (!left.key || !right.key) return null;
     if (left.key === right.key) return 'match';
-    const { compatibleKeys } = analyzeHarmony(left.key, left.bpm ?? right.bpm ?? 120);
+    const bpmValue = (left.bpm && typeof left.bpm === 'number') ? left.bpm : 
+                     (right.bpm && typeof right.bpm === 'number') ? right.bpm : 120;
+    const { compatibleKeys } = analyzeHarmony(left.key, bpmValue);
     return compatibleKeys.includes(right.key) ? 'compatible' : 'clash';
   }, [left.key, right.key, left.bpm, right.bpm]);
 
@@ -176,7 +275,7 @@ function DualPlayerInner() {
   };
 
   const handleBpmSync = () => {
-    if (!left.bpm || !right.bpm) return;
+    if (!left.bpm || !right.bpm || typeof left.bpm !== 'number' || typeof right.bpm !== 'number') return;
     const ratio = left.bpm / right.bpm;
     setRight((p) => ({ ...p, rate: ratio }));
   };

@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Heart, Play, Pause, MessageCircle, MoreVertical, Music2, Upload } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Heart, Play, Pause, MessageCircle, MoreVertical, Music2, Upload, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import WaveformWithComments from './WaveformWithComments';
 import CommentsPanel from './CommentsPanel';
@@ -27,6 +28,7 @@ interface EnhancedDJCardProps {
   onLike?: () => void;
   onPlay?: () => void;
   onComment?: () => void;
+  onDelete?: (id: string) => Promise<void>;
   isPlaying?: boolean;
 }
 
@@ -45,10 +47,12 @@ export function EnhancedDJCard({
   onLike,
   onPlay,
   onComment,
+  onDelete,
   isPlaying = false
 }: EnhancedDJCardProps) {
   const [showWaveform, setShowWaveform] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const typeColors = {
     track: "bg-neon-blue/20 text-neon-blue border-neon-blue/30",
@@ -227,13 +231,41 @@ export function EnhancedDJCard({
               {duration}
             </span>
             
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-            >
-              <MoreVertical className="h-4 w-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-background border">
+                {onDelete && (
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      if (isDeleting) return;
+                      const confirmed = window.confirm(`Tem certeza que deseja deletar "${title}"?`);
+                      if (!confirmed) return;
+                      try {
+                        setIsDeleting(true);
+                        await onDelete(id);
+                      } catch (error) {
+                        console.error('Erro ao deletar:', error);
+                      } finally {
+                        setIsDeleting(false);
+                      }
+                    }}
+                    disabled={isDeleting}
+                    className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {isDeleting ? 'Deletando...' : 'Deletar'}
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

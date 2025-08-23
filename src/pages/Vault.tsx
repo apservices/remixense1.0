@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { useTracks } from "@/hooks/useTracks";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EnhancedDJCard } from "@/components/EnhancedDJCard";
@@ -9,7 +10,8 @@ import { EnhancedAudioUploadDialog } from "@/components/EnhancedAudioUploadDialo
 import { Search, Plus, SortDesc, Grid3X3, List, Upload, Music, Filter } from "lucide-react";
 
 export default function Vault() {
-  const { tracks, loading, toggleLike, refetch } = useTracks();
+  const { tracks, loading, toggleLike, refetch, deleteTrack } = useTracks();
+  const { toast } = useToast();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -184,6 +186,21 @@ export default function Vault() {
                 onLike={() => toggleLike(track.id)}
                 onPlay={() => console.log("Playing track:", track.id)}
                 onComment={() => console.log("Commenting on track:", track.id)}
+                onDelete={async () => {
+                  try {
+                    await deleteTrack(track.id);
+                    toast({
+                      title: "Track excluído!",
+                      description: `${track.title} foi removido do seu vault.`
+                    });
+                  } catch (error) {
+                    toast({
+                      title: "Erro ao excluir",
+                      description: "Não foi possível excluir o track. Tente novamente.",
+                      variant: "destructive"
+                    });
+                  }
+                }}
               />
             ))}
           </div>

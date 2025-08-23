@@ -56,12 +56,15 @@ export const TrackUpload: React.FC = () => {
       <input
         type="file"
         multiple
-        accept="audio/*"
+        accept=".mp3,.wav,.m4a,.aac,.flac,.aiff,.aif,.ogg,.webm,.wma,audio/*"
         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         onChange={(e) => handleFiles(e.target.files)}
       />
       <div className="text-center text-muted-foreground group-hover:text-foreground">
-        Arraste arquivos aqui ou clique para selecionar
+        <div className="mb-2">Arraste arquivos aqui ou clique para selecionar</div>
+        <div className="text-xs opacity-75">
+          Formatos suportados: MP3, WAV, M4A, AAC, FLAC, AIFF, OGG (até 200MB)
+        </div>
       </div>
 
       {uploads.length > 0 && (
