@@ -13,7 +13,19 @@ export interface Track {
   is_liked?: boolean;
   created_at?: string;   // ISO date
   status?: 'pending' | 'processing' | 'ready' | 'error';
+  upload_status?: 'pending' | 'uploading' | 'processing' | 'completed' | 'error';
   errorMsg?: string;
+  user_id: string;
+  file_url?: string;
+  file_path?: string;
+  play_count?: number;
+  updated_at?: string;
+  original_filename?: string;
+  file_size?: number;
+  waveform_data?: any;
+  is_featured?: boolean;
+  deleted_at?: string;
+  tags?: string[];
 }
 
 export interface TrackForMix {

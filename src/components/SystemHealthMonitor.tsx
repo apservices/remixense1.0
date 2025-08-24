@@ -46,10 +46,10 @@ export function SystemHealthMonitor({ showDetails = true, compact = false }: Sys
     }
   };
 
-  const getStatusColor = (status: HealthCheck['status']) => {
+  const getStatusColor = (status: HealthCheck['status']): "default" | "destructive" | "secondary" | "outline" => {
     switch (status) {
-      case 'healthy': return 'success';
-      case 'degraded': return 'warning';
+      case 'healthy': return 'secondary';
+      case 'degraded': return 'outline';
       case 'down': return 'destructive';
       case 'checking': return 'secondary';
       default: return 'secondary';
