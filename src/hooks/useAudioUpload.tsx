@@ -1,3 +1,4 @@
+﻿import { uuid } from '../utils/uuid';
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -39,36 +40,29 @@ export function useAudioUpload() {
         throw new Error('Limite de upload atingido');
       }
 
-      // Enhanced audio format validation
-      const { isValidAudioFile } = await import("@/utils/audioFormats");
-      const MAX_SIZE = 200 * 1024 * 1024; // Increased to 200MB
-      
-      if (!isValidAudioFile(file)) {
-        const supportedFormats = "MP3, WAV, M4A, AAC, FLAC, AIFF, OGG";
-        throw new Error(`Formato de áudio não suportado. Formatos aceitos: ${supportedFormats}`);
+      // Client-side validation: audio type and size limit (100MB)
+      const MAX_SIZE = 100 * 1024 * 1024;
+      if (!file.type.startsWith('audio/')) {
+        throw new Error('Apenas arquivos de Ã¡udio sÃ£o permitidos.');
       }
       if (file.size > MAX_SIZE) {
-        throw new Error('Arquivo muito grande. Limite: 200MB');
+        throw new Error('Arquivo muito grande. Limite: 100MB');
       }
 
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Faça login com e-mail e senha para enviar.');
+      if (!user) throw new Error('FaÃ§a login com e-mail e senha para enviar.');
 
       // Create unique filename
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${crypto.randomUUID()}.${fileExt}`;
+      const fileName = `${user.id}/${uuid()}.${fileExt}`;
 
-      // Get audio format info for proper content type
-      const { getAudioFormatInfo } = await import("@/utils/audioFormats");
-      const formatInfo = getAudioFormatInfo(file);
-      
-      // Upload file to storage (tracks bucket)
+      // Upload file to storage (private bucket)
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('tracks')
+        .from('audio-files')
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: false,
-          contentType: formatInfo.mimeType,
+          contentType: file.type,
         });
 
       if (uploadError) throw uploadError;
@@ -111,7 +105,7 @@ export function useAudioUpload() {
       if (trackError) throw trackError;
 
       toast({
-        title: "Upload concluído!",
+        title: "Upload concluÃ­do!",
         description: `${metadata.title} foi adicionado ao seu vault.`
       });
 

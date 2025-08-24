@@ -9,7 +9,11 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "sb:types": "pnpm dlx supabase gen types typescript --project-id xmjwutsmvshcfnowarnf --schema public > src/types/supabase.ts",
+    "sb:mig:list": "pnpm dlx supabase migration list",
+    "sb:mig:push": "pnpm dlx supabase db push",
+    "sb:db:pull": "pnpm dlx supabase db pull"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.2",
@@ -112,5 +116,9 @@
     "vite": "^5.4.1",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^1.6.1"
-  }
+  },
+  "engines": {
+    "node": ">=20 <21"
+  },
+  "packageManager": "pnpm@10.14.0"
 }

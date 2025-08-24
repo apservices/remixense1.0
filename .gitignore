@@ -26,3 +26,25 @@ dist-ssr
 
 # Local Netlify folder
 .netlify
+# env
+.env
+.env.*
+!.env.example
+
+# supabase cache/temp
+supabase/.branches
+supabase/.temp
+.supabase
+
+# builds
+node_modules
+dist
+build
+
+package-lock.json
+
+package-lock.json
+
+package-lock.json
+netlify.toml
+vercel.json
