@@ -46,3 +46,5 @@ package-lock.json
 package-lock.json
 
 package-lock.json
+netlify.toml
+vercel.json
