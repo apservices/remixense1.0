@@ -1,4 +1,17 @@
-﻿[[headers]]
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[build]
+  command = "pnpm install --no-frozen-lockfile && pnpm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--no-frozen-lockfile"
+
+[[headers]]
   for = "/*"
   [headers.values]
   Content-Security-Policy = """
