@@ -20,6 +20,7 @@ import {
 import { useBackgroundUpload, type UploadJob } from '@/hooks/useBackgroundUpload';
 import { formatBytes, formatDuration } from '@/lib/utils';
 
+
 interface BackgroundUploadPanelProps {
   isOpen: boolean;
   onToggle: () => void;
@@ -55,13 +56,13 @@ export function BackgroundUploadPanel({ isOpen, onToggle }: BackgroundUploadPane
     }
   };
 
-  const getStatusColor = (status: UploadJob['status']) => {
+  const getStatusColor = (status: UploadJob['status']): "default" | "destructive" | "secondary" | "outline" => {
     switch (status) {
       case 'pending': return 'secondary';
       case 'uploading': return 'default';
       case 'processing': return 'default';
-      case 'retrying': return 'warning';
-      case 'completed': return 'success';
+      case 'retrying': return 'outline';
+      case 'completed': return 'secondary';
       case 'error': return 'destructive';
       default: return 'secondary';
     }
@@ -249,18 +250,3 @@ export function BackgroundUploadPanel({ isOpen, onToggle }: BackgroundUploadPane
     </Card>
   );
 }
-
-// Utility functions
-const formatBytes = (bytes: number): string => {
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  if (bytes === 0) return '0 B';
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i];
-};
-
-const formatDuration = (ms: number): string => {
-  const seconds = Math.floor(ms / 1000);
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  return `${minutes}m ${seconds % 60}s`;
-};

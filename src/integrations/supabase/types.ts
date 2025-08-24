@@ -601,6 +601,36 @@ export type Database = {
         }
         Relationships: []
       }
+      health_checks: {
+        Row: {
+          created_at: string
+          details: Json | null
+          error_message: string | null
+          id: string
+          response_time_ms: number
+          service_name: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          error_message?: string | null
+          id?: string
+          response_time_ms: number
+          service_name: string
+          status: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          error_message?: string | null
+          id?: string
+          response_time_ms?: number
+          service_name?: string
+          status?: string
+        }
+        Relationships: []
+      }
       invites: {
         Row: {
           created_at: string
@@ -763,6 +793,78 @@ export type Database = {
           },
         ]
       }
+      mix_entries: {
+        Row: {
+          bpm_shift: number | null
+          end_sec: number | null
+          key_shift: string | null
+          mix_id: string
+          position: number
+          start_sec: number | null
+          track_id: string | null
+        }
+        Insert: {
+          bpm_shift?: number | null
+          end_sec?: number | null
+          key_shift?: string | null
+          mix_id: string
+          position: number
+          start_sec?: number | null
+          track_id?: string | null
+        }
+        Update: {
+          bpm_shift?: number | null
+          end_sec?: number | null
+          key_shift?: string | null
+          mix_id?: string
+          position?: number
+          start_sec?: number | null
+          track_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mix_entries_mix_id_fkey"
+            columns: ["mix_id"]
+            isOneToOne: false
+            referencedRelation: "mixes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mix_entries_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mixes: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       news_comments: {
         Row: {
           content: string
@@ -828,6 +930,27 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      plans: {
+        Row: {
+          id: string
+          max_mixes: number | null
+          max_playlists: number | null
+          max_tracks: number | null
+        }
+        Insert: {
+          id: string
+          max_mixes?: number | null
+          max_playlists?: number | null
+          max_tracks?: number | null
+        }
+        Update: {
+          id?: string
+          max_mixes?: number | null
+          max_playlists?: number | null
+          max_tracks?: number | null
         }
         Relationships: []
       }
@@ -1014,6 +1137,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           id: string
+          plan: string | null
           subscription_plan: string
           updated_at: string
           username: string
@@ -1022,6 +1146,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           id: string
+          plan?: string | null
           subscription_plan?: string
           updated_at?: string
           username: string
@@ -1030,11 +1155,20 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           id?: string
+          plan?: string | null
           subscription_plan?: string
           updated_at?: string
           username?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_plan_fkey"
+            columns: ["plan"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       projects: {
         Row: {
@@ -1243,36 +1377,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      species_info: {
-        Row: {
-          average_lifespan: string | null
-          common_name: string | null
-          curiosities: string | null
-          diet: string | null
-          id: number
-          origin: string | null
-          scientific_name: string | null
-        }
-        Insert: {
-          average_lifespan?: string | null
-          common_name?: string | null
-          curiosities?: string | null
-          diet?: string | null
-          id?: number
-          origin?: string | null
-          scientific_name?: string | null
-        }
-        Update: {
-          average_lifespan?: string | null
-          common_name?: string | null
-          curiosities?: string | null
-          diet?: string | null
-          id?: number
-          origin?: string | null
-          scientific_name?: string | null
-        }
-        Relationships: []
       }
       stems: {
         Row: {
@@ -1560,6 +1664,7 @@ export type Database = {
           artist: string
           bpm: number | null
           created_at: string
+          deleted_at: string | null
           duration: string
           energy_level: number | null
           file_path: string | null
@@ -1584,6 +1689,7 @@ export type Database = {
           artist: string
           bpm?: number | null
           created_at?: string
+          deleted_at?: string | null
           duration: string
           energy_level?: number | null
           file_path?: string | null
@@ -1608,6 +1714,7 @@ export type Database = {
           artist?: string
           bpm?: number | null
           created_at?: string
+          deleted_at?: string | null
           duration?: string
           energy_level?: number | null
           file_path?: string | null
@@ -1665,6 +1772,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      upload_analytics: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          event_type: string
+          file_size: number | null
+          file_type: string | null
+          id: string
+          metadata: Json | null
+          retry_count: number | null
+          track_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          event_type: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          metadata?: Json | null
+          retry_count?: number | null
+          track_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          event_type?: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          metadata?: Json | null
+          retry_count?: number | null
+          track_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upload_analytics_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "tracks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_preferences: {
         Row: {
@@ -1800,6 +1957,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_create_mix: {
+        Args: { p_user: string }
+        Returns: boolean
+      }
+      can_create_playlist: {
+        Args: { p_user: string }
+        Returns: boolean
+      }
+      can_create_track: {
+        Args: { p_user: string }
+        Returns: boolean
+      }
       can_user_upload_track: {
         Args: { user_uuid?: string }
         Returns: boolean
