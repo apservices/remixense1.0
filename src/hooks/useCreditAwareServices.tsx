@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+﻿import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -77,7 +77,7 @@ export function useCreditAwareServices() {
         if (cached) {
           toast({
             title: "Resultado do cache",
-            description: `${SERVICES[serviceType].name} carregado do cache (0 créditos)`,
+            description: `${SERVICES[serviceType].name} carregado do cache (0 crÃ©ditos)`,
           });
           return { ...cached, cached: true };
         }
@@ -90,13 +90,13 @@ export function useCreditAwareServices() {
         .from('profiles')
         .select('credits_remaining')
         .eq('id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
+        .maybeSingle();
 
       const creditsAvailable = profile?.credits_remaining || 0;
       if (creditsAvailable < service.creditCost) {
         toast({
-          title: "Créditos insuficientes",
-          description: `${service.name} requer ${service.creditCost} créditos. Você tem ${creditsAvailable}.`,
+          title: "CrÃ©ditos insuficientes",
+          description: `${service.name} requer ${service.creditCost} crÃ©ditos. VocÃª tem ${creditsAvailable}.`,
           variant: "destructive"
         });
         return null;
@@ -139,8 +139,8 @@ export function useCreditAwareServices() {
       setResults(prev => ({ ...prev, [serviceType]: processedResult }));
 
       toast({
-        title: "Processamento concluído",
-        description: `${service.name} processado (${service.creditCost} créditos)`,
+        title: "Processamento concluÃ­do",
+        description: `${service.name} processado (${service.creditCost} crÃ©ditos)`,
       });
 
       return processedResult;
@@ -149,7 +149,7 @@ export function useCreditAwareServices() {
       console.error(`Service ${serviceType} error:`, error);
       toast({
         title: "Erro no processamento",
-        description: error instanceof Error ? error.message : "Falha no serviço",
+        description: error instanceof Error ? error.message : "Falha no serviÃ§o",
         variant: "destructive"
       });
       return null;

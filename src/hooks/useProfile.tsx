@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -40,7 +40,7 @@ const { data, error } = await (supabase as any)
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching profile:', error);
@@ -68,7 +68,7 @@ const { data, error } = await (supabase as any)
         .update(updates)
 .eq('id', user.id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         toast({
@@ -80,8 +80,8 @@ const { data, error } = await (supabase as any)
       } else {
         setProfile(data as Profile);
         toast({
-          title: "Perfil atualizado! ✨",
-          description: "Suas alterações foram salvas.",
+          title: "Perfil atualizado! âœ¨",
+          description: "Suas alteraÃ§Ãµes foram salvas.",
         });
         return { data };
       }
