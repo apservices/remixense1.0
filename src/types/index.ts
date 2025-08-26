@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   email: string | null;
@@ -46,4 +47,19 @@ export interface Track {
   is_featured?: boolean;
   upload_status?: 'uploading' | 'processing' | 'completed' | 'error';
   deleted_at?: string | null;
+  // Add missing properties that other components expect
+  name?: string;
+  url?: string;
+}
+
+// Add missing TrackForMix interface
+export interface TrackForMix {
+  id: string;
+  title: string;
+  artist: string;
+  bpm?: number;
+  key?: string;
+  duration?: number;
+  url?: string;
+  file_path?: string;
 }

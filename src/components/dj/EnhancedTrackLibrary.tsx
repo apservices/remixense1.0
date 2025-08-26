@@ -1,231 +1,110 @@
-import React, { useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+
+import React, { useState, useEffect } from 'react';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Play, Shuffle, Filter, Zap } from 'lucide-react';
-import { useTracks } from '@/hooks/useTracks';
-import { getMixCompatibility, type CompatibilityResult } from '@/lib/audio/compat';
-import type { Track, TrackForMix } from '@/types';
+import { Search, Music } from 'lucide-react';
+import { Track } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
 
 interface EnhancedTrackLibraryProps {
-  selectedTrack?: Track;
   onTrackSelect?: (track: Track) => void;
-  onQuickMix?: (trackA: Track, trackB: Track) => void;
-  showCompatibility?: boolean;
 }
 
-export const EnhancedTrackLibrary: React.FC<EnhancedTrackLibraryProps> = ({
-  selectedTrack,
-  onTrackSelect,
-  onQuickMix,
-  showCompatibility = true
-}) => {
-  const { tracks, loading } = useTracks();
+export function EnhancedTrackLibrary({ onTrackSelect }: EnhancedTrackLibraryProps) {
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'compatibility' | 'bpm' | 'name'>('compatibility');
 
-  // Filter and sort tracks
-  const filteredTracks = useMemo(() => {
-    let filtered = tracks.filter(track => 
-      track.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      track.artist.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      track.genre?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  useEffect(() => {
+    loadTracks();
+  }, []);
 
-    if (selectedTrack && showCompatibility && sortBy === 'compatibility') {
-      // Sort by compatibility with selected track
-      filtered = filtered
-        .map(track => {
-          if (track.id === selectedTrack.id) {
-            return { ...track, compatibility: null };
-          }
-          
-          // Convert Track to TrackForMix format
-          const trackForMix: TrackForMix = {
-            id: track.id,
-            title: track.title,
-            artist: track.artist,
-            bpm: track.bpm || null,
-            key_signature: track.key_signature || null,
-            energy_level: track.energy_level || null,
-            duration: track.duration
-          };
-          
-          const selectedForMix: TrackForMix = {
-            id: selectedTrack.id,
-            title: selectedTrack.title,
-            artist: selectedTrack.artist,
-            bpm: selectedTrack.bpm || null,
-            key_signature: selectedTrack.key_signature || null,
-            energy_level: selectedTrack.energy_level || null,
-            duration: selectedTrack.duration
-          };
-          
-          return {
-            ...track,
-            compatibility: getMixCompatibility(selectedForMix, trackForMix)
-          };
-        })
-        .sort((a, b) => {
-          const scoreA = (a.compatibility as CompatibilityResult)?.score || 0;
-          const scoreB = (b.compatibility as CompatibilityResult)?.score || 0;
-          return scoreB - scoreA;
-        });
-    } else if (sortBy === 'bpm') {
-      filtered.sort((a, b) => (a.bpm || 0) - (b.bpm || 0));
-    } else if (sortBy === 'name') {
-      filtered.sort((a, b) => a.title.localeCompare(b.title));
-    }
+  const loadTracks = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('tracks')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    return filtered;
-  }, [tracks, searchTerm, selectedTrack, showCompatibility, sortBy]);
+      if (error) throw error;
 
-  const getCompatibilityColor = (score: number) => {
-    if (score >= 85) return 'hsl(var(--primary))';
-    if (score >= 70) return 'hsl(var(--warning))';
-    return 'hsl(var(--destructive))';
-  };
+      const tracksData = data?.map(track => ({
+        ...track,
+        type: (track.type || 'track') as 'track' | 'remix' | 'sample',
+        name: track.title,
+        url: track.file_url || track.file_path
+      })) as Track[];
 
-  const handleQuickMix = (track: Track) => {
-    if (selectedTrack && onQuickMix) {
-      onQuickMix(selectedTrack, track);
+      setTracks(tracksData || []);
+    } catch (error) {
+      console.error('Error loading tracks:', error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const filteredTracks = tracks.filter(track =>
+    track.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    track.artist.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shuffle className="h-5 w-5" />
-            Biblioteca de Faixas
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-16 bg-muted animate-pulse rounded" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <div className="p-4">Carregando...</div>;
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Shuffle className="h-5 w-5" />
-          Biblioteca de Faixas
-          {selectedTrack && (
-            <Badge variant="secondary" className="text-xs">
-              Mixando com: {selectedTrack.title}
-            </Badge>
-          )}
-        </CardTitle>
-        
-        <div className="flex gap-2">
+    <Card className="p-4">
+      <div className="space-y-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
             placeholder="Buscar faixas..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1"
+            className="pl-10"
           />
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setSortBy(sortBy === 'compatibility' ? 'bpm' : 'compatibility')}
-            disabled={!selectedTrack}
-          >
-            <Filter className="h-4 w-4 mr-1" />
-            {sortBy === 'compatibility' ? 'Compatibilidade' : 'BPM'}
-          </Button>
         </div>
-      </CardHeader>
-      
-      <CardContent className="max-h-96 overflow-y-auto space-y-2">
-        {filteredTracks.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Shuffle className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p>Nenhuma faixa encontrada</p>
-          </div>
-        ) : (
-          filteredTracks.map((track: any) => {
-            const compatibility = track.compatibility;
-            const isSelected = selectedTrack?.id === track.id;
-            
-            return (
-              <div
-                key={track.id}
-                className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors
-                  ${isSelected ? 'bg-primary/10 border-primary' : 'hover:bg-muted/50'}
-                `}
-                onClick={() => onTrackSelect?.(track)}
-              >
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-8 w-8 p-0"
-                >
-                  <Play className="h-4 w-4" />
-                </Button>
-                
+
+        <div className="space-y-2 max-h-96 overflow-y-auto">
+          {filteredTracks.map((track) => (
+            <div
+              key={track.id}
+              onClick={() => onTrackSelect?.(track)}
+              className="p-3 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium truncate">{track.title}</h4>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {track.artist} • {track.duration}
-                  </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    {track.bpm && (
-                      <Badge variant="outline" className="text-xs">
-                        {track.bpm} BPM
-                      </Badge>
-                    )}
-                    {track.key_signature && (
-                      <Badge variant="outline" className="text-xs">
-                        {track.key_signature}
-                      </Badge>
-                    )}
-                    {track.genre && (
-                      <Badge variant="secondary" className="text-xs">
-                        {track.genre}
-                      </Badge>
-                    )}
-                  </div>
+                  <p className="text-sm text-muted-foreground truncate">{track.artist}</p>
                 </div>
-                
-                {compatibility && !isSelected && (
-                  <div className="flex items-center gap-2">
-                    <Badge 
-                      style={{ 
-                        backgroundColor: getCompatibilityColor((compatibility as CompatibilityResult).score),
-                        color: 'white'
-                      }}
-                      className="text-xs font-bold"
-                    >
-                      {(compatibility as CompatibilityResult).score}%
+                <div className="flex items-center gap-2 ml-2">
+                  {track.bpm && (
+                    <Badge variant="outline" className="text-xs">
+                      {track.bpm} BPM
                     </Badge>
-                    <Button
-                      size="sm"
-                      variant="default"
-                      className="h-8 gap-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleQuickMix(track);
-                      }}
-                    >
-                      <Zap className="h-3 w-3" />
-                      Mix
-                    </Button>
-                  </div>
-                )}
+                  )}
+                  {track.key_signature && (
+                    <Badge variant="outline" className="text-xs">
+                      {track.key_signature}
+                    </Badge>
+                  )}
+                </div>
               </div>
-            );
-          })
+            </div>
+          ))}
+        </div>
+
+        {filteredTracks.length === 0 && (
+          <div className="text-center py-8">
+            <Music className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">
+              {searchTerm ? 'Nenhuma faixa encontrada' : 'Nenhuma faixa disponível'}
+            </p>
+          </div>
         )}
-      </CardContent>
+      </div>
     </Card>
   );
-};
+}

@@ -1,186 +1,226 @@
+
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
-import { Loader2, Zap, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Loader2, Zap, Music, Brain, Sparkles } from 'lucide-react';
 import { useCreditAwareServices } from '@/hooks/useCreditAwareServices';
+import { Track } from '@/types';
 
 interface CreditAwarePanelProps {
-  trackId: string;
-  userCredits?: number;
+  track: Track;
 }
 
-export function CreditAwarePanel({ trackId, userCredits = 0 }: CreditAwarePanelProps) {
+export function CreditAwarePanel({ track }: CreditAwarePanelProps) {
   const {
-    processing,
     results,
-    runAutoMaster,
-    runStemSwap,
-    runMoodAnalysis,
-    runMelodyGenerator,
+    loading,
+    processService,
+    clearCache,
     services
   } = useCreditAwareServices();
 
-  const serviceActions = [
-    {
-      key: 'autoMaster',
-      title: 'Auto-Mastering',
-      description: 'Masterização automática com AI',
-      icon: <Zap className="h-4 w-4" />,
-      action: runAutoMaster,
-      cost: services.autoMaster.creditCost
-    },
-    {
-      key: 'stemSwap',
-      title: 'Stem-Swap',
-      description: 'Separação de instrumentos',
-      icon: <RefreshCw className="h-4 w-4" />,
-      action: runStemSwap,
-      cost: services.stemSwap.creditCost
-    },
-    {
-      key: 'moodAnalysis',
-      title: 'Mood Analysis',
-      description: 'Análise de sentimento musical',
-      icon: <CheckCircle2 className="h-4 w-4" />,
-      action: runMoodAnalysis,
-      cost: services.moodAnalysis.creditCost
-    },
-    {
-      key: 'melodyGenerator',
-      title: 'Melody Generator',
-      description: 'Geração de melodias AI',
-      icon: <AlertCircle className="h-4 w-4" />,
-      action: runMelodyGenerator,
-      cost: services.melodyGenerator.creditCost
-    }
-  ];
+  const handleAutoMaster = async () => {
+    await processService(track.id, 'auto-mastering');
+  };
 
-  const totalCost = serviceActions.reduce((sum, service) => sum + service.cost, 0);
-  const canAffordAll = userCredits >= totalCost;
+  const handleStemSwap = async () => {
+    await processService(track.id, 'stem-swap');
+  };
+
+  const handleMoodAnalysis = async () => {
+    await processService(track.id, 'mood-analysis');
+  };
+
+  const handleMelodyGenerator = async () => {
+    await processService(track.id, 'melody-generator');
+  };
+
+  const getServiceIcon = (serviceType: string) => {
+    switch (serviceType) {
+      case 'auto-mastering':
+        return <Zap className="w-4 h-4" />;
+      case 'stem-swap':
+        return <Music className="w-4 h-4" />;
+      case 'mood-analysis':
+        return <Brain className="w-4 h-4" />;
+      case 'melody-generator':
+        return <Sparkles className="w-4 h-4" />;
+      default:
+        return <Zap className="w-4 h-4" />;
+    }
+  };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Serviços AI Credit-Aware</CardTitle>
-          <Badge variant={canAffordAll ? "default" : "destructive"}>
-            {userCredits} créditos
-          </Badge>
+    <Card className="p-6">
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-xl font-semibold mb-2">Serviços de IA</h3>
+          <p className="text-muted-foreground text-sm">
+            Processe sua faixa com nossos serviços inteligentes
+          </p>
         </div>
-        <Progress 
-          value={(userCredits / Math.max(totalCost, userCredits)) * 100} 
-          className="h-2" 
-        />
-      </CardHeader>
-      <CardContent className="space-y-4">
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {serviceActions.map((service) => {
-            const result = results[service.key];
-            const isProcessing = processing === service.key;
-            const hasResult = !!result;
-            const canAfford = userCredits >= service.cost;
-
-            return (
-              <Card 
-                key={service.key} 
-                className={`relative transition-all duration-200 ${
-                  hasResult ? 'border-primary/50 bg-primary/5' : ''
-                }`}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      {service.icon}
-                      <h3 className="font-medium">{service.title}</h3>
-                    </div>
-                    <Badge variant={hasResult ? "default" : "outline"}>
-                      {service.cost} créditos
-                    </Badge>
-                  </div>
-                  
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {service.description}
-                  </p>
-
-                  {hasResult && (
-                    <div className="mb-3 p-2 rounded bg-muted/50">
-                      <div className="flex items-center gap-2 text-sm">
-                        <CheckCircle2 className="h-3 w-3 text-primary" />
-                        <span>
-                          {result.cached ? 'Cache' : 'Processado'} 
-                          {result.cached ? '' : ` (${result.creditsUsed} créditos)`}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => service.action(trackId)}
-                      disabled={isProcessing || !canAfford}
-                      className="flex-1"
-                    >
-                      {isProcessing ? (
-                        <>
-                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                          Processando...
-                        </>
-                      ) : hasResult ? (
-                        'Reprocessar'
-                      ) : (
-                        'Processar'
-                      )}
-                    </Button>
-                    
-                    {hasResult && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => service.action(trackId, true)}
-                        disabled={isProcessing || !canAfford}
-                      >
-                        <RefreshCw className="h-3 w-3" />
-                      </Button>
-                    )}
-                  </div>
-
-                  {!canAfford && (
-                    <p className="text-xs text-destructive mt-2">
-                      Créditos insuficientes
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        <Separator />
-
-        <div className="flex justify-between items-center text-sm">
-          <span className="text-muted-foreground">
-            Total para todos os serviços: {totalCost} créditos
-          </span>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={!canAffordAll || !!processing}
-            onClick={() => {
-              serviceActions.forEach(service => service.action(trackId));
-            }}
-          >
-            {processing ? (
-              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-            ) : (
-              'Processar Todos'
+          {/* Auto-Mastering */}
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Zap className="w-5 h-5 text-primary" />
+                <h4 className="font-medium">Auto-Mastering</h4>
+              </div>
+              <Badge variant="outline">{services['auto-mastering'].creditCost} créditos</Badge>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              {services['auto-mastering'].description}
+            </p>
+            <Button 
+              onClick={handleAutoMaster}
+              disabled={loading['auto-mastering']}
+              className="w-full"
+              size="sm"
+            >
+              {loading['auto-mastering'] ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Zap className="w-4 h-4 mr-2" />
+              )}
+              Processar
+            </Button>
+            {results['auto-mastering'] && (
+              <div className="mt-2 p-2 bg-muted rounded text-xs">
+                ✓ Processado {results['auto-mastering'].cached ? '(cache)' : ''}
+              </div>
             )}
-          </Button>
+          </Card>
+
+          {/* Stem-Swap */}
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Music className="w-5 h-5 text-primary" />
+                <h4 className="font-medium">Stem-Swap</h4>
+              </div>
+              <Badge variant="outline">{services['stem-swap'].creditCost} créditos</Badge>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              {services['stem-swap'].description}
+            </p>
+            <Button 
+              onClick={handleStemSwap}
+              disabled={loading['stem-swap']}
+              className="w-full"
+              size="sm"
+            >
+              {loading['stem-swap'] ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Music className="w-4 h-4 mr-2" />
+              )}
+              Processar
+            </Button>
+            {results['stem-swap'] && (
+              <div className="mt-2 p-2 bg-muted rounded text-xs">
+                ✓ Processado {results['stem-swap'].cached ? '(cache)' : ''}
+              </div>
+            )}
+          </Card>
+
+          {/* Mood Analysis */}
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Brain className="w-5 h-5 text-primary" />
+                <h4 className="font-medium">Mood Analysis</h4>
+              </div>
+              <Badge variant="outline">{services['mood-analysis'].creditCost} créditos</Badge>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              {services['mood-analysis'].description}
+            </p>
+            <Button 
+              onClick={handleMoodAnalysis}
+              disabled={loading['mood-analysis']}
+              className="w-full"
+              size="sm"
+            >
+              {loading['mood-analysis'] ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Brain className="w-4 h-4 mr-2" />
+              )}
+              Processar
+            </Button>
+            {results['mood-analysis'] && (
+              <div className="mt-2 p-2 bg-muted rounded text-xs">
+                ✓ Processado {results['mood-analysis'].cached ? '(cache)' : ''}
+              </div>
+            )}
+          </Card>
+
+          {/* Melody Generator */}
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                <h4 className="font-medium">Melody Generator</h4>
+              </div>
+              <Badge variant="outline">{services['melody-generator'].creditCost} créditos</Badge>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              {services['melody-generator'].description}
+            </p>
+            <Button 
+              onClick={handleMelodyGenerator}
+              disabled={loading['melody-generator']}
+              className="w-full"
+              size="sm"
+            >
+              {loading['melody-generator'] ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Sparkles className="w-4 h-4 mr-2" />
+              )}
+              Processar
+            </Button>
+            {results['melody-generator'] && (
+              <div className="mt-2 p-2 bg-muted rounded text-xs">
+                ✓ Processado {results['melody-generator'].cached ? '(cache)' : ''}
+              </div>
+            )}
+          </Card>
         </div>
-      </CardContent>
+
+        {/* Results Summary */}
+        {Object.keys(results).length > 0 && (
+          <Card className="p-4 bg-muted/50">
+            <h4 className="font-medium mb-2">Resultados Processados</h4>
+            <div className="space-y-2">
+              {Object.entries(results).map(([serviceType, result]) => (
+                <div key={serviceType} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    {getServiceIcon(serviceType)}
+                    <span className="capitalize">{services[serviceType]?.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={result.cached ? 'secondary' : 'default'} className="text-xs">
+                      {result.cached ? 'Cache' : `${result.creditsUsed} créditos`}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => clearCache(track.id, serviceType)}
+                      className="h-6 px-2 text-xs"
+                    >
+                      Limpar
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+      </div>
     </Card>
   );
 }

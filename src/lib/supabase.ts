@@ -1,67 +1,49 @@
-﻿import { createClient } from '@supabase/supabase-js';
 
-const url  = import.meta.env.VITE_SUPABASE_URL;
-const anon = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Simplified supabase utilities - removed problematic v_user_library queries
+import { supabase } from '@/integrations/supabase/client';
+import { Track } from '@/types';
 
-if (!url)  throw new Error('Missing env: VITE_SUPABASE_URL');
-if (!anon) throw new Error('Missing env: VITE_SUPABASE_ANON_KEY');
-
-export const supabase = createClient(url, anon, {
-  auth: { persistSession: true, autoRefreshToken: true },
-});
-
-// == add: fetchTrackFeatures (used by MixPointSuggest.tsx)
-export async function fetchTrackFeatures(trackId: string) {
+export async function getUserTracks(userId: string): Promise<Track[]> {
   try {
-    // importa o client de forma dinâmica para evitar problemas de ordem de imports
-    const { supabase } = await import("@/integrations/supabase/client");
-
-    // 1) fonte primária: track_features
     const { data, error } = await supabase
-      .from("track_features")
-      .select("tempo, musical_key, camelot, energy, danceability, loudness, analysis_json")
-      .eq("track_id", trackId)
-      .maybeSingle();
+      .from('tracks')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
 
-    // PGRST116 = no rows
-    if (error && (error as any).code !== "PGRST116") throw error;
+    if (error) throw error;
 
-    if (data) {
-      return {
-        tempo: data.tempo != null ? Number(data.tempo) : null,
-        musical_key: data.musical_key ?? null,
-        camelot: data.camelot ?? null,
-        energy: data.energy != null ? Number(data.energy) : null,
-        danceability: data.danceability != null ? Number(data.danceability) : null,
-        loudness: data.loudness != null ? Number(data.loudness) : null,
-        analysis: (data as any).analysis_json ?? null,
-      };
-    }
+    // Cast to Track[] with proper type assertion
+    return data?.map(track => ({
+      ...track,
+      type: (track.type || 'track') as 'track' | 'remix' | 'sample',
+      name: track.title,
+      url: track.file_url || track.file_path
+    })) as Track[] || [];
+  } catch (error) {
+    console.error('Error fetching user tracks:', error);
+    return [];
+  }
+}
 
-    // 2) fallback: v_user_library (usa bpm como proxy de tempo)
-    const { data: v, error: vErr } = await supabase
-      .from("v_user_library")
-      .select("bpm, musical_key, energy, danceability, loudness")
-      .eq("id", trackId)
-      .maybeSingle();
+export async function getAllTracks(): Promise<Track[]> {
+  try {
+    const { data, error } = await supabase
+      .from('tracks')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-    if (vErr && (vErr as any).code !== "PGRST116") throw vErr;
+    if (error) throw error;
 
-    if (v) {
-      return {
-        tempo: v.bpm != null ? Number(v.bpm) : null,
-        musical_key: v.musical_key ?? null,
-        camelot: null,
-        energy: v.energy != null ? Number(v.energy) : null,
-        danceability: v.danceability != null ? Number(v.danceability) : null,
-        loudness: v.loudness != null ? Number(v.loudness) : null,
-        analysis: null,
-      };
-    }
-
-    return null;
-  } catch (e) {
-    console.error("fetchTrackFeatures failed", e);
-    return null;
+    // Cast to Track[] with proper type assertion
+    return data?.map(track => ({
+      ...track,
+      type: (track.type || 'track') as 'track' | 'remix' | 'sample',
+      name: track.title,
+      url: track.file_url || track.file_path
+    })) as Track[] || [];
+  } catch (error) {
+    console.error('Error fetching all tracks:', error);
+    return [];
   }
 }

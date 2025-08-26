@@ -44,7 +44,7 @@ export function AudioUploader({ onUploadComplete }: AudioUploaderProps) {
     return null;
   };
 
-  const uploadFile = async (uploadFile: UploadFile) => {
+  const processUpload = async (uploadFile: UploadFile) => {
     if (!user) {
       throw new Error('Usuário não autenticado');
     }
@@ -100,19 +100,19 @@ export function AudioUploader({ onUploadComplete }: AudioUploaderProps) {
         u.id === uploadFile.id ? { ...u, progress: 75, status: 'processing' } : u
       ));
 
-      // Create track record
+      // Create track record with proper type casting
       const { data: track, error: trackError } = await supabase
         .from('tracks')
         .insert({
           user_id: user.id,
           title: uploadFile.file.name.replace(/\.[^/.]+$/, ''),
           artist: 'Unknown Artist',
-          type: 'track',
+          type: 'track' as const,
           duration,
           file_path: fileName,
           original_filename: uploadFile.file.name,
           file_size: uploadFile.file.size,
-          upload_status: 'completed'
+          upload_status: 'completed' as const
         })
         .select()
         .single();
@@ -185,9 +185,9 @@ export function AudioUploader({ onUploadComplete }: AudioUploaderProps) {
     if (newUploads.length > 0) {
       setUploads(prev => [...prev, ...newUploads]);
 
-      // Start uploads
+      // Start uploads - fix the callable error
       for (const uploadFile of newUploads) {
-        uploadFile(uploadFile);
+        processUpload(uploadFile);
       }
     }
   }, [user, toast]);
