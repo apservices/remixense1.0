@@ -1132,10 +1132,47 @@ export type Database = {
           },
         ]
       }
+      processing_cache: {
+        Row: {
+          created_at: string | null
+          credits_used: number
+          expires_at: string
+          id: string
+          result: Json
+          service_type: string
+          track_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          credits_used?: number
+          expires_at: string
+          id?: string
+          result: Json
+          service_type: string
+          track_id: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Update: {
+          created_at?: string | null
+          credits_used?: number
+          expires_at?: string
+          id?: string
+          result?: Json
+          service_type?: string
+          track_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string
+          credits_remaining: number | null
           id: string
           plan: string | null
           subscription_plan: string
@@ -1145,6 +1182,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          credits_remaining?: number | null
           id: string
           plan?: string | null
           subscription_plan?: string
@@ -1154,6 +1192,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          credits_remaining?: number | null
           id?: string
           plan?: string | null
           subscription_plan?: string
@@ -1981,6 +2020,10 @@ export type Database = {
           p_window_minutes: number
         }
         Returns: boolean
+      }
+      cleanup_expired_cache: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       get_comment_color: {
         Args: { comment_type: string }

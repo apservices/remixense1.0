@@ -1,39 +1,49 @@
-export interface Track {
+export interface User {
   id: string;
-  name: string;          // display name
-  title: string;         // original title if different
-  artist: string;
-  url?: string;
-  duration: string;      // mm:ss
-  bpm?: number | null;
-  key_signature?: string | null;
-  genre?: string | null;
-  energy_level?: number | null; // 1-10
-  type?: 'track' | 'remix' | 'sample';
-  is_liked?: boolean;
-  created_at?: string;   // ISO date
-  status?: 'pending' | 'processing' | 'ready' | 'error';
-  upload_status?: 'pending' | 'uploading' | 'processing' | 'completed' | 'error';
-  errorMsg?: string;
-  user_id: string;
-  file_url?: string;
-  file_path?: string;
-  play_count?: number;
-  updated_at?: string;
-  original_filename?: string;
-  file_size?: number;
-  waveform_data?: any;
-  is_featured?: boolean;
-  deleted_at?: string;
-  tags?: string[];
+  email: string | null;
+  user_metadata: {
+    dj_name?: string;
+    avatar_url?: string;
+  };
 }
 
-export interface TrackForMix {
+export interface Profile {
+  id: string;
+  username: string;
+  avatar_url?: string;
+  plan: string;
+  subscription_plan: string;
+  credits_remaining: number;
+}
+
+export interface Post {
+  id: string;
+  created_at: string;
+  title: string;
+  content: string;
+  user_id: string;
+}
+
+export interface Track {
   id: string;
   title: string;
   artist: string;
-  bpm: number | null;
-  key_signature: string | null;
-  energy_level: number | null;
-  duration: string;
+  duration?: string;
+  bpm?: number;
+  energy_level?: number;
+  key_signature?: string;
+  musical_key?: string;
+  genre?: string;
+  type?: 'track' | 'remix' | 'sample';
+  file_url?: string;
+  file_path?: string;
+  file_size?: number;
+  original_filename?: string;
+  waveform_data?: any;
+  user_id: string;
+  created_at: string;
+  is_liked?: boolean;
+  is_featured?: boolean;
+  upload_status?: 'uploading' | 'processing' | 'completed' | 'error';
+  deleted_at?: string | null;
 }
