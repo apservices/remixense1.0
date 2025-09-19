@@ -3,6 +3,8 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Track } from '@/types';
 
+export { supabase };
+
 export async function getUserTracks(userId: string): Promise<Track[]> {
   try {
     const { data, error } = await supabase
@@ -45,5 +47,21 @@ export async function getAllTracks(): Promise<Track[]> {
   } catch (error) {
     console.error('Error fetching all tracks:', error);
     return [];
+  }
+}
+
+export async function fetchTrackFeatures(trackId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('track_features')
+      .select('*')
+      .eq('track_id', trackId)
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error fetching track features:', error);
+    return null;
   }
 }
