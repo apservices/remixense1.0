@@ -2051,6 +2051,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      cleanup_expired_tokens: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_comment_color: {
         Args: { comment_type: string }
         Returns: string

@@ -25,12 +25,6 @@ interface RoleAuthContextType {
 
 const RoleAuthContext = createContext<RoleAuthContextType | undefined>(undefined);
 
-// Admin emails whitelist (in real app, this would be from env vars)
-const ADMIN_EMAILS = [
-  'admin@remixense.com',
-  'dev@remixense.com'
-];
-
 interface RoleAuthProviderProps {
   children: ReactNode;
 }
@@ -60,9 +54,14 @@ export function RoleAuthProvider({ children }: RoleAuthProviderProps) {
         throw error;
       }
 
-      // Determine role based on email whitelist
-      const isAdminEmail = ADMIN_EMAILS.includes(user.email || '');
-      const role: UserRole = isAdminEmail ? 'admin' : 'user';
+      // Determine role based on database admin_users table (server-side verification)
+      const { data: adminData } = await supabase
+        .from('admin_users')
+        .select('id')
+        .eq('email', user.email || '')
+        .maybeSingle();
+      
+      const role: UserRole = adminData ? 'admin' : 'user';
 
       if (!existingProfile) {
         // Create profile for new user
