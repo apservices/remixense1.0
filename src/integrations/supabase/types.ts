@@ -933,6 +933,32 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_tokens: {
+        Row: {
+          card_token: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          card_token: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          card_token?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_data"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plans: {
         Row: {
           id: string
