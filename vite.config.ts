@@ -1,4 +1,3 @@
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import { VitePWA } from "vite-plugin-pwa";
@@ -42,7 +41,7 @@ export default defineConfig(({ mode }) => ({
             options: { cacheName: "html-cache" }
           },
           {
-            urlPattern: ({ request }) => ["style","script","worker"].includes(request.destination),
+            urlPattern: ({ request }) => ["style", "script", "worker"].includes(request.destination),
             handler: "StaleWhileRevalidate",
             options: { cacheName: "asset-cache" }
           },
@@ -57,8 +56,18 @@ export default defineConfig(({ mode }) => ({
     })
   ].filter(Boolean),
   server: {
-    host: "::",
-    port: 8080
+    host: true, // Expõe em 0.0.0.0 (todas as interfaces)
+    port: 5173, // Porta padrão do Vite
+    allowedHosts: ['*'], // Permite todos os hosts (necessário para sandbox)
+    hmr: {
+      protocol: 'ws', // WebSocket para Hot Module Reload
+      host: 'localhost' // Força localhost para HMR
+    }
+  },
+  preview: {
+    host: true,
+    port: 4173,
+    allowedHosts: ['*'] // Para npm run preview
   },
   resolve: {
     alias: {
