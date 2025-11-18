@@ -12,6 +12,7 @@ export const TrackUpload: React.FC = () => {
   const { addTrack } = useTracks();
   const [uploads, setUploads] = useState<UploadFile[]>([]);
   const [online, setOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const waitForFrame = () => new Promise((resolve) => setTimeout(resolve, 0));
 
   useEffect(() => {
     const onChange = () => setOnline(navigator.onLine);
@@ -36,7 +37,7 @@ export const TrackUpload: React.FC = () => {
     list.forEach(async (uItem) => {
       try {
         if (!navigator.onLine) throw new Error('Análise requer conexão ativa');
-        // Immediately show server processing indicator
+        await waitForFrame();
         setUploads((prev) => prev.map((f) => (f.id === uItem.id ? { ...f, status: 'analyzing' } : f)));
         await addTrack(uItem.file);
         // Final status will be reflected elsewhere (TrackLibrary); keep analyzing indicator here
