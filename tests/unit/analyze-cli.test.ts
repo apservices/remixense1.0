@@ -1,10 +1,11 @@
-﻿import { describe, it, expect } from "vitest";
-import { execSync } from "child_process";
+import { describe, it, expect } from "vitest";
+import { analyzeTrack } from "@/modules/ia/analyze-cli";
 
 describe("analyze-cli.ts", () => {
-  it("should run CLI and print BPM and Key", () => {
-    const output = execSync("npx tsx src/modules/ia/analyze-cli.ts assets/loop.wav").toString();
-    expect(output).toMatch(/BPM:/);
-    expect(output).toMatch(/Key:/);
+  it("should analyze the demo loop and return BPM and Key", async () => {
+    const result = await analyzeTrack("assets/loop.wav");
+    expect(result.bpm).toBeGreaterThan(0);
+    expect(typeof result.key).toBe("string");
+    expect(result.key.length).toBeGreaterThan(0);
   });
 });
