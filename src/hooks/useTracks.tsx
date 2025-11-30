@@ -149,6 +149,9 @@ export function useTracks(): UseTracksReturn {
       };
     }
 
+    // Get public URL for file_url field
+    const { data: urlData } = supabase.storage.from('tracks').getPublicUrl(path);
+    
     // Insert track record with enhanced metadata
     const insertPayload = {
       user_id: user.id,
@@ -160,6 +163,7 @@ export function useTracks(): UseTracksReturn {
       key_signature: localMetadata.key,
       energy_level: localMetadata.energy,
       file_path: path,
+      file_url: urlData.publicUrl, // Populate file_url for compatibility
       original_filename: file.name,
       file_size: file.size,
       upload_status: "processing",
