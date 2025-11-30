@@ -2690,6 +2690,7 @@ export type Database = {
       }
       cleanup_expired_cache: { Args: never; Returns: undefined }
       cleanup_expired_tokens: { Args: never; Returns: undefined }
+      decrement_comment_count: { Args: { post_id: string }; Returns: undefined }
       get_comment_color: { Args: { comment_type: string }; Returns: string }
       get_user_subscription_info: {
         Args: { user_uuid?: string }
@@ -2705,6 +2706,7 @@ export type Database = {
           status: string
         }[]
       }
+      increment_comment_count: { Args: { post_id: string }; Returns: undefined }
       is_admin: { Args: { user_id?: string }; Returns: boolean }
       is_admin_by_email: { Args: { email: string }; Returns: boolean }
     }

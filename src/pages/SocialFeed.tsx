@@ -1,15 +1,23 @@
 import { MainLayout } from '@/components/MainLayout';
 import { SocialFeedCard } from '@/components/social/SocialFeedCard';
+import { CommentsPanel } from '@/components/social/CommentsPanel';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Clock, Users, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useSocialPosts } from '@/hooks/useSocialPosts';
 import { Card } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 export default function SocialFeed() {
   const [feedType, setFeedType] = useState<'foryou' | 'following' | 'trending'>('foryou');
   const { posts, isLoading, toggleLike } = useSocialPosts(feedType);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
   return (
     <MainLayout>
@@ -69,11 +77,23 @@ export default function SocialFeed() {
                 key={post.id} 
                 {...post}
                 onLike={() => toggleLike(post.id)}
+                onComment={() => setSelectedPostId(post.id)}
+                onShare={() => console.log('Share', post.id)}
               />
             ))
           )}
         </div>
       </div>
+
+      {/* Comments Dialog */}
+      <Dialog open={!!selectedPostId} onOpenChange={() => setSelectedPostId(null)}>
+        <DialogContent className="glass glass-border max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Comentários</DialogTitle>
+          </DialogHeader>
+          {selectedPostId && <CommentsPanel postId={selectedPostId} />}
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }

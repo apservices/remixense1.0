@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Loader2, Play, Pause, SkipForward, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateAutoMix, type AutoDJResult } from '@/services/audio/auto-dj';
 import { useTracks } from '@/hooks/useTracks';
+import { supabase } from '@/integrations/supabase/client';
 
 export function AutoDJPanel() {
   const { toast } = useToast();
@@ -17,6 +18,75 @@ export function AutoDJPanel() {
   const [setName, setSetName] = useState('');
   const [crossfader, setCrossfader] = useState([50]);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const audioARef = useRef<HTMLAudioElement>(null);
+  const audioBRef = useRef<HTMLAudioElement>(null);
+
+  // Load audio when tracks change
+  useEffect(() => {
+    if (!generatedSet) return;
+    
+    const loadTrack = async (index: number, audioRef: React.RefObject<HTMLAudioElement>) => {
+      const track = generatedSet.tracks[index];
+      if (!track || !audioRef.current) return;
+
+      try {
+        if (track.fileUrl) {
+          audioRef.current.src = track.fileUrl;
+          audioRef.current.load();
+        }
+      } catch (error) {
+        console.error('Error loading track:', error);
+      }
+    };
+
+    loadTrack(currentTrackIndex, audioARef);
+    if (currentTrackIndex + 1 < generatedSet.tracks.length) {
+      loadTrack(currentTrackIndex + 1, audioBRef);
+    }
+  }, [generatedSet, currentTrackIndex]);
+
+  // Handle crossfader mixing
+  useEffect(() => {
+    if (!audioARef.current || !audioBRef.current) return;
+
+    const fadeValue = crossfader[0] / 100;
+    audioARef.current.volume = 1 - fadeValue;
+    audioBRef.current.volume = fadeValue;
+  }, [crossfader]);
+
+  const togglePlayback = () => {
+    if (!audioARef.current) return;
+
+    if (isPlaying) {
+      audioARef.current.pause();
+      audioBRef.current?.pause();
+    } else {
+      audioARef.current.play();
+      if (crossfader[0] > 50 && audioBRef.current) {
+        audioBRef.current.play();
+      }
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const skipToNext = () => {
+    if (!generatedSet || currentTrackIndex >= generatedSet.tracks.length - 1) return;
+    
+    setCurrentTrackIndex(prev => prev + 1);
+    setIsPlaying(false);
+    audioARef.current?.pause();
+    audioBRef.current?.pause();
+  };
+
+  const skipToPrevious = () => {
+    if (currentTrackIndex <= 0) return;
+    
+    setCurrentTrackIndex(prev => prev - 1);
+    setIsPlaying(false);
+    audioARef.current?.pause();
+    audioBRef.current?.pause();
+  };
 
   const handleGenerateMix = async () => {
     if (selectedTracks.length < 2) {
@@ -202,13 +272,18 @@ export function AutoDJPanel() {
 
           {/* Transport controls */}
           <div className="flex items-center justify-center gap-2">
-            <Button variant="outline" size="icon">
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={skipToPrevious}
+              disabled={currentTrackIndex === 0}
+            >
               <SkipForward className="h-4 w-4 rotate-180" />
             </Button>
             <Button
               size="icon"
               className="h-12 w-12"
-              onClick={() => setIsPlaying(!isPlaying)}
+              onClick={togglePlayback}
             >
               {isPlaying ? (
                 <Pause className="h-6 w-6" />
@@ -216,10 +291,19 @@ export function AutoDJPanel() {
                 <Play className="h-6 w-6 ml-0.5" />
               )}
             </Button>
-            <Button variant="outline" size="icon">
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={skipToNext}
+              disabled={!generatedSet || currentTrackIndex >= generatedSet.tracks.length - 1}
+            >
               <SkipForward className="h-4 w-4" />
             </Button>
           </div>
+
+          {/* Hidden audio elements */}
+          <audio ref={audioARef} />
+          <audio ref={audioBRef} />
         </div>
       </Card>
 
