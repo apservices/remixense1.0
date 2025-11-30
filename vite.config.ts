@@ -56,12 +56,12 @@ export default defineConfig(({ mode }) => ({
     })
   ].filter(Boolean),
   server: {
-    host: true, // Expõe em 0.0.0.0 (todas as interfaces)
-    port: 5173, // Porta padrão do Vite
-    allowedHosts: ['*'], // Permite todos os hosts (necessário para sandbox)
+    host: true,
+    port: 8080,
+    allowedHosts: ['*'],
     hmr: {
-      protocol: 'ws', // WebSocket para Hot Module Reload
-      host: 'localhost' // Força localhost para HMR
+      protocol: 'ws',
+      host: 'localhost'
     }
   },
   preview: {
