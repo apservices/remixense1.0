@@ -1,48 +1,15 @@
 import { MainLayout } from '@/components/MainLayout';
 import { SocialFeedCard } from '@/components/social/SocialFeedCard';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Clock, Users } from 'lucide-react';
+import { TrendingUp, Clock, Users, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useSocialPosts } from '@/hooks/useSocialPosts';
+import { Card } from '@/components/ui/card';
 
 export default function SocialFeed() {
   const [feedType, setFeedType] = useState<'foryou' | 'following' | 'trending'>('foryou');
-
-  // Mock posts - replace with actual data from Supabase
-  const mockPosts = [
-    {
-      id: '1',
-      user: {
-        id: 'user1',
-        username: 'djbeatmaster',
-        djName: 'DJ Beat Master',
-        avatarUrl: undefined
-      },
-      postType: 'set' as const,
-      caption: '🔥 Novo set tech house! Gravado ontem no Club Vibe',
-      likeCount: 234,
-      commentCount: 45,
-      playCount: 1520,
-      createdAt: new Date().toISOString(),
-      isLiked: false
-    },
-    {
-      id: '2',
-      user: {
-        id: 'user2',
-        username: 'remixqueen',
-        djName: 'Remix Queen',
-        avatarUrl: undefined
-      },
-      postType: 'remix' as const,
-      caption: 'Remix de Daft Punk - One More Time 🎶',
-      likeCount: 567,
-      commentCount: 89,
-      playCount: 3240,
-      createdAt: new Date(Date.now() - 86400000).toISOString(),
-      isLiked: true
-    }
-  ];
+  const { posts, isLoading, toggleLike } = useSocialPosts(feedType);
 
   return (
     <MainLayout>
@@ -80,9 +47,31 @@ export default function SocialFeed() {
 
         {/* Feed */}
         <div className="space-y-6">
-          {mockPosts.map((post) => (
-            <SocialFeedCard key={post.id} {...post} />
-          ))}
+          {isLoading ? (
+            <Card className="glass glass-border p-12">
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <p className="text-muted-foreground">Carregando feed...</p>
+              </div>
+            </Card>
+          ) : posts.length === 0 ? (
+            <Card className="glass glass-border p-12">
+              <div className="text-center space-y-4">
+                <p className="text-heading-lg">📭 Nenhum post encontrado</p>
+                <p className="text-muted-foreground">
+                  Seja o primeiro a postar algo incrível!
+                </p>
+              </div>
+            </Card>
+          ) : (
+            posts.map((post) => (
+              <SocialFeedCard 
+                key={post.id} 
+                {...post}
+                onLike={() => toggleLike(post.id)}
+              />
+            ))
+          )}
         </div>
       </div>
     </MainLayout>

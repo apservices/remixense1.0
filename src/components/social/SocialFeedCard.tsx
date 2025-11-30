@@ -20,24 +20,22 @@ interface SocialFeedCardProps {
   playCount?: number;
   createdAt: string;
   isLiked?: boolean;
+  onLike?: () => void;
 }
 
 export function SocialFeedCard({
   user,
   postType,
   caption,
-  likeCount: initialLikeCount,
+  likeCount,
   commentCount,
   playCount,
   createdAt,
-  isLiked: initialIsLiked = false
+  isLiked = false,
+  onLike
 }: SocialFeedCardProps) {
-  const [isLiked, setIsLiked] = useState(initialIsLiked);
-  const [likeCount, setLikeCount] = useState(initialLikeCount);
-
   const handleLike = () => {
-    setIsLiked(!isLiked);
-    setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+    onLike?.();
   };
 
   const getPostTypeLabel = () => {
