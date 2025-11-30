@@ -9,6 +9,7 @@ import NotFound from './pages/NotFound';
 
 // Lazy load pages for code splitting
 const Home = lazy(() => import('./pages/Home'));
+const Studio = lazy(() => import('./pages/Studio'));
 const StemsStudio = lazy(() => import('./pages/StemsStudio'));
 const AutoDJ = lazy(() => import('./pages/AutoDJ'));
 const SocialFeed = lazy(() => import('./pages/SocialFeed'));
@@ -41,6 +42,14 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingFallback />}>
             <Home />
+          </Suspense>
+        ) 
+      },
+      { 
+        path: '/studio', 
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <Studio />
           </Suspense>
         ) 
       },
