@@ -2,49 +2,24 @@ import { MainLayout } from '@/components/MainLayout';
 import { ProductCard } from '@/components/marketplace/ProductCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Filter, SlidersHorizontal } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Search, SlidersHorizontal, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { useMarketplace } from '@/hooks/useMarketplace';
 
 export default function MarketplaceStore() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [category, setCategory] = useState('all');
+  const { products, isLoading } = useMarketplace(searchQuery, category);
 
-  // Mock products - replace with actual data from Supabase
-  const mockProducts = [
-    {
-      id: '1',
-      title: 'Tech House Remix Pack Vol. 1',
-      seller: {
-        id: 'seller1',
-        username: 'producerking',
-        djName: 'Producer King'
-      },
-      productType: 'sample_pack' as const,
-      price: 4900,
-      rating: 4.8,
-      reviewCount: 124,
-      downloadsCount: 523,
-      tags: ['tech-house', 'minimal', 'groovy'],
-      bpm: 128,
-      genre: 'Tech House'
-    },
-    {
-      id: '2',
-      title: 'Melodic Deep House Loops',
-      seller: {
-        id: 'seller2',
-        username: 'sounddesigner',
-        djName: 'Sound Designer'
-      },
-      productType: 'loop' as const,
-      price: 2900,
-      rating: 4.9,
-      reviewCount: 89,
-      downloadsCount: 412,
-      tags: ['deep-house', 'melodic'],
-      bpm: 124,
-      keySignature: 'Am',
-      genre: 'Deep House'
-    }
+  const categories = [
+    { id: 'all', label: 'Todos' },
+    { id: 'loop', label: 'Loops' },
+    { id: 'stem', label: 'Stems' },
+    { id: 'kit', label: 'Kits' },
+    { id: 'remix', label: 'Remixes' },
+    { id: 'preset', label: 'Presets' },
+    { id: 'sample_pack', label: 'Sample Packs' }
   ];
 
   return (
@@ -79,24 +54,43 @@ export default function MarketplaceStore() {
 
         {/* Categories */}
         <div className="flex gap-2 overflow-x-auto pb-2">
-          {['Todos', 'Loops', 'Stems', 'Kits', 'Remixes', 'Presets'].map((cat) => (
+          {categories.map((cat) => (
             <Button
-              key={cat}
-              variant={cat === 'Todos' ? 'default' : 'outline'}
+              key={cat.id}
+              variant={category === cat.id ? 'default' : 'outline'}
               size="sm"
               className="whitespace-nowrap"
+              onClick={() => setCategory(cat.id)}
             >
-              {cat}
+              {cat.label}
             </Button>
           ))}
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockProducts.map((product) => (
-            <ProductCard key={product.id} {...product} />
-          ))}
-        </div>
+        {isLoading ? (
+          <Card className="glass glass-border p-12">
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              <p className="text-muted-foreground">Carregando produtos...</p>
+            </div>
+          </Card>
+        ) : products.length === 0 ? (
+          <Card className="glass glass-border p-12">
+            <div className="text-center space-y-4">
+              <p className="text-heading-lg">🛍️ Nenhum produto encontrado</p>
+              <p className="text-muted-foreground">
+                Tente ajustar os filtros ou busca
+              </p>
+            </div>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map((product) => (
+              <ProductCard key={product.id} {...product} />
+            ))}
+          </div>
+        )}
       </div>
     </MainLayout>
   );
