@@ -12,6 +12,7 @@ const Home = lazy(() => import('./pages/Home'));
 const Studio = lazy(() => import('./pages/Studio'));
 const StemsStudio = lazy(() => import('./pages/StemsStudio'));
 const AutoDJ = lazy(() => import('./pages/AutoDJ'));
+const AIStudio = lazy(() => import('./pages/AIStudio'));
 const SocialFeed = lazy(() => import('./pages/SocialFeed'));
 const MarketplaceStore = lazy(() => import('./pages/MarketplaceStore'));
 const Profile = lazy(() => import('./pages/Profile'));
@@ -70,6 +71,14 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingFallback />}>
             <AutoDJ />
+          </Suspense>
+        ) 
+      },
+      { 
+        path: '/ai-studio', 
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <AIStudio />
           </Suspense>
         ) 
       },
