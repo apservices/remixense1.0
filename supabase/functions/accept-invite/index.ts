@@ -94,11 +94,13 @@ serve(async (req) => {
 
     // 4) Garantir perfil básico
     if (userId) {
-      await supabase
-        .from("profiles")
-        .upsert({ id: userId, username: dj_name || email.split("@")[0] })
-        .then(() => {})
-        .catch(() => {});
+      try {
+        await supabase
+          .from("profiles")
+          .upsert({ id: userId, username: dj_name || email.split("@")[0] });
+      } catch {
+        // Ignore profile errors
+      }
     }
 
     return new Response(JSON.stringify({ ok: true }), {

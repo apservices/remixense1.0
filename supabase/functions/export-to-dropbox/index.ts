@@ -36,7 +36,8 @@ serve(async (req) => {
       throw new Error('Invalid authentication')
     }
 
-    const { export_id, track_id, metadata } = await req.json()
+    const requestBody = await req.json()
+    const { export_id, track_id, metadata } = requestBody
     
     // Input validation
     if (!export_id || !track_id) {
@@ -144,25 +145,33 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Dropbox export error:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
     
-    // Update export status to error
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-    
-    if (export_id) {
-      await supabase
-        .from('exports')
-        .update({
-          status: 'error',
-          error_message: error.message
-        })
-        .eq('id', export_id)
+    // Update export status to error if we have the export_id
+    try {
+      const requestBody = await req.json()
+      const exportId = requestBody.export_id
+      
+      if (exportId) {
+        const supabase = createClient(
+          Deno.env.get('SUPABASE_URL') ?? '',
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+        )
+        
+        await supabase
+          .from('exports')
+          .update({
+            status: 'error',
+            error_message: errorMessage
+          })
+          .eq('id', exportId)
+      }
+    } catch {
+      // Ignore errors updating export status
     }
 
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       { 
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
