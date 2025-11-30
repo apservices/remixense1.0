@@ -48,14 +48,30 @@ Este documento mapeia as funcionalidades descritas no Guia de Onboarding com as 
 ## 2. Gestão Musical
 
 ### 2.1. Gerador de Landing Page
-**Status:** 📝 Planejado  
-**Localização prevista:** `/tools/landing-page` ou integrado em perfil  
-**Referência:** Existe `LandingPageGenerator.tsx` mas não está nas rotas
+**Status:** ✅ Implementado  
+**Localização:** `/tools/landing-page` - Página **LandingPageGenerator**  
+**Componentes:**
+- `LandingPageGenerator.tsx` - Gerador completo
+**Funcionalidades:**
+- Criação de landing pages para lançamentos
+- Múltiplos templates (Modern, Dark, Vibrant, Retro, Minimal)
+- Esquemas de cores personalizáveis
+- Links para plataformas (Spotify, Apple Music, YouTube)
+- Preview e download (PRO/EXPERT)
+- Integração com dados de lançamento
 
 ### 2.2. Calendário de Lançamentos
-**Status:** 📝 Planejado  
-**Localização prevista:** `/calendar` ou `/releases`  
-**Referência:** Existe `LaunchCalendar.tsx` mas não está nas rotas principais
+**Status:** ✅ Implementado  
+**Localização:** `/calendar` - Página **LaunchCalendar**  
+**Componentes:**
+- `LaunchCalendar.tsx` - Calendário completo
+- `launch_events` table - Persistência de eventos
+**Funcionalidades:**
+- Criação de eventos de lançamento
+- Planejamento de datas
+- Status de eventos (planned, in_progress, completed)
+- Integração com plataformas
+- Sistema de lembretes
 
 ### 2.3. Matriz de Metadados
 **Status:** ✅ Implementado  
@@ -318,16 +334,16 @@ Este documento mapeia as funcionalidades descritas no Guia de Onboarding com as 
 | Categoria | Implementado | Parcial | Não Implementado | Total |
 |-----------|--------------|---------|------------------|-------|
 | Aceleração Criativa | 1 | 1 | 2 | 4 |
-| Gestão Musical | 1 | 1 | 2 | 4 |
+| Gestão Musical | 3 | 1 | 0 | 4 |
 | Distribuição | 1 | 2 | 0 | 3 |
 | Colaboração | 3 | 0 | 0 | 3 |
 | DJ Tools | 3 | 0 | 0 | 3 |
 | Biblioteca | 2 | 0 | 0 | 2 |
 | Usuário | 2 | 0 | 0 | 2 |
 | Analytics | 2 | 0 | 0 | 2 |
-| **TOTAL** | **15** | **4** | **4** | **23** |
+| **TOTAL** | **17** | **4** | **2** | **23** |
 
-**Progresso geral:** ~82% (15+4/23 funcionalidades principais)
+**Progresso geral:** ~91% (17+4/23 funcionalidades principais)
 
 ---
 
@@ -345,7 +361,9 @@ Este documento mapeia as funcionalidades descritas no Guia de Onboarding com as 
 ├── /profile - Perfil do Usuário
 ├── /trends - Tendências
 ├── /pricing - Planos e Assinatura
-└── /revenue - Analytics de Receita
+├── /revenue - Analytics de Receita
+├── /calendar - Calendário de Lançamentos
+└── /tools/landing-page - Gerador de Landing Page
 ```
 
 ---

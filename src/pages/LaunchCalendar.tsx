@@ -13,12 +13,16 @@ import { supabase } from '@/integrations/supabase/client';
 interface LaunchEvent {
   id: string;
   title: string;
-  description: string;
+  description: string | null;
   launch_date: string;
-  status: 'planned' | 'in_progress' | 'completed';
-  platform: string;
+  status: string;
+  platform: string | null;
   user_id: string;
   created_at: string;
+  updated_at: string;
+  reminder_enabled?: boolean | null;
+  reminder_days_before?: number | null;
+  metadata?: any;
 }
 
 export default function LaunchCalendar() {
@@ -42,30 +46,14 @@ export default function LaunchCalendar() {
 
   const fetchEvents = async () => {
     try {
-      // Mock data for now - in production this would query the launch_events table
-      const mockEvents: LaunchEvent[] = [
-        {
-          id: '1',
-          title: 'Summer Vibes EP',
-          description: 'Lançamento do EP de verão com 4 faixas',
-          launch_date: '2024-08-15',
-          status: 'planned',
-          platform: 'Spotify, Apple Music',
-          user_id: user?.id || '',
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          title: 'Remix Contest',
-          description: 'Concurso de remix da faixa principal',
-          launch_date: '2024-08-20',
-          status: 'in_progress',
-          platform: 'RemiXense Community',
-          user_id: user?.id || '',
-          created_at: new Date().toISOString()
-        }
-      ];
-      setEvents(mockEvents);
+      const { data, error } = await supabase
+        .from('launch_events')
+        .select('*')
+        .order('launch_date', { ascending: true });
+
+      if (error) throw error;
+      
+      setEvents(data || []);
     } catch (error) {
       console.error('Error fetching events:', error);
       toast({
@@ -91,19 +79,22 @@ export default function LaunchCalendar() {
     }
 
     try {
-      // In production, this would insert into launch_events table
-      const newEvent: LaunchEvent = {
-        id: Date.now().toString(),
-        title: formData.title,
-        description: formData.description,
-        launch_date: formData.launch_date,
-        status: 'planned',
-        platform: formData.platform,
-        user_id: user?.id || '',
-        created_at: new Date().toISOString()
-      };
+      const { data, error } = await supabase
+        .from('launch_events')
+        .insert([{
+          title: formData.title,
+          description: formData.description,
+          launch_date: formData.launch_date,
+          platform: formData.platform,
+          user_id: user?.id,
+          status: 'planned'
+        }])
+        .select()
+        .single();
 
-      setEvents([...events, newEvent]);
+      if (error) throw error;
+
+      setEvents([...events, data]);
       
       toast({
         title: "📅 Evento criado!",
