@@ -28,15 +28,33 @@ export function AutoDJPanel() {
     
     const loadTrack = async (index: number, audioRef: React.RefObject<HTMLAudioElement>) => {
       const track = generatedSet.tracks[index];
-      if (!track || !audioRef.current) return;
+      if (!track || !audioRef.current) {
+        console.log('Cannot load track - missing track or audio element:', { track: !!track, ref: !!audioRef.current });
+        return;
+      }
 
       try {
+        console.log('Loading track:', track.title, track.fileUrl);
+        
         if (track.fileUrl) {
           audioRef.current.src = track.fileUrl;
-          audioRef.current.load();
+          await audioRef.current.load();
+          console.log('Track loaded successfully');
+        } else {
+          console.error('No fileUrl for track:', track.title);
+          toast({
+            title: 'Erro ao carregar áudio',
+            description: `Faixa ${track.title} não tem URL válida`,
+            variant: 'destructive'
+          });
         }
       } catch (error) {
         console.error('Error loading track:', error);
+        toast({
+          title: 'Erro ao carregar áudio',
+          description: 'Não foi possível carregar a faixa',
+          variant: 'destructive'
+        });
       }
     };
 
@@ -44,7 +62,7 @@ export function AutoDJPanel() {
     if (currentTrackIndex + 1 < generatedSet.tracks.length) {
       loadTrack(currentTrackIndex + 1, audioBRef);
     }
-  }, [generatedSet, currentTrackIndex]);
+  }, [generatedSet, currentTrackIndex, toast]);
 
   // Handle crossfader mixing
   useEffect(() => {
@@ -55,19 +73,53 @@ export function AutoDJPanel() {
     audioBRef.current.volume = fadeValue;
   }, [crossfader]);
 
-  const togglePlayback = () => {
-    if (!audioARef.current) return;
-
-    if (isPlaying) {
-      audioARef.current.pause();
-      audioBRef.current?.pause();
-    } else {
-      audioARef.current.play();
-      if (crossfader[0] > 50 && audioBRef.current) {
-        audioBRef.current.play();
-      }
+  const togglePlayback = async () => {
+    if (!audioARef.current) {
+      console.error('Audio element not available');
+      toast({
+        title: 'Erro',
+        description: 'Player de áudio não está pronto',
+        variant: 'destructive'
+      });
+      return;
     }
-    setIsPlaying(!isPlaying);
+
+    try {
+      if (isPlaying) {
+        audioARef.current.pause();
+        audioBRef.current?.pause();
+        setIsPlaying(false);
+        console.log('Playback paused');
+      } else {
+        console.log('Starting playback, src:', audioARef.current.src);
+        
+        if (!audioARef.current.src) {
+          toast({
+            title: 'Nenhuma faixa carregada',
+            description: 'Aguarde o carregamento da faixa',
+            variant: 'destructive'
+          });
+          return;
+        }
+
+        await audioARef.current.play();
+        setIsPlaying(true);
+        console.log('Playback started');
+        
+        if (crossfader[0] > 50 && audioBRef.current && audioBRef.current.src) {
+          await audioBRef.current.play();
+          console.log('Deck B started');
+        }
+      }
+    } catch (error) {
+      console.error('Playback error:', error);
+      toast({
+        title: 'Erro na reprodução',
+        description: error instanceof Error ? error.message : 'Não foi possível reproduzir a faixa',
+        variant: 'destructive'
+      });
+      setIsPlaying(false);
+    }
   };
 
   const skipToNext = () => {
@@ -321,8 +373,25 @@ export function AutoDJPanel() {
           </div>
 
           {/* Hidden audio elements */}
-          <audio ref={audioARef} />
-          <audio ref={audioBRef} />
+          <audio 
+            ref={audioARef} 
+            preload="auto"
+            onError={(e) => {
+              console.error('Audio A error:', e);
+              toast({
+                title: 'Erro no Deck A',
+                description: 'Não foi possível carregar o áudio',
+                variant: 'destructive'
+              });
+            }}
+          />
+          <audio 
+            ref={audioBRef} 
+            preload="auto"
+            onError={(e) => {
+              console.error('Audio B error:', e);
+            }}
+          />
         </div>
       </Card>
 
