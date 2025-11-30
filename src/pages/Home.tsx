@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Scissors, Play, Users, ShoppingBag, TrendingUp, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePlayer } from '@/contexts/PlayerContext';
+import { QuickLinks } from '@/components/QuickLinks';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -45,6 +46,13 @@ export default function Home() {
       path: '/studio/stems'
     },
     {
+      icon: Zap,
+      title: 'Estúdio de IA',
+      description: 'Mastering, melodias e análise',
+      color: 'from-blue-500 to-cyan-600',
+      path: '/ai-studio'
+    },
+    {
       icon: Play,
       title: 'Auto DJ',
       description: 'Geração automática de sets',
@@ -64,6 +72,13 @@ export default function Home() {
       description: 'Compre e venda loops e stems',
       color: 'from-pink-500 to-rose-600',
       path: '/marketplace'
+    },
+    {
+      icon: TrendingUp,
+      title: 'Calendário',
+      description: 'Organize seus lançamentos',
+      color: 'from-indigo-500 to-purple-600',
+      path: '/calendar'
     },
   ];
 
@@ -93,7 +108,7 @@ export default function Home() {
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature) => {
             const Icon = feature.icon;
             return (
@@ -141,6 +156,9 @@ export default function Home() {
             </div>
           </div>
         </Card>
+
+        {/* Quick Links to Tools */}
+        <QuickLinks />
 
         {/* Demo Tracks */}
         <div className="space-y-4">
