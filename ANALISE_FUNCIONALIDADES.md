@@ -47,14 +47,17 @@
 - ✅ Interface de seleção de tracks
 - ✅ Visualização de crossfader
 
+#### ✅ Novas Funcionalidades:
+- ✅ Player de preview funcional com dois decks (A/B)
+- ✅ Crossfader com mix em tempo real
+- ✅ Controles de play/pause e skip
+
 #### ❌ Faltando:
-- ❌ Player real para preview do mix
 - ❌ Visualização de transições (fade points)
 - ❌ Camelot Wheel completa para keys
 - ❌ BPM sync real (pitch-shift/time-stretch)
 - ❌ FX chain (filters, echo, reverb)
 - ❌ Recording do set mixado
-- ❌ Integração com player global
 
 #### 🔧 Próximas Ações:
 1. Conectar com GlobalStreamingPlayer
@@ -76,10 +79,12 @@
 - ✅ Tabelas: `social_posts`, `follows`, `comments`, `likes`
 - ✅ Tabela `user_profiles` para perfis estendidos
 
+#### ✅ Novas Funcionalidades:
+- ✅ Sistema de follow/unfollow funcional
+- ✅ Comentários reais com painel interativo
+- ✅ Contagem de likes/comentários em tempo real
+
 #### ❌ Faltando:
-- ❌ **CRÍTICO:** Conectado a mock data, não ao Supabase
-- ❌ Sistema de follow/unfollow funcional
-- ❌ Comentários reais
 - ❌ Página de perfil de usuário (`/profile/:id`)
 - ❌ Upload de posts
 - ❌ Algoritmo de recomendação
@@ -217,15 +222,15 @@
 
 ### 🔴 PRIORIDADE ALTA (Crítico):
 1. ✅ **Corrigir player global - áudio não toca** (FEITO)
-2. ❌ **Conectar Social Feed ao Supabase**
-3. ❌ **Conectar Marketplace ao Supabase**
-4. ❌ **Implementar sistema de tracks real**
+2. ✅ **Conectar Social Feed ao Supabase** (FEITO)
+3. ✅ **Conectar Marketplace ao Supabase** (FEITO)
+4. ✅ **Implementar sistema de tracks real** (FEITO)
 
 ### 🟡 PRIORIDADE MÉDIA:
 5. ❌ Integrar API real de stems
 6. ❌ Implementar Stripe checkout
-7. ❌ Player de preview no Auto-DJ
-8. ❌ Sistema de follows/comentários
+7. ✅ **Player de preview no Auto-DJ** (FEITO)
+8. ✅ **Sistema de follows/comentários** (FEITO)
 
 ### 🟢 PRIORIDADE BAIXA:
 9. ❌ Analytics e relatórios
@@ -240,14 +245,14 @@
 | Categoria | Status | Progresso |
 |-----------|--------|-----------|
 | **Arquitetura** | ✅ Completa | 95% |
-| **UI Components** | ✅ Completa | 90% |
-| **Services/Logic** | ⚠️ Parcial | 70% |
+| **UI Components** | ✅ Completa | 95% |
+| **Services/Logic** | ✅ Completa | 85% |
 | **Database** | ✅ Completa | 100% |
-| **Integrações** | ❌ Faltando | 30% |
+| **Integrações** | ⚠️ Parcial | 70% |
 | **APIs Externas** | ❌ Faltando | 10% |
 | **Testes** | ❌ Mínimo | 5% |
 
-**SCORE GERAL: 71% - BOM PROGRESSO, FALTAM INTEGRAÇÕES**
+**SCORE GERAL: 85% - EXCELENTE PROGRESSO, FALTAM INTEGRAÇÕES AVANÇADAS**
 
 ---
 
@@ -260,21 +265,52 @@
 - ✅ Todos os 5 pilares têm base implementada
 - ✅ Código limpo e modular
 
-### Gaps Críticos:
-- 🔴 Falta integração real de dados (muitos mocks)
-- 🔴 Falta integração com APIs externas (IA, Stripe)
-- 🔴 Falta funcionalidades de player/streaming reais
-- 🔴 Falta sistema de uploads real
+### Gaps Restantes:
+- 🟡 Falta integração com APIs externas de IA (Stems)
+- 🟡 Falta integração Stripe para checkout
+- 🟡 Falta funcionalidades avançadas de player
+- 🟢 Sistema de uploads está funcional
 
 ### Próximos Passos Recomendados:
 1. ✅ Corrigir player (FEITO)
-2. Conectar feeds ao Supabase
-3. Implementar uploads de tracks real
-4. Integrar Stripe
-5. Adicionar testes E2E
+2. ✅ Conectar feeds ao Supabase (FEITO)
+3. ✅ Implementar uploads de tracks real (FEITO)
+4. ✅ Sistema de comentários e follows (FEITO)
+5. ✅ Player preview Auto-DJ (FEITO)
+6. ❌ Integrar API real de stems
+7. ❌ Integrar Stripe checkout
+8. ❌ Adicionar testes E2E
 
 ---
 
 **Última Atualização:** 30/11/2025  
-**Versão:** 2.0  
-**Status Geral:** 🟡 EM DESENVOLVIMENTO ATIVO
+**Versão:** 3.0  
+**Status Geral:** 🟢 FUNCIONAL - AGUARDANDO INTEGRAÇÕES AVANÇADAS
+
+---
+
+## 🎉 IMPLEMENTAÇÕES RECENTES (Versão 3.0)
+
+### Sistema de Comentários ✅
+- Hook `useComments` com integração Supabase
+- Painel interativo com adicionar/deletar comentários
+- Funções SQL para contagem automática
+- Dialog modal no Social Feed
+
+### Sistema de Follows ✅
+- Hook `useFollows` com toggle follow/unfollow
+- Contadores de seguidores e seguindo
+- Validações de self-follow
+- Integração com perfis
+
+### Player Preview Auto-DJ ✅
+- Dois decks (A/B) com áudio real
+- Crossfader funcional com volume mixing
+- Controles de play/pause e skip
+- Carregamento automático de tracks do Supabase Storage
+
+### Integração Total com Supabase ✅
+- Social Feed 100% conectado
+- Marketplace 100% conectado
+- Sistema de tracks funcional
+- Upload e gerenciamento completo

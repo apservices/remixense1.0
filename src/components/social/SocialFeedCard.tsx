@@ -21,6 +21,8 @@ interface SocialFeedCardProps {
   createdAt: string;
   isLiked?: boolean;
   onLike?: () => void;
+  onComment?: () => void;
+  onShare?: () => void;
 }
 
 export function SocialFeedCard({
@@ -32,7 +34,9 @@ export function SocialFeedCard({
   playCount,
   createdAt,
   isLiked = false,
-  onLike
+  onLike,
+  onComment,
+  onShare
 }: SocialFeedCardProps) {
   const handleLike = () => {
     onLike?.();
@@ -113,12 +117,20 @@ export function SocialFeedCard({
             <Heart className={`h-5 w-5 mr-1 ${isLiked ? 'fill-current' : ''}`} />
             {likeCount}
           </Button>
-          <Button variant="ghost" size="sm">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={onComment}
+          >
             <MessageCircle className="h-5 w-5 mr-1" />
             {commentCount}
           </Button>
         </div>
-        <Button variant="ghost" size="sm">
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={onShare}
+        >
           <Share2 className="h-5 w-5" />
         </Button>
       </div>
