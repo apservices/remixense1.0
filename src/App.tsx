@@ -2,7 +2,8 @@ import React, { lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Login from './pages/Login';
 import { AuthProvider } from './hooks/useAuth';
-import { PlayerProvider } from './contexts/PlayerContext';
+import { PlayerProvider, usePlayer } from './contexts/PlayerContext';
+import { GlobalStreamingPlayer } from './components/player/GlobalStreamingPlayer';
 import ProtectedRoutes from './routes/ProtectedRoutes';
 import LoadingSpinner from './components/LoadingSpinner';
 import NotFound from './pages/NotFound';
@@ -167,14 +168,28 @@ const router = createBrowserRouter([
   },
 ], { future: rrFuture as any });
 
+function PlayerWrapper() {
+  const { currentTrack, playlist } = usePlayer();
+  
+  return (
+    <>
+      <RouterProvider 
+        router={router} 
+        future={rrFuture as any}
+      />
+      <GlobalStreamingPlayer 
+        currentTrack={currentTrack}
+        playlist={playlist}
+      />
+    </>
+  );
+}
+
 function App() {
   return (
     <AuthProvider>
       <PlayerProvider>
-        <RouterProvider 
-          router={router} 
-          future={rrFuture as any}
-        />
+        <PlayerWrapper />
       </PlayerProvider>
     </AuthProvider>
   );
