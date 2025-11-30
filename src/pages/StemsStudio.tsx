@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AppShell } from '@/components/AppShell';
+import { MainLayout } from '@/components/MainLayout';
 import { StemsEditor } from '@/components/studio/StemsEditor';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,7 +28,7 @@ export default function StemsStudio() {
   };
 
   return (
-    <AppShell>
+    <MainLayout>
       <div className="container max-w-6xl mx-auto py-8 space-y-6">
         <div>
           <h1 className="text-heading-xl mb-2">🎛️ Studio de Stems</h1>
@@ -89,6 +89,6 @@ export default function StemsStudio() {
           </>
         )}
       </div>
-    </AppShell>
+    </MainLayout>
   );
 }
