@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { useTracks } from "@/hooks/useTracks";
 import { useToast } from "@/hooks/use-toast";
+import { usePlayer } from "@/contexts/PlayerContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EnhancedDJCard } from "@/components/EnhancedDJCard";
@@ -12,10 +14,59 @@ import { Search, Plus, SortDesc, Grid3X3, List, Upload, Music, Filter } from "lu
 export default function Vault() {
   const { tracks, loading, toggleLike, refetch, deleteTrack } = useTracks();
   const { toast } = useToast();
+  const { playTrack } = usePlayer();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name" | "bpm">("newest");
+
+  const handlePlayTrack = async (track: any) => {
+    try {
+      // Get public URL for the audio file
+      const { data } = supabase.storage
+        .from('tracks')
+        .getPublicUrl(track.file_path);
+
+      if (!data?.publicUrl) {
+        toast({
+          title: "Erro ao carregar áudio",
+          description: "Não foi possível obter a URL do arquivo.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Parse duration from string format "MM:SS" to seconds
+      const [minutes, seconds] = track.duration.split(':').map(Number);
+      const durationInSeconds = minutes * 60 + seconds;
+
+      // Play track using the global player
+      playTrack({
+        id: track.id,
+        title: track.title,
+        artist: track.artist,
+        audioUrl: data.publicUrl,
+        duration: durationInSeconds
+      }, filteredTracks.map(t => {
+        const [min, sec] = t.duration.split(':').map(Number);
+        const { data: urlData } = supabase.storage.from('tracks').getPublicUrl(t.file_path);
+        return {
+          id: t.id,
+          title: t.title,
+          artist: t.artist,
+          audioUrl: urlData?.publicUrl || '',
+          duration: min * 60 + sec
+        };
+      }));
+    } catch (error) {
+      console.error('Error playing track:', error);
+      toast({
+        title: "Erro ao reproduzir",
+        description: "Não foi possível iniciar a reprodução.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const filteredTracks = tracks.filter(track => {
     const matchesFilter = activeFilter === "all" || track.type === activeFilter;
@@ -184,7 +235,7 @@ export default function Vault() {
                 energy={track.energy_level || undefined}
                 isLiked={track.is_liked}
                 onLike={() => toggleLike(track.id)}
-                onPlay={() => console.log("Playing track:", track.id)}
+                onPlay={() => handlePlayTrack(track)}
                 onComment={() => console.log("Commenting on track:", track.id)}
                 onDelete={async () => {
                   try {
