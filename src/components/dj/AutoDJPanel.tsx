@@ -124,11 +124,13 @@ export function AutoDJPanel() {
   };
 
   const toggleTrackSelection = (trackId: string) => {
-    setSelectedTracks(prev =>
-      prev.includes(trackId)
+    setSelectedTracks(prev => {
+      const newSelection = prev.includes(trackId)
         ? prev.filter(id => id !== trackId)
-        : [...prev, trackId]
-    );
+        : [...prev, trackId];
+      console.log('Selected tracks:', newSelection);
+      return newSelection;
+    });
   };
 
   if (isGenerating) {
@@ -171,16 +173,30 @@ export function AutoDJPanel() {
                     key={track.id}
                     onClick={() => toggleTrackSelection(track.id)}
                     className={`
-                      p-3 rounded-lg cursor-pointer transition-smooth
+                      p-3 rounded-lg cursor-pointer transition-all border-2
                       ${selectedTracks.includes(track.id)
-                        ? 'bg-primary/20 border-primary'
-                        : 'glass glass-border hover:bg-muted/20'
+                        ? 'bg-primary/20 border-primary shadow-lg scale-[1.02]'
+                        : 'glass glass-border hover:bg-muted/20 hover:border-primary/30'
                       }
                     `}
                   >
-                    <div className="font-medium">{track.title}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {track.artist} • {track.bpm || '?'} BPM • {track.key_signature || '?'}
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="font-medium flex items-center gap-2">
+                          {selectedTracks.includes(track.id) && (
+                            <span className="text-primary">✓</span>
+                          )}
+                          {track.title}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {track.artist} • {track.bpm || '?'} BPM • {track.key_signature || '?'}
+                        </div>
+                      </div>
+                      {selectedTracks.includes(track.id) && (
+                        <div className="text-xs bg-primary/30 px-2 py-1 rounded">
+                          #{selectedTracks.indexOf(track.id) + 1}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -190,10 +206,13 @@ export function AutoDJPanel() {
             <Button
               onClick={handleGenerateMix}
               size="lg"
-              className="w-full neon-glow"
+              className="w-full"
               disabled={selectedTracks.length < 2}
             >
-              🚀 Gerar Mix Automático
+              {selectedTracks.length < 2 
+                ? '🔒 Selecione 2+ faixas para começar'
+                : `🚀 Gerar Mix com ${selectedTracks.length} faixas`
+              }
             </Button>
           </div>
         </Card>
