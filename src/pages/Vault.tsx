@@ -22,19 +22,18 @@ export default function Vault() {
 
   const handlePlayTrack = async (track: any) => {
     try {
-      // Get public URL for the audio file
-      const { data } = supabase.storage
-        .from('tracks')
-        .getPublicUrl(track.file_path);
-
-      if (!data?.publicUrl) {
+      const { getAudioUrl } = await import("@/utils/storage");
+      
+      if (!track.file_path) {
         toast({
           title: "Erro ao carregar áudio",
-          description: "Não foi possível obter a URL do arquivo.",
+          description: "Arquivo não encontrado.",
           variant: "destructive"
         });
         return;
       }
+
+      const audioUrl = await getAudioUrl(track.file_path);
 
       // Parse duration from string format "MM:SS" to seconds
       const [minutes, seconds] = track.duration.split(':').map(Number);
@@ -45,19 +44,19 @@ export default function Vault() {
         id: track.id,
         title: track.title,
         artist: track.artist,
-        audioUrl: data.publicUrl,
+        audioUrl,
         duration: durationInSeconds
-      }, filteredTracks.map(t => {
+      }, await Promise.all(filteredTracks.map(async t => {
         const [min, sec] = t.duration.split(':').map(Number);
-        const { data: urlData } = supabase.storage.from('tracks').getPublicUrl(t.file_path);
+        const url = t.file_path ? await getAudioUrl(t.file_path) : '';
         return {
           id: t.id,
           title: t.title,
           artist: t.artist,
-          audioUrl: urlData?.publicUrl || '',
+          audioUrl: url,
           duration: min * 60 + sec
         };
-      }));
+      })));
     } catch (error) {
       console.error('Error playing track:', error);
       toast({

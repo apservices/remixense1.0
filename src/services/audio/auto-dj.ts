@@ -131,7 +131,7 @@ export async function generateAutoMix(
   
   if (!userId) throw new Error('User not authenticated');
 
-  // Fetch tracks with analysis
+  // Fetch tracks with file_path and analysis
   const { data: tracks, error: tracksError } = await supabase
     .from('tracks')
     .select(`
@@ -139,29 +139,42 @@ export async function generateAutoMix(
       title,
       artist,
       duration,
-      file_url,
-      audio_analysis (
-        bpm,
-        key_signature,
-        energy_level
-      )
+      file_path,
+      bpm,
+      key_signature,
+      energy_level
     `)
     .in('id', trackIds);
 
   if (tracksError) throw tracksError;
   if (!tracks || tracks.length === 0) throw new Error('No tracks found');
 
-  // Map to TrackForMix format
-  const mixTracks: TrackForMix[] = tracks.map(t => ({
-    id: t.id,
-    title: t.title,
-    artist: t.artist || 'Unknown',
-    duration: parseInt(t.duration || '0'),
-    fileUrl: t.file_url || undefined,
-    bpm: (t.audio_analysis as any)?.[0]?.bpm,
-    key: (t.audio_analysis as any)?.[0]?.key_signature,
-    energy: (t.audio_analysis as any)?.[0]?.energy_level
-  }));
+  // Import storage helper
+  const { getAudioUrl } = await import('@/utils/storage');
+
+  // Map to TrackForMix format with audio URLs
+  const mixTracks: TrackForMix[] = await Promise.all(
+    tracks.map(async (t) => {
+      const fileUrl = t.file_path ? await getAudioUrl(t.file_path) : undefined;
+      
+      // Parse duration from "MM:SS" format
+      const durationMatch = t.duration?.match(/(\d+):(\d+)/);
+      const durationSeconds = durationMatch 
+        ? parseInt(durationMatch[1]) * 60 + parseInt(durationMatch[2])
+        : 180;
+
+      return {
+        id: t.id,
+        title: t.title,
+        artist: t.artist || 'Unknown',
+        duration: durationSeconds,
+        fileUrl,
+        bpm: t.bpm || undefined,
+        key: t.key_signature || undefined,
+        energy: t.energy_level || undefined
+      };
+    })
+  );
 
   // Sort by BPM for better mixing
   mixTracks.sort((a, b) => (a.bpm || 120) - (b.bpm || 120));

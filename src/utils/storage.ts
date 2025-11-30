@@ -5,3 +5,9 @@ export async function getSignedUrl(bucket: string, path: string, expiresInSecond
   if (error) throw error;
   return data.signedUrl;
 }
+
+export async function getAudioUrl(filePath: string): Promise<string> {
+  // Try public URL first (faster)
+  const { data } = supabase.storage.from('tracks').getPublicUrl(filePath);
+  return data.publicUrl;
+}
