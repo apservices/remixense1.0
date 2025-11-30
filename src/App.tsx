@@ -10,6 +10,7 @@ import NotFound from './pages/NotFound';
 
 // Lazy load pages for code splitting
 const Home = lazy(() => import('./pages/Home'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Studio = lazy(() => import('./pages/Studio'));
 const StemsStudio = lazy(() => import('./pages/StemsStudio'));
 const AutoDJ = lazy(() => import('./pages/AutoDJ'));
@@ -18,12 +19,18 @@ const SocialFeed = lazy(() => import('./pages/SocialFeed'));
 const MarketplaceStore = lazy(() => import('./pages/MarketplaceStore'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Vault = lazy(() => import('./pages/Vault'));
+const Tracks = lazy(() => import('./pages/Tracks'));
 const Trends = lazy(() => import('./pages/Trends'));
 const Pricing = lazy(() => import('./pages/Pricing'));
 const LaunchCalendar = lazy(() => import('./pages/LaunchCalendar'));
 const LandingPageGenerator = lazy(() => import('./pages/LandingPageGenerator'));
 const FeedbackRooms = lazy(() => import('./pages/FeedbackRooms'));
 const RevenueAnalytics = lazy(() => import('./pages/RevenueAnalytics'));
+const Explorer = lazy(() => import('./pages/Explorer'));
+const Sessions = lazy(() => import('./pages/Sessions'));
+const MetadataManager = lazy(() => import('./pages/MetadataManager'));
+const AudioDashboard = lazy(() => import('./pages/AudioDashboard'));
+const Inspiration = lazy(() => import('./pages/Inspiration'));
 
 const LoadingFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
@@ -48,6 +55,14 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingFallback />}>
             <Home />
+          </Suspense>
+        ) 
+      },
+      { 
+        path: '/dashboard', 
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <Dashboard />
           </Suspense>
         ) 
       },
@@ -112,6 +127,54 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingFallback />}>
             <Vault />
+          </Suspense>
+        ) 
+      },
+      { 
+        path: '/tracks', 
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <Tracks />
+          </Suspense>
+        ) 
+      },
+      { 
+        path: '/explorer', 
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <Explorer />
+          </Suspense>
+        ) 
+      },
+      { 
+        path: '/sessions', 
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <Sessions />
+          </Suspense>
+        ) 
+      },
+      { 
+        path: '/metadata', 
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <MetadataManager />
+          </Suspense>
+        ) 
+      },
+      { 
+        path: '/analytics', 
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <AudioDashboard />
+          </Suspense>
+        ) 
+      },
+      { 
+        path: '/inspiration', 
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <Inspiration />
           </Suspense>
         ) 
       },

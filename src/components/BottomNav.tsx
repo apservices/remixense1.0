@@ -1,34 +1,30 @@
-import { Music, TrendingUp, BarChart3, User, Home, History, Zap, Users, Smartphone } from "lucide-react";
+import { Music, Zap, Users, User, Home } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-// Using BottomNav instead of MobileNav for consistency
-
-interface BottomNavProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-}
 
 const navItems = [
-  { id: "home", label: "Início", icon: Home },
-  { id: "vault", label: "Vault", icon: Music },
-  { id: "studio", label: "Studio", icon: Zap },
-  { id: "social", label: "Social", icon: Users },
-  { id: "mobile", label: "Mobile", icon: Smartphone },
-  { id: "profile", label: "Perfil", icon: User },
+  { id: "home", label: "Início", icon: Home, path: "/" },
+  { id: "vault", label: "Vault", icon: Music, path: "/vault" },
+  { id: "studio", label: "Studio", icon: Zap, path: "/studio" },
+  { id: "social", label: "Social", icon: Users, path: "/feed" },
+  { id: "profile", label: "Perfil", icon: User, path: "/profile" },
 ];
 
-export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
+export function BottomNav() {
+  const location = useLocation();
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50">
+    <div className="fixed bottom-0 left-0 right-0 z-40 pb-safe">
       <div className="glass border-t border-glass-border backdrop-blur-glass">
         <div className="flex items-center justify-around py-2 px-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeTab === item.id;
+            const isActive = location.pathname === item.path;
             
             return (
-              <button
+              <Link
                 key={item.id}
-                onClick={() => onTabChange(item.id)}
+                to={item.path}
                 className={cn(
                   "flex flex-col items-center gap-1 p-1.5 rounded-lg transition-smooth min-w-0 flex-1",
                   isActive 
@@ -43,7 +39,7 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
                 <span className="text-[10px] font-medium leading-none truncate">
                   {item.label}
                 </span>
-              </button>
+              </Link>
             );
           })}
         </div>
