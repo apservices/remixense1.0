@@ -879,6 +879,51 @@ export type Database = {
         }
         Relationships: []
       }
+      launch_events: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          launch_date: string
+          metadata: Json | null
+          platform: string | null
+          reminder_days_before: number | null
+          reminder_enabled: boolean | null
+          status: string
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          launch_date: string
+          metadata?: Json | null
+          platform?: string | null
+          reminder_days_before?: number | null
+          reminder_enabled?: boolean | null
+          status?: string
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          launch_date?: string
+          metadata?: Json | null
+          platform?: string | null
+          reminder_days_before?: number | null
+          reminder_enabled?: boolean | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       licenses: {
         Row: {
           buyer_id: string

@@ -18,6 +18,10 @@ const Profile = lazy(() => import('./pages/Profile'));
 const Vault = lazy(() => import('./pages/Vault'));
 const Trends = lazy(() => import('./pages/Trends'));
 const Pricing = lazy(() => import('./pages/Pricing'));
+const LaunchCalendar = lazy(() => import('./pages/LaunchCalendar'));
+const LandingPageGenerator = lazy(() => import('./pages/LandingPageGenerator'));
+const FeedbackRooms = lazy(() => import('./pages/FeedbackRooms'));
+const RevenueAnalytics = lazy(() => import('./pages/RevenueAnalytics'));
 
 const LoadingFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
@@ -114,6 +118,38 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingFallback />}>
             <Pricing />
+          </Suspense>
+        ) 
+      },
+      { 
+        path: '/calendar', 
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <LaunchCalendar />
+          </Suspense>
+        ) 
+      },
+      { 
+        path: '/tools/landing-page', 
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <LandingPageGenerator />
+          </Suspense>
+        ) 
+      },
+      { 
+        path: '/feedback', 
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <FeedbackRooms />
+          </Suspense>
+        ) 
+      },
+      { 
+        path: '/revenue', 
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <RevenueAnalytics />
           </Suspense>
         ) 
       },
