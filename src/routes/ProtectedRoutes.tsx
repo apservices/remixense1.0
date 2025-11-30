@@ -25,10 +25,6 @@ export default function ProtectedRoutes() {
     return <Navigate to="/login" replace />;
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <Outlet />
-    </div>
-  );
+  return <Outlet />;
 }
 

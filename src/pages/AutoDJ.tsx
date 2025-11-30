@@ -1,9 +1,9 @@
-import { AppShell } from '@/components/AppShell';
+import { MainLayout } from '@/components/MainLayout';
 import { AutoDJPanel } from '@/components/dj/AutoDJPanel';
 
 export default function AutoDJ() {
   return (
-    <AppShell>
+    <MainLayout>
       <div className="container max-w-6xl mx-auto py-8 space-y-6">
         <div>
           <h1 className="text-heading-xl mb-2">🤖 Auto DJ</h1>
@@ -14,6 +14,6 @@ export default function AutoDJ() {
 
         <AutoDJPanel />
       </div>
-    </AppShell>
+    </MainLayout>
   );
 }
