@@ -48,6 +48,19 @@ export function GlobalStreamingPlayer({
 
   useEffect(() => {
     const audio = audioRef.current;
+    if (!audio || !currentTrack) return;
+
+    // Load new track and play automatically
+    audio.src = currentTrack.audioUrl;
+    audio.load();
+    
+    if (isPlaying) {
+      audio.play().catch(err => console.error('Play error:', err));
+    }
+  }, [currentTrack]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
     if (!audio) return;
 
     const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
@@ -83,10 +96,11 @@ export function GlobalStreamingPlayer({
 
     if (isPlaying) {
       audioRef.current.pause();
+      setIsPlaying(false);
     } else {
-      audioRef.current.play();
+      audioRef.current.play().catch(err => console.error('Play error:', err));
+      setIsPlaying(true);
     }
-    setIsPlaying(!isPlaying);
   };
 
   const handleSeek = (value: number[]) => {
@@ -122,7 +136,7 @@ export function GlobalStreamingPlayer({
 
   return (
     <>
-      <audio ref={audioRef} src={currentTrack.audioUrl} preload="metadata" />
+      <audio ref={audioRef} preload="metadata" />
       
       <Card
         className={`
