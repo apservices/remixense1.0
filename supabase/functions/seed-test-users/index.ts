@@ -64,15 +64,19 @@ serve(async (req) => {
               // Seed test subscription (simulated) - ignore errors
               const now = new Date();
               const end = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-              await supabase.from('subscriptions').upsert({
-                user_id: found.id,
-                status: 'active',
-                current_period_start: now.toISOString(),
-                current_period_end: end.toISOString(),
-                stripe_customer_id: `sim_${found.id}`,
-                stripe_subscription_id: `sim_sub_${found.id}`,
-                plan_id: mappedPlan
-              }).catch(() => {});
+              try {
+                await supabase.from('subscriptions').upsert({
+                  user_id: found.id,
+                  status: 'active',
+                  current_period_start: now.toISOString(),
+                  current_period_end: end.toISOString(),
+                  stripe_customer_id: `sim_${found.id}`,
+                  stripe_subscription_id: `sim_sub_${found.id}`,
+                  plan_id: mappedPlan
+                });
+              } catch {
+                // Ignore subscription errors
+              }
             }
             results.push({ email: u.email, status: 'exists' });
           }
@@ -87,15 +91,19 @@ serve(async (req) => {
           // Seed test subscription (simulated) - ignore errors
           const now = new Date();
           const end = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-          await supabase.from('subscriptions').upsert({
-            user_id: userId,
-            status: 'active',
-            current_period_start: now.toISOString(),
-            current_period_end: end.toISOString(),
-            stripe_customer_id: `sim_${userId}`,
-            stripe_subscription_id: `sim_sub_${userId}`,
-            plan_id: mappedPlan
-          }).catch(() => {});
+          try {
+            await supabase.from('subscriptions').upsert({
+              user_id: userId,
+              status: 'active',
+              current_period_start: now.toISOString(),
+              current_period_end: end.toISOString(),
+              stripe_customer_id: `sim_${userId}`,
+              stripe_subscription_id: `sim_sub_${userId}`,
+              plan_id: mappedPlan
+            });
+          } catch {
+            // Ignore subscription errors
+          }
         }
         results.push({ email: u.email, status: 'created', id: userId });
       }

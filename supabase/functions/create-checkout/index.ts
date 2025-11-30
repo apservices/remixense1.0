@@ -78,7 +78,7 @@ serve(async (req) => {
     };
 
     const localeKey = locale.startsWith('pt') ? 'pt' : locale.startsWith('es') ? 'es' : 'en';
-    const priceConfig = priceConfigs[plan][localeKey];
+    const priceConfig = priceConfigs[plan as keyof typeof priceConfigs][localeKey as keyof typeof priceConfigs.pro];
     logStep("Price configuration", { plan, locale: localeKey, priceConfig });
 
     // Create checkout session

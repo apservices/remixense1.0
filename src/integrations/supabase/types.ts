@@ -2022,22 +2022,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      can_create_mix: {
-        Args: { p_user: string }
-        Returns: boolean
-      }
-      can_create_playlist: {
-        Args: { p_user: string }
-        Returns: boolean
-      }
-      can_create_track: {
-        Args: { p_user: string }
-        Returns: boolean
-      }
-      can_user_upload_track: {
-        Args: { user_uuid?: string }
-        Returns: boolean
-      }
+      can_create_mix: { Args: { p_user: string }; Returns: boolean }
+      can_create_playlist: { Args: { p_user: string }; Returns: boolean }
+      can_create_track: { Args: { p_user: string }; Returns: boolean }
+      can_user_upload_track: { Args: { user_uuid?: string }; Returns: boolean }
       check_rate_limit: {
         Args: {
           p_endpoint: string
@@ -2047,18 +2035,9 @@ export type Database = {
         }
         Returns: boolean
       }
-      cleanup_expired_cache: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      cleanup_expired_tokens: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      get_comment_color: {
-        Args: { comment_type: string }
-        Returns: string
-      }
+      cleanup_expired_cache: { Args: never; Returns: undefined }
+      cleanup_expired_tokens: { Args: never; Returns: undefined }
+      get_comment_color: { Args: { comment_type: string }; Returns: string }
       get_user_subscription_info: {
         Args: { user_uuid?: string }
         Returns: {
@@ -2073,14 +2052,8 @@ export type Database = {
           status: string
         }[]
       }
-      is_admin: {
-        Args: { user_id?: string }
-        Returns: boolean
-      }
-      is_admin_by_email: {
-        Args: { email: string }
-        Returns: boolean
-      }
+      is_admin: { Args: { user_id?: string }; Returns: boolean }
+      is_admin_by_email: { Args: { email: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
