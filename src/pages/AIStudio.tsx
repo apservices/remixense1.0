@@ -316,13 +316,17 @@ export default function AIStudio() {
                   </div>
                 )}
 
+                <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 text-sm text-warning mb-4">
+                  ⚠️ Recurso simulado - Masterização real requer integração com serviços de áudio profissionais
+                </div>
+
                 <Button 
                   onClick={handleAutoMaster}
                   disabled={processing || !canExport()}
                   className="w-full"
                   variant="neon"
                 >
-                  {processing ? "Masterizando..." : "Iniciar Auto-Mastering"}
+                  {processing ? "Simulando..." : "🚧 Testar Simulação"}
                 </Button>
               </CardContent>
             </Card>
@@ -428,6 +432,10 @@ export default function AIStudio() {
                   </div>
                 </div>
 
+                <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 text-sm text-warning mb-4">
+                  ⚠️ Recurso simulado - Geração real requer modelo de IA musical treinado
+                </div>
+
                 <Button 
                   onClick={handleGenerateMelody}
                   disabled={processing}
@@ -435,7 +443,7 @@ export default function AIStudio() {
                   variant="neon"
                 >
                   <Zap className="h-4 w-4 mr-2" />
-                  {processing ? "Gerando..." : "Gerar Melodia"}
+                  {processing ? "Simulando..." : "🚧 Testar Simulação"}
                 </Button>
               </CardContent>
             </Card>
