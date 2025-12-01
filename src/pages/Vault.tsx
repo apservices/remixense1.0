@@ -3,22 +3,70 @@ import { useState } from "react";
 import { useTracks } from "@/hooks/useTracks";
 import { useToast } from "@/hooks/use-toast";
 import { usePlayer } from "@/contexts/PlayerContext";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EnhancedDJCard } from "@/components/EnhancedDJCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EnhancedAudioUploadDialog } from "@/components/EnhancedAudioUploadDialog";
-import { Search, Plus, SortDesc, Grid3X3, List, Upload, Music, Filter } from "lucide-react";
+import { reanalyzeAllTracks } from "@/utils/reanalysis";
+import { Search, Plus, SortDesc, Grid3X3, List, Upload, Music, Filter, RefreshCw } from "lucide-react";
 
 export default function Vault() {
   const { tracks, loading, toggleLike, refetch, deleteTrack } = useTracks();
   const { toast } = useToast();
+  const { user } = useAuth();
   const { playTrack } = usePlayer();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name" | "bpm">("newest");
+  const [isReanalyzing, setIsReanalyzing] = useState(false);
+
+  const handleReanalyzeAll = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Erro",
+        description: "Usuário não autenticado.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsReanalyzing(true);
+    
+    toast({
+      title: "Re-análise iniciada",
+      description: "Analisando todas as faixas. Isso pode levar alguns minutos..."
+    });
+
+    try {
+      const result = await reanalyzeAllTracks(user.id);
+      
+      if (result.success) {
+        toast({
+          title: "Re-análise concluída!",
+          description: `${result.processed} faixas analisadas com sucesso.`
+        });
+        refetch();
+      } else {
+        toast({
+          title: "Re-análise parcialmente concluída",
+          description: `${result.processed} faixas OK, ${result.failed} falharam.`,
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro na re-análise",
+        description: "Não foi possível re-analisar as faixas.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsReanalyzing(false);
+    }
+  };
 
   const handlePlayTrack = async (track: any) => {
     try {
@@ -119,12 +167,23 @@ export default function Vault() {
             <h1 className="text-heading-xl text-foreground">
               Meu Vault 🎵
             </h1>
-            <EnhancedAudioUploadDialog onSuccess={refetch}>
-              <Button variant="neon" size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Upload
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleReanalyzeAll}
+                disabled={isReanalyzing || tracks.length === 0}
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${isReanalyzing ? 'animate-spin' : ''}`} />
+                Re-analisar
               </Button>
-            </EnhancedAudioUploadDialog>
+              <EnhancedAudioUploadDialog onSuccess={refetch}>
+                <Button variant="neon" size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Upload
+                </Button>
+              </EnhancedAudioUploadDialog>
+            </div>
           </div>
 
           {/* Search & Controls */}
