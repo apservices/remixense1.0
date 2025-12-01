@@ -15,6 +15,7 @@ interface PlayerContextType {
   setCurrentTrack: (track: Track) => void;
   setPlaylist: (tracks: Track[]) => void;
   playTrack: (track: Track, playlist?: Track[]) => void;
+  onTrackChange: (track: Track) => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -30,6 +31,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const onTrackChange = (track: Track) => {
+    setCurrentTrack(track);
+  };
+
   return (
     <PlayerContext.Provider
       value={{
@@ -37,7 +42,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         playlist,
         setCurrentTrack,
         setPlaylist,
-        playTrack
+        playTrack,
+        onTrackChange
       }}
     >
       {children}

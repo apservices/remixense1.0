@@ -232,7 +232,7 @@ const router = createBrowserRouter([
 ], { future: rrFuture as any });
 
 function PlayerWrapper() {
-  const { currentTrack, playlist } = usePlayer();
+  const { currentTrack, playlist, onTrackChange } = usePlayer();
   
   return (
     <>
@@ -243,6 +243,7 @@ function PlayerWrapper() {
       <GlobalStreamingPlayer 
         currentTrack={currentTrack}
         playlist={playlist}
+        onTrackChange={onTrackChange}
       />
     </>
   );
