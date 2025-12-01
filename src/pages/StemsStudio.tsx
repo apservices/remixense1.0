@@ -44,10 +44,14 @@ export default function StemsStudio() {
                 <Upload className="h-10 w-10 text-primary" />
               </div>
               <div>
-                <h3 className="text-heading-lg mb-2">Envie sua música</h3>
-                <p className="text-muted-foreground mb-4">
-                  Suporte para MP3, WAV, AAC • Máximo 50MB
+                <h3 className="text-heading-lg mb-2">🚧 Recurso em Desenvolvimento</h3>
+                <p className="text-muted-foreground mb-4 max-w-md">
+                  A separação de stems por IA está em desenvolvimento. 
+                  Esta funcionalidade utilizará modelos como Demucs ou Spleeter para separação real.
                 </p>
+                <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 text-sm text-warning">
+                  ⚠️ Atualmente apenas simula o processo
+                </div>
               </div>
               <label>
                 <input
@@ -55,9 +59,10 @@ export default function StemsStudio() {
                   accept="audio/*"
                   onChange={handleFileSelect}
                   className="hidden"
+                  disabled
                 />
-                <Button size="lg" className="neon-glow" asChild>
-                  <span>📁 Selecionar Arquivo</span>
+                <Button size="lg" className="neon-glow" disabled>
+                  📁 Em Breve
                 </Button>
               </label>
             </div>

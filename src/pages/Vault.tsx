@@ -247,6 +247,20 @@ export default function Vault() {
               ))}
             </TabsList>
           </Tabs>
+
+          {/* Info sobre análise necessária para Auto-DJ */}
+          {tracks.length > 0 && tracks.some(t => !t.bpm || !t.key_signature) && (
+            <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 text-sm text-warning mt-4 flex items-start gap-2">
+              <span>⚠️</span>
+              <div>
+                <div className="font-medium">Análise necessária para Auto-DJ</div>
+                <div className="text-xs">
+                  {tracks.filter(t => !t.bpm || !t.key_signature).length} faixas sem BPM/Key detectado. 
+                  Clique em "Re-analisar" para detectar automaticamente.
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

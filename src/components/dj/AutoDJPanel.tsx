@@ -150,24 +150,42 @@ export function AutoDJPanel() {
       return;
     }
 
+    // Verificar se as tracks têm BPM e Key analisados
+    const selectedTracksData = tracks.filter(t => selectedTracks.includes(t.id));
+    const missingAnalysis = selectedTracksData.filter(t => !t.bpm || !t.key_signature);
+    
+    if (missingAnalysis.length > 0) {
+      toast({
+        title: '⚠️ Análise necessária',
+        description: `${missingAnalysis.length} faixa(s) sem BPM/Key detectado. Clique em "Re-analisar" no Vault primeiro.`,
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setIsGenerating(true);
     try {
+      console.log('🎧 Gerando Auto-DJ com tracks:', selectedTracks);
+      
       const result = await generateAutoMix(
         selectedTracks,
         setName || 'Auto DJ Set'
       );
       
+      console.log('✅ Auto-DJ resultado:', result);
+      
       setGeneratedSet(result);
+      setCurrentTrackIndex(0);
       
       toast({
         title: '🎧 Set criado com sucesso!',
         description: `${result.tracks.length} faixas mixadas • ${Math.round(result.totalDuration / 60)}min • ${result.compatibilityScore}% compatibilidade`
       });
     } catch (error) {
-      console.error('Erro ao gerar mix:', error);
+      console.error('❌ Erro ao gerar mix:', error);
       toast({
         title: 'Erro ao gerar set',
-        description: 'Não foi possível criar o mix automático',
+        description: error instanceof Error ? error.message : 'Não foi possível criar o mix automático',
         variant: 'destructive'
       });
     } finally {
@@ -255,15 +273,23 @@ export function AutoDJPanel() {
               </div>
             </div>
 
+            {tracks.length === 0 && (
+              <div className="bg-info/10 border border-info/30 rounded-lg p-3 text-sm text-info mb-4">
+                ℹ️ Faça upload de faixas no Vault primeiro
+              </div>
+            )}
+
             <Button
               onClick={handleGenerateMix}
               size="lg"
               className="w-full"
-              disabled={selectedTracks.length < 2}
+              disabled={selectedTracks.length < 2 || tracks.length === 0}
             >
-              {selectedTracks.length < 2 
-                ? '🔒 Selecione 2+ faixas para começar'
-                : `🚀 Gerar Mix com ${selectedTracks.length} faixas`
+              {tracks.length === 0
+                ? '🔒 Nenhuma faixa disponível'
+                : selectedTracks.length < 2 
+                  ? '🔒 Selecione 2+ faixas para começar'
+                  : `🚀 Gerar Mix com ${selectedTracks.length} faixas`
               }
             </Button>
           </div>

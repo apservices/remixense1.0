@@ -50,14 +50,25 @@ export function GlobalStreamingPlayer({
     const audio = audioRef.current;
     if (!audio || !currentTrack) return;
 
+    console.log('🎵 Loading track:', currentTrack.title, currentTrack.audioUrl);
+
+    // Validate audio URL
+    if (!currentTrack.audioUrl || currentTrack.audioUrl === 'undefined') {
+      console.error('❌ Invalid audio URL for track:', currentTrack.title);
+      return;
+    }
+
     // Load new track and play automatically
     audio.src = currentTrack.audioUrl;
     audio.load();
     
     if (isPlaying) {
-      audio.play().catch(err => console.error('Play error:', err));
+      audio.play().catch(err => {
+        console.error('❌ Play error:', err);
+        setIsPlaying(false);
+      });
     }
-  }, [currentTrack]);
+  }, [currentTrack, isPlaying]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -94,12 +105,24 @@ export function GlobalStreamingPlayer({
   const togglePlay = () => {
     if (!audioRef.current) return;
 
+    // Validate audio source
+    if (!audioRef.current.src || audioRef.current.src === 'undefined') {
+      console.error('❌ No valid audio source loaded');
+      return;
+    }
+
     if (isPlaying) {
       audioRef.current.pause();
       setIsPlaying(false);
+      console.log('⏸️ Paused');
     } else {
-      audioRef.current.play().catch(err => console.error('Play error:', err));
-      setIsPlaying(true);
+      console.log('▶️ Playing:', audioRef.current.src);
+      audioRef.current.play()
+        .then(() => setIsPlaying(true))
+        .catch(err => {
+          console.error('❌ Play error:', err);
+          setIsPlaying(false);
+        });
     }
   };
 
