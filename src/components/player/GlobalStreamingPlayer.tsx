@@ -45,38 +45,60 @@ export function GlobalStreamingPlayer({
   const [isRepeat, setIsRepeat] = useState(false);
   const [isShuffle, setIsShuffle] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Load and auto-play when track changes
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !currentTrack) return;
 
-    console.log('🎵 Loading track:', currentTrack.title, currentTrack.audioUrl);
-
     // Validate audio URL
-    if (!currentTrack.audioUrl || currentTrack.audioUrl === 'undefined') {
+    if (!currentTrack.audioUrl || currentTrack.audioUrl === 'undefined' || currentTrack.audioUrl === '') {
       console.error('❌ Invalid audio URL for track:', currentTrack.title);
       return;
     }
 
-    // Load new track and play automatically
+    console.log('🎵 Loading track:', currentTrack.title);
+    console.log('🔗 Audio URL:', currentTrack.audioUrl);
+
+    setIsLoading(true);
+    
+    // Stop current playback
+    audio.pause();
+    audio.currentTime = 0;
+    
+    // Load new track
     audio.src = currentTrack.audioUrl;
     audio.load();
-    
-    if (isPlaying) {
-      audio.play().catch(err => {
-        console.error('❌ Play error:', err);
-        setIsPlaying(false);
-      });
-    }
-  }, [currentTrack, isPlaying]);
+  }, [currentTrack?.id, currentTrack?.audioUrl]);
 
+  // Handle audio events
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
+    const handleCanPlay = () => {
+      console.log('✅ Audio can play');
+      setIsLoading(false);
+      setDuration(audio.duration || 0);
+      
+      // Auto-play when track is loaded
+      audio.play()
+        .then(() => {
+          console.log('▶️ Auto-play started');
+          setIsPlaying(true);
+        })
+        .catch(err => {
+          console.warn('⚠️ Auto-play blocked:', err.message);
+          setIsPlaying(false);
+        });
+    };
+
     const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
-    const handleDurationChange = () => setDuration(audio.duration);
+    const handleDurationChange = () => setDuration(audio.duration || 0);
+    
     const handleEnded = () => {
+      console.log('🔚 Track ended');
       if (isRepeat) {
         audio.currentTime = 0;
         audio.play();
@@ -85,14 +107,31 @@ export function GlobalStreamingPlayer({
       }
     };
 
+    const handleError = (e: Event) => {
+      console.error('❌ Audio error:', e);
+      setIsPlaying(false);
+      setIsLoading(false);
+    };
+
+    const handleLoadStart = () => {
+      console.log('📥 Loading audio...');
+      setIsLoading(true);
+    };
+
+    audio.addEventListener('canplay', handleCanPlay);
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('durationchange', handleDurationChange);
     audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('loadstart', handleLoadStart);
 
     return () => {
+      audio.removeEventListener('canplay', handleCanPlay);
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('durationchange', handleDurationChange);
       audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('loadstart', handleLoadStart);
     };
   }, [isRepeat]);
 
@@ -103,22 +142,25 @@ export function GlobalStreamingPlayer({
   }, [volume, isMuted]);
 
   const togglePlay = () => {
-    if (!audioRef.current) return;
+    const audio = audioRef.current;
+    if (!audio) return;
 
-    // Validate audio source
-    if (!audioRef.current.src || audioRef.current.src === 'undefined') {
-      console.error('❌ No valid audio source loaded');
+    if (!audio.src || audio.src === window.location.href) {
+      console.error('❌ No audio source loaded');
       return;
     }
 
     if (isPlaying) {
-      audioRef.current.pause();
+      audio.pause();
       setIsPlaying(false);
       console.log('⏸️ Paused');
     } else {
-      console.log('▶️ Playing:', audioRef.current.src);
-      audioRef.current.play()
-        .then(() => setIsPlaying(true))
+      console.log('▶️ Playing...');
+      audio.play()
+        .then(() => {
+          setIsPlaying(true);
+          console.log('▶️ Playback started');
+        })
         .catch(err => {
           console.error('❌ Play error:', err);
           setIsPlaying(false);
@@ -137,19 +179,38 @@ export function GlobalStreamingPlayer({
     if (!playlist.length || !currentTrack) return;
     
     const currentIndex = playlist.findIndex(t => t.id === currentTrack.id);
-    const nextIndex = (currentIndex + 1) % playlist.length;
+    let nextIndex: number;
+    
+    if (isShuffle) {
+      nextIndex = Math.floor(Math.random() * playlist.length);
+    } else {
+      nextIndex = (currentIndex + 1) % playlist.length;
+    }
+    
+    console.log('⏭️ Next track:', playlist[nextIndex]?.title);
     onTrackChange?.(playlist[nextIndex]);
   };
 
   const handlePrevious = () => {
     if (!playlist.length || !currentTrack) return;
     
+    // If we're more than 3 seconds into the track, restart it
+    if (currentTime > 3) {
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+      }
+      return;
+    }
+    
     const currentIndex = playlist.findIndex(t => t.id === currentTrack.id);
     const prevIndex = currentIndex === 0 ? playlist.length - 1 : currentIndex - 1;
+    
+    console.log('⏮️ Previous track:', playlist[prevIndex]?.title);
     onTrackChange?.(playlist[prevIndex]);
   };
 
   const formatTime = (seconds: number) => {
+    if (!isFinite(seconds) || isNaN(seconds)) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -159,7 +220,7 @@ export function GlobalStreamingPlayer({
 
   return (
     <>
-      <audio ref={audioRef} preload="metadata" />
+      <audio ref={audioRef} preload="auto" crossOrigin="anonymous" />
       
       <Card
         className={`
@@ -227,8 +288,11 @@ export function GlobalStreamingPlayer({
                   size="icon"
                   className="h-14 w-14 rounded-full neon-glow"
                   onClick={togglePlay}
+                  disabled={isLoading}
                 >
-                  {isPlaying ? (
+                  {isLoading ? (
+                    <div className="h-7 w-7 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  ) : isPlaying ? (
                     <Pause className="h-7 w-7" />
                   ) : (
                     <Play className="h-7 w-7 ml-1" />
@@ -328,8 +392,10 @@ export function GlobalStreamingPlayer({
                 <SkipBack className="h-5 w-5" />
               </Button>
               
-              <Button size="icon" onClick={togglePlay} className="neon-glow">
-                {isPlaying ? (
+              <Button size="icon" onClick={togglePlay} className="neon-glow" disabled={isLoading}>
+                {isLoading ? (
+                  <div className="h-5 w-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : isPlaying ? (
                   <Pause className="h-5 w-5" />
                 ) : (
                   <Play className="h-5 w-5 ml-0.5" />

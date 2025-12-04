@@ -3,11 +3,10 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
-import { Loader2, Play, Pause, SkipForward, Save } from 'lucide-react';
+import { Loader2, Play, Pause, SkipForward, Save, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateAutoMix, type AutoDJResult } from '@/services/audio/auto-dj';
 import { useTracks } from '@/hooks/useTracks';
-import { supabase } from '@/integrations/supabase/client';
 
 export function AutoDJPanel() {
   const { toast } = useToast();
@@ -19,42 +18,32 @@ export function AutoDJPanel() {
   const [crossfader, setCrossfader] = useState([50]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const audioARef = useRef<HTMLAudioElement>(null);
   const audioBRef = useRef<HTMLAudioElement>(null);
 
   // Load audio when tracks change
   useEffect(() => {
-    if (!generatedSet) return;
+    if (!generatedSet || !generatedSet.tracks.length) return;
     
     const loadTrack = async (index: number, audioRef: React.RefObject<HTMLAudioElement>) => {
       const track = generatedSet.tracks[index];
-      if (!track || !audioRef.current) {
-        console.log('Cannot load track - missing track or audio element:', { track: !!track, ref: !!audioRef.current });
-        return;
-      }
+      if (!track || !audioRef.current) return;
 
       try {
-        console.log('Loading track:', track.title, track.fileUrl);
-        
         if (track.fileUrl) {
+          console.log('Loading track:', track.title, track.fileUrl);
+          setIsLoadingAudio(true);
           audioRef.current.src = track.fileUrl;
           await audioRef.current.load();
+          setIsLoadingAudio(false);
           console.log('Track loaded successfully');
         } else {
           console.error('No fileUrl for track:', track.title);
-          toast({
-            title: 'Erro ao carregar áudio',
-            description: `Faixa ${track.title} não tem URL válida`,
-            variant: 'destructive'
-          });
         }
       } catch (error) {
         console.error('Error loading track:', error);
-        toast({
-          title: 'Erro ao carregar áudio',
-          description: 'Não foi possível carregar a faixa',
-          variant: 'destructive'
-        });
+        setIsLoadingAudio(false);
       }
     };
 
@@ -62,7 +51,7 @@ export function AutoDJPanel() {
     if (currentTrackIndex + 1 < generatedSet.tracks.length) {
       loadTrack(currentTrackIndex + 1, audioBRef);
     }
-  }, [generatedSet, currentTrackIndex, toast]);
+  }, [generatedSet, currentTrackIndex]);
 
   // Handle crossfader mixing
   useEffect(() => {
@@ -75,7 +64,6 @@ export function AutoDJPanel() {
 
   const togglePlayback = async () => {
     if (!audioARef.current) {
-      console.error('Audio element not available');
       toast({
         title: 'Erro',
         description: 'Player de áudio não está pronto',
@@ -91,9 +79,7 @@ export function AutoDJPanel() {
         setIsPlaying(false);
         console.log('Playback paused');
       } else {
-        console.log('Starting playback, src:', audioARef.current.src);
-        
-        if (!audioARef.current.src) {
+        if (!audioARef.current.src || audioARef.current.src === window.location.href) {
           toast({
             title: 'Nenhuma faixa carregada',
             description: 'Aguarde o carregamento da faixa',
@@ -102,20 +88,20 @@ export function AutoDJPanel() {
           return;
         }
 
+        console.log('Starting playback, src:', audioARef.current.src);
         await audioARef.current.play();
         setIsPlaying(true);
         console.log('Playback started');
         
-        if (crossfader[0] > 50 && audioBRef.current && audioBRef.current.src) {
+        if (crossfader[0] > 50 && audioBRef.current?.src) {
           await audioBRef.current.play();
-          console.log('Deck B started');
         }
       }
     } catch (error) {
       console.error('Playback error:', error);
       toast({
         title: 'Erro na reprodução',
-        description: error instanceof Error ? error.message : 'Não foi possível reproduzir a faixa',
+        description: error instanceof Error ? error.message : 'Não foi possível reproduzir',
         variant: 'destructive'
       });
       setIsPlaying(false);
@@ -126,15 +112,6 @@ export function AutoDJPanel() {
     if (!generatedSet || currentTrackIndex >= generatedSet.tracks.length - 1) return;
     
     setCurrentTrackIndex(prev => prev + 1);
-    setIsPlaying(false);
-    audioARef.current?.pause();
-    audioBRef.current?.pause();
-  };
-
-  const skipToPrevious = () => {
-    if (currentTrackIndex <= 0) return;
-    
-    setCurrentTrackIndex(prev => prev - 1);
     setIsPlaying(false);
     audioARef.current?.pause();
     audioBRef.current?.pause();
@@ -157,7 +134,7 @@ export function AutoDJPanel() {
     if (missingAnalysis.length > 0) {
       toast({
         title: '⚠️ Análise necessária',
-        description: `${missingAnalysis.length} faixa(s) sem BPM/Key detectado. Clique em "Re-analisar" no Vault primeiro.`,
+        description: `${missingAnalysis.length} faixa(s) sem BPM/Key. Clique em "Re-analisar" no Vault primeiro.`,
         variant: 'destructive'
       });
       return;
@@ -179,13 +156,13 @@ export function AutoDJPanel() {
       
       toast({
         title: '🎧 Set criado com sucesso!',
-        description: `${result.tracks.length} faixas mixadas • ${Math.round(result.totalDuration / 60)}min • ${result.compatibilityScore}% compatibilidade`
+        description: `${result.tracks.length} faixas • ${Math.round(result.totalDuration / 60)}min • ${result.compatibilityScore}% compatível`
       });
     } catch (error) {
       console.error('❌ Erro ao gerar mix:', error);
       toast({
         title: 'Erro ao gerar set',
-        description: error instanceof Error ? error.message : 'Não foi possível criar o mix automático',
+        description: error instanceof Error ? error.message : 'Não foi possível criar o mix',
         variant: 'destructive'
       });
     } finally {
@@ -198,10 +175,13 @@ export function AutoDJPanel() {
       const newSelection = prev.includes(trackId)
         ? prev.filter(id => id !== trackId)
         : [...prev, trackId];
-      console.log('Selected tracks:', newSelection);
       return newSelection;
     });
   };
+
+  // Tracks with analysis
+  const analyzedTracks = tracks.filter(t => t.bpm && t.key_signature);
+  const unanalyzedCount = tracks.filter(t => !t.bpm || !t.key_signature).length;
 
   if (isGenerating) {
     return (
@@ -226,6 +206,18 @@ export function AutoDJPanel() {
           <div className="space-y-4">
             <h3 className="text-heading-lg">🎛️ Auto DJ - Mix Rápido</h3>
             
+            {/* Warning about unanalyzed tracks */}
+            {unanalyzedCount > 0 && (
+              <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 text-sm flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-warning mt-0.5 flex-shrink-0" />
+                <div>
+                  <span className="text-warning font-medium">{unanalyzedCount} faixas</span>
+                  <span className="text-muted-foreground"> sem análise de BPM/Key. </span>
+                  <span className="text-warning">Vá ao Vault e clique em "Re-analisar".</span>
+                </div>
+              </div>
+            )}
+            
             <Input
               placeholder="Nome do set..."
               value={setName}
@@ -235,61 +227,74 @@ export function AutoDJPanel() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                Selecione as faixas ({selectedTracks.length} selecionadas)
+                Selecione as faixas ({selectedTracks.length} de {analyzedTracks.length} analisadas)
               </label>
-              <div className="max-h-64 overflow-y-auto space-y-2 glass glass-border rounded-lg p-4">
-                {tracks.map((track) => (
-                  <div
-                    key={track.id}
-                    onClick={() => toggleTrackSelection(track.id)}
-                    className={`
-                      p-3 rounded-lg cursor-pointer transition-all border-2
-                      ${selectedTracks.includes(track.id)
-                        ? 'bg-primary/20 border-primary shadow-lg scale-[1.02]'
-                        : 'glass glass-border hover:bg-muted/20 hover:border-primary/30'
-                      }
-                    `}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="font-medium flex items-center gap-2">
+              
+              {tracks.length === 0 ? (
+                <div className="bg-muted/20 rounded-lg p-6 text-center">
+                  <p className="text-muted-foreground">
+                    📁 Nenhuma faixa encontrada. Faça upload no Vault primeiro.
+                  </p>
+                </div>
+              ) : (
+                <div className="max-h-64 overflow-y-auto space-y-2 glass glass-border rounded-lg p-4">
+                  {tracks.map((track) => {
+                    const hasAnalysis = track.bpm && track.key_signature;
+                    return (
+                      <div
+                        key={track.id}
+                        onClick={() => hasAnalysis && toggleTrackSelection(track.id)}
+                        className={`
+                          p-3 rounded-lg transition-all border-2
+                          ${!hasAnalysis 
+                            ? 'opacity-50 cursor-not-allowed bg-muted/10 border-transparent'
+                            : selectedTracks.includes(track.id)
+                              ? 'bg-primary/20 border-primary shadow-lg scale-[1.02] cursor-pointer'
+                              : 'glass glass-border hover:bg-muted/20 hover:border-primary/30 cursor-pointer'
+                          }
+                        `}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="font-medium flex items-center gap-2">
+                              {selectedTracks.includes(track.id) && (
+                                <span className="text-primary">✓</span>
+                              )}
+                              {!hasAnalysis && (
+                                <span className="text-warning">⚠️</span>
+                              )}
+                              {track.title}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {track.artist} • {track.bpm || '?'} BPM • {track.key_signature || '?'}
+                            </div>
+                          </div>
                           {selectedTracks.includes(track.id) && (
-                            <span className="text-primary">✓</span>
+                            <div className="text-xs bg-primary/30 px-2 py-1 rounded">
+                              #{selectedTracks.indexOf(track.id) + 1}
+                            </div>
                           )}
-                          {track.title}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {track.artist} • {track.bpm || '?'} BPM • {track.key_signature || '?'}
                         </div>
                       </div>
-                      {selectedTracks.includes(track.id) && (
-                        <div className="text-xs bg-primary/30 px-2 py-1 rounded">
-                          #{selectedTracks.indexOf(track.id) + 1}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-
-            {tracks.length === 0 && (
-              <div className="bg-info/10 border border-info/30 rounded-lg p-3 text-sm text-info mb-4">
-                ℹ️ Faça upload de faixas no Vault primeiro
-              </div>
-            )}
 
             <Button
               onClick={handleGenerateMix}
               size="lg"
               className="w-full"
-              disabled={selectedTracks.length < 2 || tracks.length === 0}
+              disabled={selectedTracks.length < 2}
             >
               {tracks.length === 0
-                ? '🔒 Nenhuma faixa disponível'
-                : selectedTracks.length < 2 
-                  ? '🔒 Selecione 2+ faixas para começar'
-                  : `🚀 Gerar Mix com ${selectedTracks.length} faixas`
+                ? '📁 Faça upload de faixas primeiro'
+                : analyzedTracks.length < 2
+                  ? '⚠️ Analise pelo menos 2 faixas'
+                  : selectedTracks.length < 2 
+                    ? `🔒 Selecione 2+ faixas (${selectedTracks.length}/2)`
+                    : `🚀 Gerar Mix com ${selectedTracks.length} faixas`
               }
             </Button>
           </div>
@@ -299,6 +304,9 @@ export function AutoDJPanel() {
   }
 
   // Generated set view
+  const currentTrack = generatedSet.tracks[currentTrackIndex];
+  const nextTrack = generatedSet.tracks[currentTrackIndex + 1];
+
   return (
     <div className="space-y-6">
       {/* Player controls */}
@@ -312,9 +320,15 @@ export function AutoDJPanel() {
                 {generatedSet.averageBPM} BPM médio • {generatedSet.compatibilityScore}% compatível
               </p>
             </div>
-            <Button variant="outline" size="sm">
-              <Save className="h-4 w-4 mr-2" />
-              Salvar Set
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                setGeneratedSet(null);
+                setSelectedTracks([]);
+              }}
+            >
+              Novo Set
             </Button>
           </div>
 
@@ -323,40 +337,36 @@ export function AutoDJPanel() {
             <div className="glass glass-border rounded-lg p-4">
               <div className="text-center mb-4">
                 <div className="text-sm text-muted-foreground">DECK A</div>
-                <div className="font-bold">
-                  {generatedSet.tracks[0]?.title}
-                </div>
+                <div className="font-bold truncate">{currentTrack?.title || '-'}</div>
                 <div className="text-xs text-muted-foreground">
-                  {generatedSet.tracks[0]?.bpm} BPM • {generatedSet.tracks[0]?.key}
+                  {currentTrack?.bpm || '-'} BPM • {currentTrack?.key || '-'}
                 </div>
               </div>
-              <div className="h-16 rounded bg-muted/20 mb-2" />
+              <div className="h-16 rounded bg-muted/20 flex items-center justify-center text-xs text-muted-foreground">
+                {isLoadingAudio ? 'Carregando...' : (isPlaying && crossfader[0] < 50 ? '▶️ Playing' : '⏸️')}
+              </div>
             </div>
 
             <div className="glass glass-border rounded-lg p-4">
               <div className="text-center mb-4">
                 <div className="text-sm text-muted-foreground">DECK B</div>
-                <div className="font-bold">
-                  {generatedSet.tracks[1]?.title || 'Próxima faixa'}
-                </div>
+                <div className="font-bold truncate">{nextTrack?.title || 'Próxima faixa'}</div>
                 <div className="text-xs text-muted-foreground">
-                  {generatedSet.tracks[1]?.bpm} BPM • {generatedSet.tracks[1]?.key}
+                  {nextTrack?.bpm || '-'} BPM • {nextTrack?.key || '-'}
                 </div>
               </div>
-              <div className="h-16 rounded bg-muted/20 mb-2" />
+              <div className="h-16 rounded bg-muted/20 flex items-center justify-center text-xs text-muted-foreground">
+                {isPlaying && crossfader[0] > 50 ? '▶️ Playing' : '⏸️'}
+              </div>
             </div>
           </div>
 
           {/* Crossfader */}
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className={crossfader[0] > 50 ? 'text-muted-foreground' : 'text-primary'}>
-                A
-              </span>
+              <span className={crossfader[0] <= 50 ? 'text-primary font-bold' : 'text-muted-foreground'}>A</span>
               <span>Crossfader</span>
-              <span className={crossfader[0] < 50 ? 'text-muted-foreground' : 'text-primary'}>
-                B
-              </span>
+              <span className={crossfader[0] >= 50 ? 'text-primary font-bold' : 'text-muted-foreground'}>B</span>
             </div>
             <Slider
               value={crossfader}
@@ -372,7 +382,14 @@ export function AutoDJPanel() {
             <Button 
               variant="outline" 
               size="icon"
-              onClick={skipToPrevious}
+              onClick={() => {
+                if (currentTrackIndex > 0) {
+                  setCurrentTrackIndex(prev => prev - 1);
+                  setIsPlaying(false);
+                  audioARef.current?.pause();
+                  audioBRef.current?.pause();
+                }
+              }}
               disabled={currentTrackIndex === 0}
             >
               <SkipForward className="h-4 w-4 rotate-180" />
@@ -381,8 +398,11 @@ export function AutoDJPanel() {
               size="icon"
               className="h-12 w-12"
               onClick={togglePlayback}
+              disabled={isLoadingAudio}
             >
-              {isPlaying ? (
+              {isLoadingAudio ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : isPlaying ? (
                 <Pause className="h-6 w-6" />
               ) : (
                 <Play className="h-6 w-6 ml-0.5" />
@@ -392,7 +412,7 @@ export function AutoDJPanel() {
               variant="outline" 
               size="icon"
               onClick={skipToNext}
-              disabled={!generatedSet || currentTrackIndex >= generatedSet.tracks.length - 1}
+              disabled={currentTrackIndex >= generatedSet.tracks.length - 1}
             >
               <SkipForward className="h-4 w-4" />
             </Button>
@@ -402,21 +422,15 @@ export function AutoDJPanel() {
           <audio 
             ref={audioARef} 
             preload="auto"
-            onError={(e) => {
-              console.error('Audio A error:', e);
-              toast({
-                title: 'Erro no Deck A',
-                description: 'Não foi possível carregar o áudio',
-                variant: 'destructive'
-              });
-            }}
+            crossOrigin="anonymous"
+            onEnded={skipToNext}
+            onError={(e) => console.error('Audio A error:', e)}
           />
           <audio 
             ref={audioBRef} 
             preload="auto"
-            onError={(e) => {
-              console.error('Audio B error:', e);
-            }}
+            crossOrigin="anonymous"
+            onError={(e) => console.error('Audio B error:', e)}
           />
         </div>
       </Card>
@@ -426,11 +440,14 @@ export function AutoDJPanel() {
         <h4 className="text-heading-lg mb-4">Sequência do Set</h4>
         <div className="space-y-2">
           {generatedSet.tracks.map((track, index) => (
-            <div key={track.id} className="glass glass-border rounded-lg p-3">
+            <div 
+              key={track.id} 
+              className={`glass glass-border rounded-lg p-3 ${index === currentTrackIndex ? 'ring-2 ring-primary' : ''}`}
+            >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-muted-foreground w-6">
-                    {index + 1}
+                  <span className={`text-sm w-6 ${index === currentTrackIndex ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
+                    {index === currentTrackIndex ? '▶' : index + 1}
                   </span>
                   <div>
                     <div className="font-medium">{track.title}</div>

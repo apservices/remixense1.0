@@ -1,17 +1,16 @@
-
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useTracks } from "@/hooks/useTracks";
 import { useToast } from "@/hooks/use-toast";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EnhancedDJCard } from "@/components/EnhancedDJCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EnhancedAudioUploadDialog } from "@/components/EnhancedAudioUploadDialog";
 import { reanalyzeAllTracks } from "@/utils/reanalysis";
-import { Search, Plus, SortDesc, Grid3X3, List, Upload, Music, Filter, RefreshCw } from "lucide-react";
+import { getAudioUrl } from "@/utils/storage";
+import { Search, Plus, Grid3X3, List, Upload, Music, RefreshCw } from "lucide-react";
 
 export default function Vault() {
   const { tracks, loading, toggleLike, refetch, deleteTrack } = useTracks();
@@ -23,6 +22,29 @@ export default function Vault() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name" | "bpm">("newest");
   const [isReanalyzing, setIsReanalyzing] = useState(false);
+
+  const filteredTracks = tracks.filter(track => {
+    const matchesFilter = activeFilter === "all" || track.type === activeFilter;
+    const matchesSearch = searchQuery === "" || 
+      track.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      track.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      track.genre?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    return matchesFilter && matchesSearch;
+  }).sort((a, b) => {
+    switch (sortBy) {
+      case "newest":
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      case "oldest":
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case "name":
+        return a.title.localeCompare(b.title);
+      case "bpm":
+        return (b.bpm || 0) - (a.bpm || 0);
+      default:
+        return 0;
+    }
+  });
 
   const handleReanalyzeAll = async () => {
     if (!user?.id) {
@@ -68,10 +90,8 @@ export default function Vault() {
     }
   };
 
-  const handlePlayTrack = async (track: any) => {
+  const handlePlayTrack = useCallback(async (track: any) => {
     try {
-      const { getAudioUrl } = await import("@/utils/storage");
-      
       if (!track.file_path) {
         toast({
           title: "Erro ao carregar áudio",
@@ -82,29 +102,38 @@ export default function Vault() {
       }
 
       const audioUrl = await getAudioUrl(track.file_path);
+      console.log('🎵 Playing track:', track.title, audioUrl);
 
       // Parse duration from string format "MM:SS" to seconds
-      const [minutes, seconds] = track.duration.split(':').map(Number);
-      const durationInSeconds = minutes * 60 + seconds;
+      const parseDuration = (dur: string) => {
+        if (!dur) return 180;
+        const parts = dur.split(':').map(Number);
+        return parts.length === 2 ? parts[0] * 60 + parts[1] : 180;
+      };
 
-      // Play track using the global player
-      playTrack({
-        id: track.id,
-        title: track.title,
-        artist: track.artist,
-        audioUrl,
-        duration: durationInSeconds
-      }, await Promise.all(filteredTracks.map(async t => {
-        const [min, sec] = t.duration.split(':').map(Number);
+      // Build playlist with audio URLs
+      const playlistPromises = filteredTracks.map(async t => {
         const url = t.file_path ? await getAudioUrl(t.file_path) : '';
         return {
           id: t.id,
           title: t.title,
           artist: t.artist,
           audioUrl: url,
-          duration: min * 60 + sec
+          duration: parseDuration(t.duration)
         };
-      })));
+      });
+
+      const playlist = await Promise.all(playlistPromises);
+
+      // Play the selected track
+      playTrack({
+        id: track.id,
+        title: track.title,
+        artist: track.artist,
+        audioUrl,
+        duration: parseDuration(track.duration)
+      }, playlist);
+      
     } catch (error) {
       console.error('Error playing track:', error);
       toast({
@@ -113,30 +142,7 @@ export default function Vault() {
         variant: "destructive"
       });
     }
-  };
-
-  const filteredTracks = tracks.filter(track => {
-    const matchesFilter = activeFilter === "all" || track.type === activeFilter;
-    const matchesSearch = searchQuery === "" || 
-      track.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      track.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      track.genre?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    return matchesFilter && matchesSearch;
-  }).sort((a, b) => {
-    switch (sortBy) {
-      case "newest":
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      case "oldest":
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      case "name":
-        return a.title.localeCompare(b.title);
-      case "bpm":
-        return (b.bpm || 0) - (a.bpm || 0);
-      default:
-        return 0;
-    }
-  });
+  }, [filteredTracks, playTrack, toast]);
 
   const filterTabs = [
     { id: "all", label: "Todos", count: tracks.length },
@@ -346,8 +352,8 @@ export default function Vault() {
                 <div className="text-center">
                   <p className="text-lg font-bold text-neon-violet font-heading">
                     {Math.round(filteredTracks.reduce((acc, track) => {
-                      const [min, sec] = track.duration.split(':').map(Number);
-                      return acc + min + sec / 60;
+                      const parts = track.duration?.split(':').map(Number) || [0, 0];
+                      return acc + (parts[0] || 0) + (parts[1] || 0) / 60;
                     }, 0))}m
                   </p>
                   <p className="text-xs text-muted-foreground">Duração</p>
