@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Save, X, Music, Loader2 } from "lucide-react";
+import { Pencil, Save, X, Music, Loader2, RefreshCw, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface TrackMetadata {
   id: string;
@@ -20,74 +21,103 @@ interface TrackMetadata {
 
 export default function MetadataTable() {
   const { user } = useAuth();
-  const [tracks, setTracks] = useState<TrackMetadata[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<TrackMetadata>>({});
 
-  useEffect(() => {
-    if (user?.id) {
-      loadTracks();
-    }
-  }, [user?.id]);
+  // Fetch tracks with React Query
+  const { data: tracks = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['tracks', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tracks')
+        .select('id, title, artist, bpm, key_signature, genre, energy_level')
+        .eq('user_id', user!.id)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
 
-  const loadTracks = async () => {
-    const { data, error } = await supabase
-      .from('tracks')
-      .select('id, title, artist, bpm, key_signature, genre, energy_level')
-      .eq('user_id', user!.id)
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data as TrackMetadata[];
+    },
+    enabled: !!user?.id
+  });
 
-    if (data) {
-      setTracks(data);
-    }
-    setIsLoading(false);
-  };
-
-  const startEdit = (track: TrackMetadata) => {
-    setEditingId(track.id);
-    setEditData(track);
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditData({});
-  };
-
-  const saveEdit = async () => {
-    if (!editingId) return;
-
-    try {
+  // Update mutation with optimistic updates
+  const updateMutation = useMutation({
+    mutationFn: async (updates: { id: string; data: Partial<TrackMetadata> }) => {
       const { error } = await supabase
         .from('tracks')
         .update({
-          title: editData.title,
-          artist: editData.artist,
-          bpm: editData.bpm,
-          key_signature: editData.key_signature,
-          genre: editData.genre,
-          energy_level: editData.energy_level
+          title: updates.data.title,
+          artist: updates.data.artist,
+          bpm: updates.data.bpm,
+          key_signature: updates.data.key_signature,
+          genre: updates.data.genre,
+          energy_level: updates.data.energy_level
         })
-        .eq('id', editingId);
+        .eq('id', updates.id);
 
       if (error) throw error;
-
-      setTracks(prev => prev.map(t => 
-        t.id === editingId ? { ...t, ...editData } : t
-      ));
+      return updates;
+    },
+    onMutate: async (updates) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['tracks', user?.id] });
       
+      // Snapshot previous value
+      const previousTracks = queryClient.getQueryData(['tracks', user?.id]);
+      
+      // Optimistically update
+      queryClient.setQueryData(['tracks', user?.id], (old: TrackMetadata[] | undefined) => 
+        old?.map(t => t.id === updates.id ? { ...t, ...updates.data } : t)
+      );
+      
+      return { previousTracks };
+    },
+    onError: (err: any, _, context) => {
+      // Rollback on error
+      queryClient.setQueryData(['tracks', user?.id], context?.previousTracks);
+      toast.error(`Erro ao salvar: ${err.message}`);
+    },
+    onSuccess: () => {
       toast.success('Metadados atualizados');
-      cancelEdit();
-    } catch (error: any) {
-      toast.error(`Erro ao salvar: ${error.message}`);
+      setEditingId(null);
+      setEditData({});
     }
-  };
+  });
+
+  const startEdit = useCallback((track: TrackMetadata) => {
+    setEditingId(track.id);
+    setEditData(track);
+  }, []);
+
+  const cancelEdit = useCallback(() => {
+    setEditingId(null);
+    setEditData({});
+  }, []);
+
+  const saveEdit = useCallback(() => {
+    if (!editingId) return;
+    updateMutation.mutate({ id: editingId, data: editData });
+  }, [editingId, editData, updateMutation]);
 
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-12 text-center">
+        <AlertCircle className="w-12 h-12 text-destructive/70" />
+        <p className="text-muted-foreground">Erro ao carregar tracks</p>
+        <Button variant="outline" onClick={() => refetch()}>
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Tentar novamente
+        </Button>
       </div>
     );
   }
