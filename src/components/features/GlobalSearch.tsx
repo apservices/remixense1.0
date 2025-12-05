@@ -79,9 +79,9 @@ export function GlobalSearch() {
         );
       }
 
-      // Search users/profiles
+      // Search users/profiles - usando VIEW pública segura
       const { data: profiles } = await supabase
-        .from('profiles')
+        .from('public_user_profiles')
         .select('id, username')
         .ilike('username', `%${searchQuery}%`)
         .limit(5);
