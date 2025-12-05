@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useTracks } from '@/hooks/useTracks';
@@ -37,12 +37,12 @@ export default function Profile() {
   const { tracks, loading: tracksLoading } = useTracks();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    dj_name: profile?.dj_name || '',
-    bio: profile?.bio || '',
-    location: profile?.location || '',
+    dj_name: '',
+    bio: '',
+    location: '',
   });
 
-  useState(() => {
+  useEffect(() => {
     if (profile) {
       setFormData({
         dj_name: profile.dj_name || '',
@@ -50,7 +50,7 @@ export default function Profile() {
         location: profile.location || '',
       });
     }
-  });
+  }, [profile]);
 
   const handleSave = async () => {
     await updateProfile(formData);
