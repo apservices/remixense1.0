@@ -110,7 +110,13 @@ serve(async (req) => {
       });
     }
 
-    const { data: fileBlob, error: downloadError } = await supabase.storage.from("tracks").download(path);
+    // Try audio-files bucket first (where most files are stored), fallback to tracks
+    let downloadResult = await supabase.storage.from("audio-files").download(path);
+    if (downloadResult.error) {
+      console.log("Not found in audio-files, trying tracks bucket...");
+      downloadResult = await supabase.storage.from("tracks").download(path);
+    }
+    const { data: fileBlob, error: downloadError } = downloadResult;
     if (downloadError || !fileBlob) {
       console.error("Storage download error", downloadError);
       await supabase.from("tracks").update({ upload_status: "error" }).eq("id", track.id);
