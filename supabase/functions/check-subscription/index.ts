@@ -36,16 +36,51 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Override for expert test users (no Stripe needed)
+    // STEP 1: Check if user already has an active subscription in database
+    const { data: existingSubscription } = await supabaseClient
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .single();
+
+    if (existingSubscription && existingSubscription.plan_type !== 'free') {
+      logStep("Found existing active subscription in database", { 
+        planType: existingSubscription.plan_type,
+        status: existingSubscription.status 
+      });
+
+      // Get limits for this plan
+      const { data: limits } = await supabaseClient
+        .from('subscription_limits')
+        .select('*')
+        .eq('plan_type', existingSubscription.plan_type)
+        .single();
+
+      return new Response(JSON.stringify({
+        plan_type: existingSubscription.plan_type,
+        status: existingSubscription.status,
+        current_period_end: existingSubscription.current_period_end,
+        limits: limits || getDefaultLimits(existingSubscription.plan_type)
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    }
+
+    // STEP 2: Check expert test users list (includes admins and test accounts)
     const expertTestEmails = new Set([
       'expert1@remixense.com',
       'expert2@remixense.com',
       'expert3@remixense.com',
       'expert4@remixense.com',
       'expert5@remixense.com',
+      'thiagodecamargo@hotmail.com', // Admin user
     ].map(e => e.toLowerCase()));
 
     if (expertTestEmails.has(user.email.toLowerCase())) {
+      logStep("User is in expert list", { email: user.email });
+      
       await supabaseClient.from('subscriptions').upsert({
         user_id: user.id,
         email: user.email,
@@ -76,34 +111,45 @@ serve(async (req) => {
       });
     }
 
-    // Stripe key (optional in dev). If missing, return FREE plan gracefully (Sprint 1 mock).
+    // STEP 3: Check if user is admin
+    const { data: adminCheck } = await supabaseClient
+      .from('admin_users')
+      .select('id')
+      .eq('email', user.email.toLowerCase())
+      .single();
+
+    if (adminCheck) {
+      logStep("User is admin, granting expert access", { email: user.email });
+      
+      await supabaseClient.from('subscriptions').upsert({
+        user_id: user.id,
+        email: user.email,
+        plan_type: 'expert',
+        status: 'active',
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+
+      return new Response(JSON.stringify({
+        plan_type: 'expert',
+        status: 'active',
+        limits: {
+          max_tracks: 9999,
+          max_storage_mb: 102400,
+          can_export: true,
+          can_use_community: true,
+          can_use_marketplace: true
+        }
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    }
+
+    // STEP 4: Check Stripe for subscription
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") || Deno.env.get("STRIPE_SECRET") || Deno.env.get("STRIPE_API_KEY");
     if (!stripeKey) {
       logStep("Stripe key missing - returning FREE plan");
-      try {
-        await supabaseClient.from("subscriptions").upsert({
-          user_id: user.id,
-          email: user.email,
-          plan_type: "free",
-          status: "active",
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id' });
-      } catch (_) { /* noop */ }
-
-      return new Response(JSON.stringify({ 
-        plan_type: "free", 
-        status: "active",
-        limits: {
-          max_tracks: 3,
-          max_storage_mb: 100,
-          can_export: false,
-          can_use_community: false,
-          can_use_marketplace: false
-        }
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
+      return returnFreePlan(supabaseClient, user);
     }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
@@ -112,33 +158,12 @@ serve(async (req) => {
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
     if (customers.data.length === 0) {
-      logStep("No customer found, setting free plan");
-      await supabaseClient.from("subscriptions").upsert({
-        user_id: user.id,
-        email: user.email,
-        plan_type: "free",
-        status: "active",
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'user_id' });
-
-      return new Response(JSON.stringify({ 
-        plan_type: "free", 
-        status: "active",
-        limits: {
-          max_tracks: 3,
-          max_storage_mb: 100,
-          can_export: false,
-          can_use_community: false,
-          can_use_marketplace: false
-        }
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
+      logStep("No Stripe customer found, setting free plan");
+      return returnFreePlan(supabaseClient, user);
     }
 
     const customerId = customers.data[0].id;
-    logStep("Found customer", { customerId });
+    logStep("Found Stripe customer", { customerId });
 
     // Get active subscriptions
     const subscriptions = await stripe.subscriptions.list({
@@ -161,19 +186,19 @@ serve(async (req) => {
       const price = subscription.items.data[0].price;
       const amount = price.unit_amount || 0;
       
-      if (amount >= 4000) { // Expert tier (higher amounts)
+      if (amount >= 4000) {
         planType = "expert";
-      } else if (amount >= 400) { // Pro tier
+      } else if (amount >= 400) {
         planType = "pro";
       }
       
-      logStep("Active subscription found", { 
+      logStep("Active Stripe subscription found", { 
         subscriptionId: subscription.id, 
         planType, 
         endDate: subscriptionEnd 
       });
     } else {
-      logStep("No active subscription found");
+      logStep("No active Stripe subscription found");
     }
 
     // Update subscription in database
@@ -201,13 +226,7 @@ serve(async (req) => {
       plan_type: planType,
       status: status,
       current_period_end: subscriptionEnd,
-      limits: limits || {
-        max_tracks: 3,
-        max_storage_mb: 100,
-        can_export: false,
-        can_use_community: false,
-        can_use_marketplace: false
-      }
+      limits: limits || getDefaultLimits(planType)
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
@@ -222,3 +241,71 @@ serve(async (req) => {
     });
   }
 });
+
+function getDefaultLimits(planType: string) {
+  switch (planType) {
+    case 'expert':
+      return {
+        max_tracks: 9999,
+        max_storage_mb: 102400,
+        can_export: true,
+        can_use_community: true,
+        can_use_marketplace: true
+      };
+    case 'pro':
+      return {
+        max_tracks: 100,
+        max_storage_mb: 10240,
+        can_export: true,
+        can_use_community: true,
+        can_use_marketplace: true
+      };
+    case 'premium':
+      return {
+        max_tracks: 50,
+        max_storage_mb: 5120,
+        can_export: true,
+        can_use_community: true,
+        can_use_marketplace: false
+      };
+    default:
+      return {
+        max_tracks: 3,
+        max_storage_mb: 100,
+        can_export: false,
+        can_use_community: false,
+        can_use_marketplace: false
+      };
+  }
+}
+
+async function returnFreePlan(supabaseClient: any, user: any) {
+  try {
+    await supabaseClient.from("subscriptions").upsert({
+      user_id: user.id,
+      email: user.email,
+      plan_type: "free",
+      status: "active",
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' });
+  } catch (_) { /* noop */ }
+
+  return new Response(JSON.stringify({ 
+    plan_type: "free", 
+    status: "active",
+    limits: {
+      max_tracks: 3,
+      max_storage_mb: 100,
+      can_export: false,
+      can_use_community: false,
+      can_use_marketplace: false
+    }
+  }), {
+    headers: { 
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+      "Content-Type": "application/json" 
+    },
+    status: 200,
+  });
+}

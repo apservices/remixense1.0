@@ -18,7 +18,7 @@ export default function ProfileForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   
-  const { register, handleSubmit, setValue, formState: { errors, isDirty } } = useForm<ProfileFormData>({
+  const { register, handleSubmit, setValue, reset, formState: { errors, isDirty } } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       username: '',
@@ -36,34 +36,54 @@ export default function ProfileForm() {
   }, [user?.id]);
 
   const loadProfile = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('profiles')
-      .select('*')
+      .select('username, display_name, bio, website, avatar_url, social_links')
       .eq('id', user!.id)
       .single();
 
+    if (error) {
+      console.error('Error loading profile:', error);
+      return;
+    }
+
     if (data) {
-      setValue('username', data.username || '');
+      // Reset form with loaded data
+      reset({
+        username: data.username || '',
+        display_name: data.display_name || '',
+        bio: data.bio || '',
+        website: data.website || '',
+        avatar_url: data.avatar_url || ''
+      });
       setAvatarUrl(data.avatar_url);
     }
   };
 
-  const onSubmit = async (data: ProfileFormData) => {
+  const onSubmit = async (formData: ProfileFormData) => {
     if (!user?.id) return;
     
     setIsLoading(true);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('profiles')
         .update({
-          username: data.username,
-          avatar_url: avatarUrl
+          username: formData.username,
+          display_name: formData.display_name,
+          bio: formData.bio,
+          website: formData.website,
+          avatar_url: avatarUrl,
+          updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
 
       if (error) throw error;
-      toast.success('Perfil atualizado!');
+      
+      // Reset form state to mark as not dirty after successful save
+      reset(formData);
+      toast.success('Perfil atualizado com sucesso!');
     } catch (error: any) {
+      console.error('Error saving profile:', error);
       toast.error(`Erro ao salvar: ${error.message}`);
     } finally {
       setIsLoading(false);
