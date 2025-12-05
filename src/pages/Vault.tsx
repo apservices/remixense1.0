@@ -11,6 +11,7 @@ import { EnhancedAudioUploadDialog } from "@/components/EnhancedAudioUploadDialo
 import { reanalyzeAllTracks } from "@/utils/reanalysis";
 import { getAudioUrl } from "@/utils/storage";
 import { Search, Plus, Grid3X3, List, Upload, Music, RefreshCw } from "lucide-react";
+import { AppLayout } from "@/components/layout/AppLayout";
 
 export default function Vault() {
   const { tracks, loading, toggleLike, refetch, deleteTrack } = useTracks();
@@ -153,24 +154,26 @@ export default function Vault() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background pb-20 flex items-center justify-center">
-        <div className="glass border-glass-border rounded-lg p-8">
-          <div className="flex items-center gap-3">
-            <Music className="h-6 w-6 text-primary animate-pulse" />
-            <p className="text-foreground">Carregando vault...</p>
+      <AppLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="glass border-glass-border rounded-lg p-8">
+            <div className="flex items-center gap-3">
+              <Music className="h-6 w-6 text-primary animate-pulse" />
+              <p className="text-foreground">Carregando vault...</p>
+            </div>
           </div>
         </div>
-      </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-40 glass border-b border-glass-border backdrop-blur-glass">
-        <div className="px-4 py-4">
+    <AppLayout>
+      <div className="container max-w-6xl mx-auto py-6 px-4">
+        {/* Header */}
+        <div className="glass border-b border-glass-border backdrop-blur-glass rounded-xl mb-6 p-4">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-heading-xl text-foreground">
+            <h1 className="text-heading-xl text-foreground gradient-text">
               Meu Vault 🎵
             </h1>
             <div className="flex gap-2">
@@ -268,10 +271,9 @@ export default function Vault() {
             </div>
           )}
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="px-4 py-6">
+        {/* Content */}
+        <div className="mt-6">
         {filteredTracks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Upload className="h-12 w-12 text-muted-foreground mb-4" />
@@ -377,6 +379,6 @@ export default function Vault() {
           </div>
         )}
       </div>
-    </div>
+    </AppLayout>
   );
 }

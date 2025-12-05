@@ -9,6 +9,7 @@ import { Calendar, CalendarDays, Clock, Target, Bell, Plus, Edit2, Trash2 } from
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { AppLayout } from '@/components/layout/AppLayout';
 
 interface LaunchEvent {
   id: string;

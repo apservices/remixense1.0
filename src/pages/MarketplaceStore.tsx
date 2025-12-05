@@ -1,4 +1,4 @@
-import { MainLayout } from '@/components/MainLayout';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { ProductCard } from '@/components/marketplace/ProductCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +23,7 @@ export default function MarketplaceStore() {
   ];
 
   return (
-    <MainLayout>
+    <AppLayout>
       <div className="container max-w-6xl mx-auto py-8 px-4 space-y-8">
         {/* Header */}
         <div className="space-y-4">
@@ -92,6 +92,6 @@ export default function MarketplaceStore() {
           </div>
         )}
       </div>
-    </MainLayout>
+    </AppLayout>
   );
 }
