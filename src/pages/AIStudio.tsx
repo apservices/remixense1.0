@@ -7,17 +7,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Wand2, Music, Download, Play, Pause, Volume2, Star, Zap, Upload, Loader2 } from 'lucide-react';
+import { Wand2, Music, Download, Play, Pause, Volume2, Star, Zap, Upload, Loader2, Sparkles } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useSubscription } from '@/hooks/useSubscription';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { SunoGenerator, FeatureFlagsPanel } from '@/components/features';
 
 export default function AIStudio() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { canExport, isPro, isExpert } = useSubscription();
-  const [activeTab, setActiveTab] = useState('mastering');
+  const [activeTab, setActiveTab] = useState('suno');
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -237,6 +238,7 @@ export default function AIStudio() {
   };
 
   const tabs = [
+    { id: 'suno', name: 'Suno AI', icon: Sparkles },
     { id: 'mastering', name: 'Auto-Mastering', icon: Volume2 },
     { id: 'melody', name: 'Gerador de Melodia', icon: Music },
     { id: 'mood', name: 'Análise de Mood', icon: Star }
@@ -282,6 +284,14 @@ export default function AIStudio() {
 
         {/* Content */}
         <div className="px-4 py-6">
+          {/* Suno AI Generator - NEW V3 */}
+          {activeTab === 'suno' && (
+            <div className="max-w-2xl mx-auto space-y-6">
+              <SunoGenerator />
+              <FeatureFlagsPanel />
+            </div>
+          )}
+
           {/* Auto-Mastering AI */}
           {activeTab === 'mastering' && (
             <div className="max-w-2xl mx-auto space-y-6">
