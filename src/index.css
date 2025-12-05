@@ -333,3 +333,65 @@
       background: white !important;
     }
   }
+
+  /* V3 Dynamic Theme System */
+  .dynamic-theme-active {
+    --primary: var(--dynamic-accent-hue, 271) 80% 55%;
+  }
+
+  .dynamic-gradient-bg {
+    background: var(--dynamic-gradient, linear-gradient(135deg, hsl(280 80% 55%) 0%, hsl(190 80% 55%) 100%));
+  }
+
+  .dynamic-glow {
+    box-shadow: 0 0 20px hsl(271 80% 50% / 0.5);
+  }
+
+  /* Waveform 3D container */
+  .waveform-3d-container canvas {
+    border-radius: var(--radius);
+  }
+
+  /* Energy level indicators */
+  .energy-low { --energy-color: hsl(220 70% 50%); }
+  .energy-medium { --energy-color: hsl(280 80% 55%); }
+  .energy-high { --energy-color: hsl(30 85% 55%); }
+  .energy-extreme { --energy-color: hsl(0 90% 60%); }
+
+/* V3 Animations (outside @layer for proper browser support) */
+@keyframes beat-pulse {
+  0%, 100% { 
+    transform: scale(1); 
+    opacity: 1;
+  }
+  50% { 
+    transform: scale(1.02); 
+    opacity: 0.9;
+  }
+}
+
+@keyframes beat-sync {
+  0%, 100% { transform: scale(1); }
+  10% { transform: scale(1.05); }
+}
+
+@keyframes neon-pulse {
+  0%, 100% { 
+    filter: drop-shadow(0 0 5px hsl(271 91% 58%));
+  }
+  50% { 
+    filter: drop-shadow(0 0 20px hsl(271 91% 58%)) drop-shadow(0 0 40px hsl(271 91% 58%));
+  }
+}
+
+.pulse-with-beat {
+  animation: beat-pulse var(--beat-duration, 500ms) ease-in-out infinite;
+}
+
+.beat-sync {
+  animation: beat-sync var(--beat-duration, 500ms) ease-out infinite;
+}
+
+.neon-pulse {
+  animation: neon-pulse 2s ease-in-out infinite;
+}
