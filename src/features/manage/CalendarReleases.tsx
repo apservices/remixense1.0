@@ -3,12 +3,15 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CalendarDays, Plus, ChevronLeft, ChevronRight, Filter, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/hooks/useAuth';
 import { format, isSameDay, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import ReleaseCard from './ReleaseCard';
+import ReleaseStatusBadge from './ReleaseStatusBadge';
+import { useNavigate } from 'react-router-dom';
 
 interface Release {
   id: string;
@@ -23,9 +26,11 @@ interface Release {
 
 export default function CalendarReleases() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [releases, setReleases] = useState<Release[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   useEffect(() => {
     if (user?.id) {
@@ -56,14 +61,22 @@ export default function CalendarReleases() {
     }
   };
 
+  const filteredReleases = releases.filter(r => 
+    statusFilter === 'all' || r.status === statusFilter
+  );
+
   const getReleasesForDate = (date: Date) => {
-    return releases.filter(r => isSameDay(new Date(r.release_date), date));
+    return filteredReleases.filter(r => isSameDay(new Date(r.release_date), date));
   };
 
   const selectedDateReleases = getReleasesForDate(selectedDate);
 
   const hasReleaseOnDate = (date: Date) => {
-    return releases.some(r => isSameDay(new Date(r.release_date), date));
+    return filteredReleases.some(r => isSameDay(new Date(r.release_date), date));
+  };
+
+  const goToRelease = (releaseId: string) => {
+    navigate(`/releases/${releaseId}`);
   };
 
   return (
@@ -76,6 +89,18 @@ export default function CalendarReleases() {
             Calendário de Lançamentos
           </CardTitle>
           <div className="flex items-center gap-2">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[140px] h-8">
+                <Filter className="w-3 h-3 mr-2" />
+                <SelectValue placeholder="Filtrar" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="scheduled">Agendados</SelectItem>
+                <SelectItem value="live">Publicados</SelectItem>
+                <SelectItem value="draft">Rascunhos</SelectItem>
+              </SelectContent>
+            </Select>
             <Button 
               variant="ghost" 
               size="icon"
