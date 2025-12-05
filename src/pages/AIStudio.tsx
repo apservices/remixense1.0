@@ -1,18 +1,18 @@
 import { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Wand2, Music, Download, Play, Pause, Volume2, Star, Zap, Upload, Loader2, Sparkles } from 'lucide-react';
+import { Music, Download, Play, Pause, Volume2, Star, Zap, Upload, Loader2, Sparkles } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useSubscription } from '@/hooks/useSubscription';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { SunoGenerator, FeatureFlagsPanel } from '@/components/features';
+import { MelodyGenerator } from '@/features/create';
 
 export default function AIStudio() {
   const { user } = useAuth();
@@ -455,132 +455,10 @@ export default function AIStudio() {
             </div>
           )}
 
-          {/* Melody Generator */}
+          {/* Melody Generator - Real Component */}
           {activeTab === 'melody' && (
             <div className="max-w-2xl mx-auto space-y-6">
-              <Card className="glass border-glass-border">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Music className="h-5 w-5" />
-                    Gerador de Melodia IA
-                  </CardTitle>
-                  <CardDescription>
-                    Crie melodias e harmonias originais com inteligência artificial
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Gênero</Label>
-                      <Select 
-                        value={melodySettings.genre} 
-                        onValueChange={(value) => setMelodySettings(prev => ({ ...prev, genre: value }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {genres.map((genre) => (
-                            <SelectItem key={genre} value={genre}>
-                              {genre.charAt(0).toUpperCase() + genre.slice(1)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Tonalidade</Label>
-                      <Select 
-                        value={melodySettings.key} 
-                        onValueChange={(value) => setMelodySettings(prev => ({ ...prev, key: value }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {keys.map((key) => (
-                            <SelectItem key={key} value={key}>{key}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>BPM</Label>
-                      <Input
-                        type="number"
-                        value={melodySettings.tempo}
-                        onChange={(e) => setMelodySettings(prev => ({ ...prev, tempo: parseInt(e.target.value) || 120 }))}
-                        min={60}
-                        max={200}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Mood</Label>
-                      <Select 
-                        value={melodySettings.mood} 
-                        onValueChange={(value) => setMelodySettings(prev => ({ ...prev, mood: value }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {moods.map((mood) => (
-                            <SelectItem key={mood} value={mood}>
-                              {mood.charAt(0).toUpperCase() + mood.slice(1)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Complexidade</Label>
-                    <Slider
-                      value={melodySettings.complexity}
-                      onValueChange={(value) => setMelodySettings(prev => ({ ...prev, complexity: value }))}
-                      min={0}
-                      max={100}
-                      step={1}
-                    />
-                    <div className="text-xs text-muted-foreground text-center">
-                      {melodySettings.complexity[0]}% complexidade
-                    </div>
-                  </div>
-
-                  {processing && (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm">Gerando melodia...</span>
-                        <span className="text-sm">{progress}%</span>
-                      </div>
-                      <Progress value={progress} className="w-full" />
-                    </div>
-                  )}
-
-                  <Button 
-                    onClick={handleGenerateMelody}
-                    disabled={processing}
-                    className="w-full"
-                    variant="neon"
-                  >
-                    {processing ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Gerando...
-                      </>
-                    ) : (
-                      <>
-                        <Zap className="h-4 w-4 mr-2" />
-                        🎵 Gerar Melodia
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
+              <MelodyGenerator />
             </div>
           )}
 

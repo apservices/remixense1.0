@@ -1,4 +1,4 @@
-﻿import { uuid } from '../utils/uuid';
+import { uuid } from '../utils/uuid';
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +13,7 @@ interface UploadProgress {
 export function useAudioUpload() {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState<UploadProgress | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
   const { toast } = useToast();
   const { canUploadTrack, getTrackLimit, createCheckoutSession } = useSubscription();
 
@@ -43,18 +44,20 @@ export function useAudioUpload() {
       // Client-side validation: audio type and size limit (100MB)
       const MAX_SIZE = 100 * 1024 * 1024;
       if (!file.type.startsWith('audio/')) {
-        throw new Error('Apenas arquivos de Ã¡udio sÃ£o permitidos.');
+        throw new Error('Apenas arquivos de áudio são permitidos.');
       }
       if (file.size > MAX_SIZE) {
         throw new Error('Arquivo muito grande. Limite: 100MB');
       }
 
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('FaÃ§a login com e-mail e senha para enviar.');
+      if (!user) throw new Error('Faça login com e-mail e senha para enviar.');
 
       // Create unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${uuid()}.${fileExt}`;
+
+      setProgress({ loaded: file.size * 0.3, total: file.size, percentage: 30 });
 
       // Upload file to storage (private bucket)
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -67,7 +70,7 @@ export function useAudioUpload() {
 
       if (uploadError) throw uploadError;
 
-      // No public URL for private buckets; signed URLs can be generated on demand
+      setProgress({ loaded: file.size * 0.6, total: file.size, percentage: 60 });
 
       // Get audio duration (approximate)
       const audio = new Audio();
@@ -104,10 +107,37 @@ export function useAudioUpload() {
 
       if (trackError) throw trackError;
 
+      setProgress({ loaded: file.size * 0.8, total: file.size, percentage: 80 });
+
+      // Auto-analyze the uploaded track
+      setAnalyzing(true);
       toast({
-        title: "Upload concluÃ­do!",
-        description: `${metadata.title} foi adicionado ao seu vault.`
+        title: "Upload concluído!",
+        description: "Iniciando análise automática com IA..."
       });
+
+      try {
+        const { error: analyzeError } = await supabase.functions.invoke('analyze-audio', {
+          body: { trackId: track.id, filePath: fileName }
+        });
+
+        if (analyzeError) {
+          console.error('Auto-analysis error:', analyzeError);
+          toast({
+            title: "Análise pendente",
+            description: "A música foi salva. Você pode analisá-la manualmente depois."
+          });
+        } else {
+          toast({
+            title: "🎵 Análise completa!",
+            description: `BPM, tonalidade e energia detectados para ${metadata.title}`
+          });
+        }
+      } catch (analyzeErr) {
+        console.error('Auto-analysis failed:', analyzeErr);
+      } finally {
+        setAnalyzing(false);
+      }
 
       setProgress({ loaded: file.size, total: file.size, percentage: 100 });
       return track;
@@ -129,6 +159,7 @@ export function useAudioUpload() {
   return {
     uploadAudio,
     uploading,
+    analyzing,
     progress
   };
 }
