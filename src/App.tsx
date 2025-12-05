@@ -1,9 +1,11 @@
 import React, { lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AnimatePresence } from 'framer-motion';
 import Login from './pages/Login';
 import { AuthProvider } from './hooks/useAuth';
 import { PlayerProvider, usePlayer } from './contexts/PlayerContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import { GlobalStreamingPlayer } from './components/player/GlobalStreamingPlayer';
 import ProtectedRoutes from './routes/ProtectedRoutes';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -271,11 +273,15 @@ function PlayerWrapper() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <PlayerProvider>
-          <PlayerWrapper />
-        </PlayerProvider>
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <PlayerProvider>
+            <AnimatePresence mode="wait">
+              <PlayerWrapper />
+            </AnimatePresence>
+          </PlayerProvider>
+        </AuthProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }
