@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Music, Wand2, Play, Download, Loader2, Save, Library, CheckCircle2, Clock } from 'lucide-react';
+import { Sparkles, Music, Wand2, Play, Pause, Download, Loader2, Save, Library, CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
 import { useSunoGeneration } from '@/hooks/useSunoGeneration';
 import { AnimatedCard } from '@/components/ui/AnimatedCard';
 import { AnimatedButton } from '@/components/ui/AnimatedButton';
@@ -49,6 +49,9 @@ export function SunoGenerator() {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [saveTitle, setSaveTitle] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Pre-fill save title based on prompt
   useEffect(() => {
@@ -58,8 +61,24 @@ export function SunoGenerator() {
     }
   }, [currentGeneration, prompt]);
 
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
+    
+    // Stop any playing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    }
     
     await generate({
       prompt,
@@ -70,6 +89,64 @@ export function SunoGenerator() {
       duration,
       instrumental
     });
+  };
+
+  const handlePlay = () => {
+    if (!currentGeneration?.audioUrl) {
+      toast.error('Nenhum áudio disponível');
+      return;
+    }
+
+    // Check if it's a simulated URL
+    if (currentGeneration.simulated || currentGeneration.audioUrl.includes('example.com')) {
+      toast.warning('Modo simulação: Configure a API Suno para ouvir músicas reais', {
+        description: 'Adicione SUNO_API_KEY nos secrets do Supabase'
+      });
+      return;
+    }
+
+    if (isPlaying && audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      if (!audioRef.current) {
+        audioRef.current = new Audio(currentGeneration.audioUrl);
+        audioRef.current.onended = () => setIsPlaying(false);
+        audioRef.current.onerror = () => {
+          toast.error('Erro ao reproduzir áudio');
+          setIsPlaying(false);
+        };
+      }
+      audioRef.current.play().catch(() => {
+        toast.error('Não foi possível reproduzir o áudio');
+        setIsPlaying(false);
+      });
+      setIsPlaying(true);
+    }
+  };
+
+  const handleDownload = () => {
+    if (!currentGeneration?.audioUrl) {
+      toast.error('Nenhum áudio disponível');
+      return;
+    }
+
+    // Check if it's a simulated URL
+    if (currentGeneration.simulated || currentGeneration.audioUrl.includes('example.com')) {
+      toast.warning('Modo simulação: Configure a API Suno para baixar músicas reais', {
+        description: 'Adicione SUNO_API_KEY nos secrets do Supabase'
+      });
+      return;
+    }
+
+    // Create download link
+    const link = document.createElement('a');
+    link.href = currentGeneration.audioUrl;
+    link.download = `suno-generation-${currentGeneration.generationId || Date.now()}.mp3`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Download iniciado!');
   };
 
   const handleSaveToLibrary = async () => {
@@ -274,10 +351,10 @@ export function SunoGenerator() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <AnimatedButton size="sm" variant="ghost">
-                    <Play className="h-4 w-4" />
+                  <AnimatedButton size="sm" variant="ghost" onClick={handlePlay}>
+                    {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                   </AnimatedButton>
-                  <AnimatedButton size="sm" variant="ghost">
+                  <AnimatedButton size="sm" variant="ghost" onClick={handleDownload}>
                     <Download className="h-4 w-4" />
                   </AnimatedButton>
                   
@@ -333,6 +410,17 @@ export function SunoGenerator() {
                   )}
                 </div>
               </div>
+              
+              {/* Simulation Warning */}
+              {currentGeneration.simulated && (
+                <div className="mt-3 flex items-start gap-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                  <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-amber-500">
+                    <strong>Modo simulação:</strong> A API Suno não está configurada. 
+                    Adicione SUNO_API_KEY nos secrets do Supabase para gerar músicas reais.
+                  </p>
+                </div>
+              )}
             </AnimatedCard>
           </motion.div>
         )}
