@@ -1946,7 +1946,10 @@ export type Database = {
           created_at: string
           credits_remaining: number | null
           display_name: string | null
+          dj_name: string | null
+          favorite_genres: string[] | null
           id: string
+          location: string | null
           plan: string | null
           social_links: Json | null
           subscription_plan: string
@@ -1961,7 +1964,10 @@ export type Database = {
           created_at?: string
           credits_remaining?: number | null
           display_name?: string | null
+          dj_name?: string | null
+          favorite_genres?: string[] | null
           id: string
+          location?: string | null
           plan?: string | null
           social_links?: Json | null
           subscription_plan?: string
@@ -1976,7 +1982,10 @@ export type Database = {
           created_at?: string
           credits_remaining?: number | null
           display_name?: string | null
+          dj_name?: string | null
+          favorite_genres?: string[] | null
           id?: string
+          location?: string | null
           plan?: string | null
           social_links?: Json | null
           subscription_plan?: string
