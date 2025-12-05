@@ -30,11 +30,34 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseKey);
     
-    const { prompt, genre, mood, key, bpm, duration, instrumental, userId, autoSave }: SunoRequest = await req.json();
-
-    if (!prompt || !userId) {
+    // Verify authenticated user from JWT token
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Prompt e userId são obrigatórios' }),
+        JSON.stringify({ error: 'Authorization header required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error('Auth error:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid or expired token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    const { prompt, genre, mood, key, bpm, duration, instrumental, autoSave }: Omit<SunoRequest, 'userId'> = await req.json();
+    
+    // Use authenticated user's ID instead of client-supplied userId
+    const userId = user.id;
+
+    if (!prompt) {
+      return new Response(
+        JSON.stringify({ error: 'Prompt é obrigatório' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
