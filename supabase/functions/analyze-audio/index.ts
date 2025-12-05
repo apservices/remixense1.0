@@ -110,17 +110,16 @@ serve(async (req) => {
       });
     }
 
-    const downloadRes = await supabase.storage.from("tracks").download(path);
-    if ((downloadRes as any).error) {
-      console.error("Storage download error", (downloadRes as any).error);
+    const { data: fileBlob, error: downloadError } = await supabase.storage.from("tracks").download(path);
+    if (downloadError || !fileBlob) {
+      console.error("Storage download error", downloadError);
       await supabase.from("tracks").update({ upload_status: "error" }).eq("id", track.id);
-      return new Response(JSON.stringify({ error: "Failed to download audio" }), {
+      return new Response(JSON.stringify({ error: "Failed to download audio", details: downloadError?.message }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const fileBlob: Blob = downloadRes as unknown as Blob;
     const arrayBuffer = await fileBlob.arrayBuffer();
 
     // Real BPM analysis using simplified peak detection
