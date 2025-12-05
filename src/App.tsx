@@ -32,7 +32,7 @@ const SocialFeed = lazy(() => import('./pages/SocialFeed'));
 const MarketplaceStore = lazy(() => import('./pages/MarketplaceStore'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Vault = lazy(() => import('./pages/Vault'));
-const Tracks = lazy(() => import('./pages/Tracks'));
+// Tracks page removed - unified into Vault
 const Trends = lazy(() => import('./pages/Trends'));
 const Pricing = lazy(() => import('./pages/Pricing'));
 const LaunchCalendar = lazy(() => import('./pages/LaunchCalendar'));
@@ -148,7 +148,7 @@ const router = createBrowserRouter([
         path: '/tracks', 
         element: (
           <Suspense fallback={<LoadingFallback />}>
-            <Tracks />
+            <Vault />
           </Suspense>
         ) 
       },
