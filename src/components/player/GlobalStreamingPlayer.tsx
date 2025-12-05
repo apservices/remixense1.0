@@ -12,8 +12,12 @@ import {
   Repeat,
   Shuffle,
   Heart,
-  List
+  List,
+  Share2,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
+import { ShareDialog } from '@/components/features/ShareDialog';
 
 interface Track {
   id: string;
@@ -46,6 +50,7 @@ export function GlobalStreamingPlayer({
   const [isShuffle, setIsShuffle] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
 
   // Load and auto-play when track changes
   useEffect(() => {
@@ -222,12 +227,24 @@ export function GlobalStreamingPlayer({
     <>
       <audio ref={audioRef} preload="auto" crossOrigin="anonymous" />
       
+      {/* Share Dialog */}
+      <ShareDialog
+        open={showShareDialog}
+        onOpenChange={setShowShareDialog}
+        content={{
+          title: currentTrack.title,
+          description: `Ouça "${currentTrack.title}" por ${currentTrack.artist} no RemiXense`,
+          url: window.location.origin + '/tracks',
+          hashtags: ['RemiXense', 'Music', 'DJ']
+        }}
+      />
+      
       <Card
         className={`
-          fixed bottom-0 left-0 right-0 z-50
+          fixed left-0 right-0 z-50
           glass glass-border border-t
           transition-all duration-300
-          ${isExpanded ? 'h-screen' : 'h-24'}
+          ${isExpanded ? 'h-screen top-0 bottom-0' : 'h-20 md:h-24 bottom-16 lg:bottom-0'}
         `}
       >
         {isExpanded ? (
@@ -315,14 +332,23 @@ export function GlobalStreamingPlayer({
 
               {/* Volume & actions */}
               <div className="flex items-center justify-between">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsLiked(!isLiked)}
-                  className={isLiked ? 'text-red-500' : ''}
-                >
-                  <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`} />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsLiked(!isLiked)}
+                    className={isLiked ? 'text-red-500' : ''}
+                  >
+                    <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowShareDialog(true)}
+                  >
+                    <Share2 className="h-5 w-5" />
+                  </Button>
+                </div>
 
                 <div className="flex items-center gap-2">
                   <Button

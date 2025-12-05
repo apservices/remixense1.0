@@ -7,6 +7,7 @@ import { AuthProvider } from './hooks/useAuth';
 import { PlayerProvider, usePlayer } from './contexts/PlayerContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { GlobalStreamingPlayer } from './components/player/GlobalStreamingPlayer';
+import { OnboardingWrapper } from './components/features/OnboardingWrapper';
 import ProtectedRoutes from './routes/ProtectedRoutes';
 import LoadingSpinner from './components/LoadingSpinner';
 import NotFound from './pages/NotFound';
@@ -276,9 +277,11 @@ function App() {
       <LanguageProvider>
         <AuthProvider>
           <PlayerProvider>
-            <AnimatePresence mode="wait">
-              <PlayerWrapper />
-            </AnimatePresence>
+            <OnboardingWrapper>
+              <AnimatePresence mode="wait">
+                <PlayerWrapper />
+              </AnimatePresence>
+            </OnboardingWrapper>
           </PlayerProvider>
         </AuthProvider>
       </LanguageProvider>
