@@ -12,9 +12,10 @@ interface ISRCGeneratorProps {
   value: string;
   onChange: (isrc: string) => void;
   projectId?: string;
+  releaseId?: string;
 }
 
-export default function ISRCGenerator({ value, onChange, projectId }: ISRCGeneratorProps) {
+export default function ISRCGenerator({ value, onChange, projectId, releaseId }: ISRCGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -23,12 +24,12 @@ export default function ISRCGenerator({ value, onChange, projectId }: ISRCGenera
     
     try {
       const { data, error } = await supabase.functions.invoke('create-isrc', {
-        body: { projectId }
+        body: { releaseId: releaseId || projectId, trackCount: 1 }
       });
 
       if (error) throw error;
       
-      onChange(data.isrc);
+      onChange(data.primaryIsrc || data.isrcs?.[0]);
       toast.success('ISRC gerado com sucesso!');
     } catch (error: any) {
       toast.error(`Erro ao gerar ISRC: ${error.message}`);

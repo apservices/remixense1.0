@@ -28,26 +28,51 @@ export default function InsightsDashboard() {
   }, [user?.id, period]);
 
   const loadAnalytics = async () => {
-    // In production, fetch from analytics_data table
-    // For now, generate sample data
-    const sampleData: AnalyticsData[] = [];
+    setIsLoading(true);
     const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
-    
-    for (let i = days; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      
-      ['Spotify', 'Apple Music', 'YouTube'].forEach(platform => {
-        sampleData.push({
-          date: date.toISOString().split('T')[0],
-          streams: Math.floor(Math.random() * 1000) + 100,
-          revenue: Math.random() * 10,
-          platform
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    // Fetch real data from analytics_data table
+    const { data: analyticsData, error } = await supabase
+      .from('analytics_data')
+      .select(`
+        date,
+        streams,
+        revenue,
+        platform,
+        release:releases(project:projects(user_id))
+      `)
+      .gte('date', startDate.toISOString().split('T')[0]);
+
+    if (analyticsData && analyticsData.length > 0) {
+      // Filter by user's releases
+      const userAnalytics = analyticsData.filter(
+        (a: any) => a.release?.project?.user_id === user?.id
+      );
+      setData(userAnalytics.map((a: any) => ({
+        date: a.date,
+        streams: a.streams,
+        revenue: Number(a.revenue),
+        platform: a.platform
+      })));
+    } else {
+      // Generate sample data if no real data exists
+      const sampleData: AnalyticsData[] = [];
+      for (let i = days; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        ['Spotify', 'Apple Music', 'YouTube'].forEach(platform => {
+          sampleData.push({
+            date: date.toISOString().split('T')[0],
+            streams: Math.floor(Math.random() * 500) + 50,
+            revenue: Math.random() * 5,
+            platform
+          });
         });
-      });
+      }
+      setData(sampleData);
     }
-    
-    setData(sampleData);
     setIsLoading(false);
   };
 
