@@ -2,11 +2,14 @@ import { ReactNode, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
+import { usePlayer } from '@/contexts/PlayerContext';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/Logo';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { VoiceCommandButton } from '@/components/features/VoiceCommandButton';
 import { DynamicThemeToggle } from '@/components/features/DynamicThemeToggle';
+import { NotificationCenter } from '@/components/features/NotificationCenter';
+import { GlobalSearch } from '@/components/features/GlobalSearch';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -35,7 +38,10 @@ import {
   TrendingUp,
   Wallet,
   MessageSquare,
-  Layers
+  Layers,
+  MoreHorizontal,
+  Globe,
+  Palette,
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -88,8 +94,13 @@ export function AppLayout({ children }: AppLayoutProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { subscription, isFree } = useSubscription();
+  const { currentTrack } = usePlayer();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [showMobileFeatures, setShowMobileFeatures] = useState(false);
+  
+  // Calculate if player is visible for bottom padding
+  const hasActivePlayer = !!currentTrack;
 
   const currentPage = mainNavItems.find(item => 
     location.pathname === item.path || 
@@ -134,12 +145,28 @@ export function AppLayout({ children }: AppLayoutProps) {
 
           {/* Right: Actions + Profile */}
           <div className="flex items-center gap-1.5 md:gap-2">
-            {/* V3 Features */}
-            <div className="hidden sm:flex items-center gap-1">
+            {/* Global Search */}
+            <GlobalSearch />
+            
+            {/* V3 Features - Desktop */}
+            <div className="hidden md:flex items-center gap-1">
               <LanguageSelector />
-              <DynamicThemeToggle />
-              <VoiceCommandButton />
+              <DynamicThemeToggle compact />
+              <VoiceCommandButton className="h-9 w-9" />
             </div>
+            
+            {/* V3 Features Toggle - Mobile */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden h-9 w-9"
+              onClick={() => setShowMobileFeatures(!showMobileFeatures)}
+            >
+              <MoreHorizontal className="h-5 w-5" />
+            </Button>
+            
+            {/* Notifications */}
+            <NotificationCenter />
 
             {isFree && (
               <Button 
@@ -327,8 +354,38 @@ export function AppLayout({ children }: AppLayoutProps) {
         </div>
       )}
 
+      {/* Mobile V3 Features Dropdown */}
+      {showMobileFeatures && (
+        <div 
+          className="fixed inset-0 z-40 md:hidden"
+          onClick={() => setShowMobileFeatures(false)}
+        >
+          <div 
+            className="absolute right-3 top-14 glass glass-border rounded-xl p-3 space-y-2 animate-in fade-in slide-in-from-top-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted/50 transition-colors">
+              <Globe className="h-4 w-4 text-muted-foreground" />
+              <LanguageSelector />
+            </div>
+            <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted/50 transition-colors">
+              <Palette className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm mr-2">Tema</span>
+              <DynamicThemeToggle compact />
+            </div>
+            <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted/50 transition-colors">
+              <VoiceCommandButton />
+              <span className="text-sm">Comandos de Voz</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
-      <main className="pt-14 md:pt-16 lg:pl-60 xl:lg:pl-64 min-h-screen pb-20 md:pb-24 lg:pb-8">
+      <main className={cn(
+        "pt-14 md:pt-16 lg:pl-60 xl:lg:pl-64 min-h-screen lg:pb-8 transition-all",
+        hasActivePlayer ? "pb-44 md:pb-40" : "pb-20 md:pb-24"
+      )}>
         {children}
       </main>
 
