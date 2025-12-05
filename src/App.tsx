@@ -46,6 +46,9 @@ const AudioDashboard = lazy(() => import('./pages/AudioDashboard'));
 const Inspiration = lazy(() => import('./pages/Inspiration'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Subscription = lazy(() => import('./pages/Subscription'));
+const PublicProfile = lazy(() => import('./pages/PublicProfile'));
+const MyDownloads = lazy(() => import('./pages/MyDownloads'));
+const SellerDashboard = lazy(() => import('./pages/SellerDashboard'));
 
 const LoadingFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
@@ -254,6 +257,30 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingFallback />}>
             <Subscription />
+          </Suspense>
+        ) 
+      },
+      { 
+        path: '/profile/:id', 
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <PublicProfile />
+          </Suspense>
+        ) 
+      },
+      { 
+        path: '/marketplace/downloads', 
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <MyDownloads />
+          </Suspense>
+        ) 
+      },
+      { 
+        path: '/marketplace/seller', 
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <SellerDashboard />
           </Suspense>
         ) 
       },

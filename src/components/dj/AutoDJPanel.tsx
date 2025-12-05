@@ -1,15 +1,18 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
-import { Loader2, Play, Pause, SkipForward, Save, AlertCircle } from 'lucide-react';
+import { Loader2, Play, Pause, SkipForward, Save, AlertCircle, Circle, Square, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateAutoMix, type AutoDJResult } from '@/services/audio/auto-dj';
 import { useTracks } from '@/hooks/useTracks';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 export function AutoDJPanel() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const { tracks } = useTracks();
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -19,8 +22,91 @@ export function AutoDJPanel() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  
+  // Recording state
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
+  const [recordingTime, setRecordingTime] = useState(0);
+  
   const audioARef = useRef<HTMLAudioElement>(null);
   const audioBRef = useRef<HTMLAudioElement>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Recording functions
+  const startRecording = useCallback(async () => {
+    try {
+      if (!audioContextRef.current) {
+        audioContextRef.current = new AudioContext();
+      }
+      
+      const dest = audioContextRef.current.createMediaStreamDestination();
+      
+      // Connect audio elements to destination
+      if (audioARef.current) {
+        const sourceA = audioContextRef.current.createMediaElementSource(audioARef.current);
+        sourceA.connect(dest);
+        sourceA.connect(audioContextRef.current.destination);
+      }
+      
+      mediaRecorderRef.current = new MediaRecorder(dest.stream, { mimeType: 'audio/webm' });
+      recordedChunksRef.current = [];
+      
+      mediaRecorderRef.current.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          recordedChunksRef.current.push(e.data);
+        }
+      };
+      
+      mediaRecorderRef.current.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, { type: 'audio/webm' });
+        setRecordedBlob(blob);
+        toast({ title: '🎙️ Gravação finalizada!', description: 'Você pode baixar ou salvar no Vault' });
+      };
+      
+      mediaRecorderRef.current.start(1000);
+      setIsRecording(true);
+      setRecordingTime(0);
+      
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+      
+      toast({ title: '🔴 Gravando...', description: 'O set está sendo gravado' });
+    } catch (error) {
+      console.error('Recording error:', error);
+      toast({ title: 'Erro na gravação', description: 'Não foi possível iniciar', variant: 'destructive' });
+    }
+  }, [toast]);
+
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+      }
+    }
+  }, [isRecording]);
+
+  const downloadRecording = useCallback(() => {
+    if (recordedBlob) {
+      const url = URL.createObjectURL(recordedBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${setName || 'dj-set'}-${Date.now()}.webm`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  }, [recordedBlob, setName]);
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
 
   // Load audio when tracks change
   useEffect(() => {
@@ -379,6 +465,28 @@ export function AutoDJPanel() {
 
           {/* Transport controls */}
           <div className="flex items-center justify-center gap-2">
+            {/* Recording controls */}
+            {!isRecording ? (
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={startRecording}
+                className="text-red-500 hover:text-red-400"
+                title="Gravar Set"
+              >
+                <Circle className="h-4 w-4 fill-current" />
+              </Button>
+            ) : (
+              <Button 
+                variant="destructive" 
+                size="icon"
+                onClick={stopRecording}
+                title="Parar Gravação"
+              >
+                <Square className="h-4 w-4" />
+              </Button>
+            )}
+            
             <Button 
               variant="outline" 
               size="icon"
@@ -416,7 +524,27 @@ export function AutoDJPanel() {
             >
               <SkipForward className="h-4 w-4" />
             </Button>
+            
+            {recordedBlob && (
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={downloadRecording}
+                className="text-green-500 hover:text-green-400"
+                title="Baixar Gravação"
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+            )}
           </div>
+          
+          {/* Recording indicator */}
+          {isRecording && (
+            <div className="flex items-center justify-center gap-2 text-red-500">
+              <Circle className="h-3 w-3 fill-current animate-pulse" />
+              <span className="text-sm font-medium">REC {formatTime(recordingTime)}</span>
+            </div>
+          )}
 
           {/* Hidden audio elements */}
           <audio 
