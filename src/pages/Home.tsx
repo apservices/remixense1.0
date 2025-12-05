@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,6 @@ import {
   FolderKanban, 
   Share2, 
   Users, 
-  Settings,
   Music,
   Wand2,
   Layers,
@@ -16,10 +16,7 @@ import {
   TrendingUp,
   Play,
   ChevronRight,
-  Zap,
-  Mic,
-  Globe,
-  Palette
+  Zap
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePlayer } from '@/contexts/PlayerContext';
@@ -27,28 +24,58 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useAudioLibrary } from '@/hooks/useAudioLibrary';
+import { FirstTrackCTA } from '@/components/FirstTrackCTA';
+import { TrackAnalysisCard } from '@/components/TrackAnalysisCard';
+import { SmartRecommendationsPanel } from '@/components/SmartRecommendationsPanel';
+import { JourneyProgress } from '@/components/JourneyProgress';
+import { useSmartRecommendations } from '@/hooks/useSmartRecommendations';
 
 export default function Home() {
   const navigate = useNavigate();
   const { playTrack } = usePlayer();
   const { user } = useAuth();
-  const { aiGenerations, tracks } = useAudioLibrary();
+  const { aiGenerations, tracks, refresh: refetchTracks } = useAudioLibrary();
+  const [selectedTrack, setSelectedTrack] = useState<any>(null);
 
-  // Fetch recent projects
-  const { data: recentProjects } = useQuery({
-    queryKey: ['recent-projects', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('updated_at', { ascending: false })
-        .limit(4);
-      return data || [];
-    },
-    enabled: !!user?.id
-  });
+  // Get the most recent track with analysis
+  const latestTrack = tracks.find(t => t.bpm && t.key_signature) || tracks[0] || null;
+  
+  // Smart recommendations based on latest track
+  const { compatibleTracks } = useSmartRecommendations(latestTrack, tracks);
+
+  // User journey state
+  const hasTrack = tracks.length > 0;
+  const hasAnalysis = tracks.some(t => t.bpm && t.key_signature);
+  const hasExploredRecommendations = localStorage.getItem('remixense_explored_recs') === 'true';
+  const hasCreated = aiGenerations.length > 0;
+
+  // Mark recommendations as explored when panel is visible
+  useEffect(() => {
+    if (hasAnalysis && latestTrack) {
+      localStorage.setItem('remixense_explored_recs', 'true');
+    }
+  }, [hasAnalysis, latestTrack]);
+
+  const handleUploadComplete = (trackId: string) => {
+    refetchTracks();
+  };
+
+  const handleJourneyStepClick = (stepId: string) => {
+    switch (stepId) {
+      case 'upload':
+        // Scroll to CTA or do nothing if already visible
+        break;
+      case 'analyze':
+        if (tracks[0]) setSelectedTrack(tracks[0]);
+        break;
+      case 'explore':
+        // Already visible in recommendations
+        break;
+      case 'create':
+        navigate('/ai-studio');
+        break;
+    }
+  };
 
   // Main modules
   const modules = [
@@ -90,14 +117,6 @@ export default function Home() {
     },
   ];
 
-  // V3 Features
-  const v3Features = [
-    { label: 'Suno AI', icon: Sparkles, path: '/ai-studio', badge: 'V3' },
-    { label: 'Comandos de Voz', icon: Mic, path: '/ai-studio', badge: 'V3' },
-    { label: 'Multi-idioma', icon: Globe, path: '/settings', badge: 'V3' },
-    { label: 'Tema Dinâmico', icon: Palette, path: '/settings', badge: 'V3' },
-  ];
-
   // Platform highlights
   const highlights = [
     { label: 'Gerador de Melodias', icon: Wand2, path: '/ai-studio' },
@@ -108,81 +127,111 @@ export default function Home() {
     { label: 'Analytics', icon: TrendingUp, path: '/analytics' },
   ];
 
-  // Demo tracks
-  const demoTracks = [
-    {
-      id: '1',
-      title: 'Summer Vibes',
-      artist: 'DJ Master',
-      audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-      duration: 180,
-      coverUrl: '/lovable-uploads/31c47f1e-55db-419e-a22a-67d1476797f1.png'
-    },
-    {
-      id: '2',
-      title: 'Night Drive',
-      artist: 'Electronic Dreams',
-      audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
-      duration: 220,
-      coverUrl: '/lovable-uploads/6e868d8d-3df9-4415-8784-9786445d0336.png'
-    },
-    {
-      id: '3',
-      title: 'Urban Beats',
-      artist: 'The Producers',
-      audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
-      duration: 195,
-      coverUrl: '/lovable-uploads/d4b3d199-a716-41e6-9713-8953ed46d0d2.png'
-    }
-  ];
-
   return (
     <AppLayout>
       <div className="container max-w-6xl mx-auto py-4 md:py-6 px-3 md:px-4 space-y-6 md:space-y-8">
-        {/* V3 Features Section */}
-        <section className="space-y-3 md:space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg md:text-xl font-bold">Novidades V3</h2>
-              <Badge className="bg-gradient-to-r from-violet-500 to-cyan-500 text-white text-[10px]">NEW</Badge>
+        
+        {/* User Journey Section - Based on State */}
+        {!hasTrack ? (
+          /* New User - Show First Track CTA */
+          <section className="space-y-4">
+            <FirstTrackCTA onUploadComplete={handleUploadComplete} />
+            <JourneyProgress 
+              hasTrack={hasTrack}
+              hasAnalysis={hasAnalysis}
+              hasExploredRecommendations={hasExploredRecommendations}
+              hasCreated={hasCreated}
+              onStepClick={handleJourneyStepClick}
+            />
+          </section>
+        ) : (
+          /* Returning User - Show Analysis + Recommendations */
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
+                <Zap className="h-5 w-5 text-primary" />
+                Sua Música
+              </h2>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/tracks')} className="text-xs">
+                Ver todas ({tracks.length})
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Button>
             </div>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
-            {v3Features.map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <Card
-                  key={feature.label}
-                  className="glass glass-border p-3 md:p-4 cursor-pointer hover:bg-muted/30 active:scale-[0.98] transition-all group touch-manipulation"
-                  onClick={() => navigate(feature.path)}
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Latest Track Analysis */}
+              {latestTrack && (
+                <TrackAnalysisCard 
+                  track={{
+                    id: latestTrack.id,
+                    title: latestTrack.title,
+                    artist: latestTrack.artist,
+                    bpm: latestTrack.bpm ?? undefined,
+                    key_signature: latestTrack.key_signature ?? undefined,
+                    energy_level: latestTrack.energy_level ?? undefined,
+                    genre: latestTrack.genre ?? undefined,
+                    duration: String(latestTrack.duration),
+                    file_path: latestTrack.audioUrl
+                  }} 
+                  onAnalysisComplete={refetchTracks}
+                />
+              )}
+              
+              {/* Journey Progress */}
+              <JourneyProgress 
+                hasTrack={hasTrack}
+                hasAnalysis={hasAnalysis}
+                hasExploredRecommendations={hasExploredRecommendations}
+                hasCreated={hasCreated}
+                onStepClick={handleJourneyStepClick}
+              />
+            </div>
+
+            {/* Smart Recommendations */}
+            {hasAnalysis && latestTrack && (
+              <SmartRecommendationsPanel 
+                track={{
+                  id: latestTrack.id,
+                  title: latestTrack.title,
+                  artist: latestTrack.artist,
+                  bpm: latestTrack.bpm ?? undefined,
+                  key_signature: latestTrack.key_signature ?? undefined,
+                  energy_level: latestTrack.energy_level ?? undefined
+                }}
+                compatibleTracks={compatibleTracks.map(t => ({
+                  id: t.id,
+                  title: t.title,
+                  artist: t.artist,
+                  bpm: t.bpm ?? undefined,
+                  key_signature: t.key_signature ?? undefined,
+                  energy_level: t.energy_level ?? undefined
+                }))}
+              />
+            )}
+          </section>
+        )}
+
+        {/* Recent AI Generations */}
+        {aiGenerations.length > 0 && (
+          <section className="space-y-3 md:space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                Criações com IA
+              </h2>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/ai-studio')} className="text-xs">
+                Criar mais
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+              {aiGenerations.slice(0, 4).map((gen) => (
+                <Card 
+                  key={gen.id} 
+                  className="premium-card p-3 cursor-pointer hover:scale-[1.02] transition-transform"
+                  onClick={() => playTrack(gen, aiGenerations)}
                 >
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-cyan-500/20 group-hover:from-primary/30 group-hover:to-cyan-500/30 transition-colors">
-                      <Icon className="h-4 w-4 text-primary" />
-                    </div>
-                    <Badge variant="secondary" className="text-[9px]">{feature.badge}</Badge>
-                  </div>
-                  <p className="text-xs md:text-sm font-medium">{feature.label}</p>
-                </Card>
-              );
-            })}
-          </div>
-          
-          {/* Recent AI Generations */}
-          {aiGenerations.length > 0 && (
-            <Card className="premium-card p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  Últimas Gerações IA
-                </h3>
-                <Button variant="ghost" size="sm" onClick={() => navigate('/tracks')} className="text-xs">
-                  Ver todas
-                </Button>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {aiGenerations.slice(0, 4).map((gen) => (
-                  <div key={gen.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/30 transition-colors">
+                  <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-violet-500/20 to-cyan-500/20 flex items-center justify-center">
                       <Sparkles className="h-4 w-4 text-primary" />
                     </div>
@@ -190,13 +239,12 @@ export default function Home() {
                       <p className="text-sm font-medium truncate">{gen.title}</p>
                       <p className="text-xs text-muted-foreground">{gen.artist}</p>
                     </div>
-                    <Badge variant="secondary" className="text-[9px]">IA</Badge>
                   </div>
-                ))}
-              </div>
-            </Card>
-          )}
-        </section>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Hero Section */}
         <section className="relative overflow-hidden rounded-2xl md:rounded-3xl gradient-primary p-5 md:p-8 lg:p-12">
@@ -207,20 +255,23 @@ export default function Home() {
               <span className="text-xs md:text-sm font-medium">Plataforma IA para Música</span>
             </div>
             <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4">
-              Bem-vindo ao RemiXense
+              {hasTrack ? 'Continue criando!' : 'Bem-vindo ao RemiXense'}
             </h1>
             <p className="text-white/80 text-sm md:text-base lg:text-lg mb-4 md:mb-6">
-              Criação musical com IA. Separe stems, gere sets e monetize suas criações.
+              {hasTrack 
+                ? 'Suas músicas estão analisadas. Explore recomendações, gere melodias ou crie remixes.'
+                : 'Criação musical com IA. Separe stems, gere sets e monetize suas criações.'
+              }
             </p>
             <div className="flex flex-wrap gap-2 md:gap-3">
               <Button 
                 size="default" 
                 variant="secondary"
-                onClick={() => navigate('/ai-studio')}
+                onClick={() => navigate(hasTrack ? '/ai-studio' : '/tracks')}
                 className="bg-white text-primary hover:bg-white/90 text-sm md:text-base touch-manipulation"
               >
                 <Sparkles className="mr-1.5 md:mr-2 h-4 w-4 md:h-5 md:w-5" />
-                Começar
+                {hasTrack ? 'Criar com IA' : 'Adicionar Música'}
               </Button>
               <Button 
                 size="default" 
@@ -233,38 +284,6 @@ export default function Home() {
             </div>
           </div>
         </section>
-
-        {/* Recent Projects */}
-        {recentProjects && recentProjects.length > 0 && (
-          <section className="space-y-3 md:space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg md:text-xl font-bold">Continue seus Projetos</h2>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/tracks')} className="text-xs md:text-sm touch-manipulation">
-                Ver todos
-                <ChevronRight className="ml-1 h-3.5 w-3.5 md:h-4 md:w-4" />
-              </Button>
-            </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
-              {recentProjects.map((project) => (
-                <Card 
-                  key={project.id} 
-                  className="premium-card p-3 md:p-4 cursor-pointer active:scale-[0.98] hover:scale-[1.02] transition-transform touch-manipulation"
-                  onClick={() => navigate(`/tracks`)}
-                >
-                  <div className="flex items-center gap-2 md:gap-3">
-                    <div className="h-10 w-10 md:h-12 md:w-12 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center shrink-0">
-                      <Music className="h-5 w-5 md:h-6 md:w-6 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-sm md:text-base truncate">{project.title}</h3>
-                      <p className="text-[10px] md:text-xs text-muted-foreground capitalize">{project.status}</p>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </section>
-        )}
 
         {/* Main Modules Grid */}
         <section className="space-y-3 md:space-y-4">
@@ -329,71 +348,45 @@ export default function Home() {
         <Card className="premium-card p-4 md:p-6 lg:p-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             <div className="text-center">
-              <div className="text-xl md:text-2xl lg:text-3xl font-bold gradient-text">10K+</div>
-              <div className="text-[10px] md:text-xs lg:text-sm text-muted-foreground mt-0.5 md:mt-1">Usuários</div>
+              <div className="text-xl md:text-2xl lg:text-3xl font-bold gradient-text">{tracks.length || '0'}</div>
+              <div className="text-[10px] md:text-xs lg:text-sm text-muted-foreground mt-0.5 md:mt-1">Suas Músicas</div>
             </div>
             <div className="text-center">
-              <div className="text-xl md:text-2xl lg:text-3xl font-bold gradient-text">50K+</div>
-              <div className="text-[10px] md:text-xs lg:text-sm text-muted-foreground mt-0.5 md:mt-1">Tracks</div>
+              <div className="text-xl md:text-2xl lg:text-3xl font-bold gradient-text">{aiGenerations.length || '0'}</div>
+              <div className="text-[10px] md:text-xs lg:text-sm text-muted-foreground mt-0.5 md:mt-1">Criações IA</div>
             </div>
             <div className="text-center">
-              <div className="text-xl md:text-2xl lg:text-3xl font-bold gradient-text">2M+</div>
-              <div className="text-[10px] md:text-xs lg:text-sm text-muted-foreground mt-0.5 md:mt-1">Stems</div>
+              <div className="text-xl md:text-2xl lg:text-3xl font-bold gradient-text">{compatibleTracks.length || '0'}</div>
+              <div className="text-[10px] md:text-xs lg:text-sm text-muted-foreground mt-0.5 md:mt-1">Compatíveis</div>
             </div>
             <div className="text-center">
-              <div className="text-xl md:text-2xl lg:text-3xl font-bold gradient-text">100K+</div>
-              <div className="text-[10px] md:text-xs lg:text-sm text-muted-foreground mt-0.5 md:mt-1">Sets</div>
+              <div className="text-xl md:text-2xl lg:text-3xl font-bold gradient-text">{tracks.filter(t => t.bpm).length || '0'}</div>
+              <div className="text-[10px] md:text-xs lg:text-sm text-muted-foreground mt-0.5 md:mt-1">Analisadas</div>
             </div>
           </div>
         </Card>
-
-        {/* Demo Tracks */}
-        <section className="space-y-3 md:space-y-4">
-          <h2 className="text-lg md:text-xl font-bold">Tracks em Destaque</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4">
-            {demoTracks.map((track) => (
-              <Card key={track.id} className="premium-card overflow-hidden group touch-manipulation">
-                <div className="aspect-square relative">
-                  <img
-                    src={track.coverUrl}
-                    alt={track.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4 md:pb-6">
-                    <Button
-                      size="default"
-                      className="neon-glow text-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        playTrack(track, demoTracks);
-                      }}
-                    >
-                      <Play className="mr-1.5 h-4 w-4" />
-                      Play
-                    </Button>
-                  </div>
-                </div>
-                <div className="p-3 md:p-4">
-                  <h3 className="font-bold text-sm md:text-base truncate">{track.title}</h3>
-                  <p className="text-xs md:text-sm text-muted-foreground truncate">{track.artist}</p>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </section>
 
         {/* CTA */}
         <Card className="premium-card p-4 md:p-6 lg:p-8 bg-gradient-to-br from-primary/10 to-accent/10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
             <div className="text-center md:text-left">
-              <h3 className="text-xl md:text-2xl font-bold mb-1 md:mb-2">Pronto para criar?</h3>
+              <h3 className="text-xl md:text-2xl font-bold mb-1 md:mb-2">
+                {hasTrack ? 'Pronto para o próximo nível?' : 'Pronto para criar?'}
+              </h3>
               <p className="text-sm md:text-base text-muted-foreground">
-                Comece a usar o RemiXense gratuitamente.
+                {hasTrack 
+                  ? 'Explore as ferramentas de IA e crie algo incrível.'
+                  : 'Comece a usar o RemiXense gratuitamente.'
+                }
               </p>
             </div>
-            <Button size="default" className="neon-glow text-sm md:text-base touch-manipulation" onClick={() => navigate('/ai-studio')}>
+            <Button 
+              size="default" 
+              className="neon-glow text-sm md:text-base touch-manipulation" 
+              onClick={() => navigate(hasTrack ? '/ai-studio' : '/tracks')}
+            >
               <Sparkles className="mr-1.5 md:mr-2 h-4 w-4 md:h-5 md:w-5" />
-              Abrir Estúdio IA
+              {hasTrack ? 'Abrir Estúdio IA' : 'Adicionar Música'}
             </Button>
           </div>
         </Card>
