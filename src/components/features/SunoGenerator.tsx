@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Music, Wand2, Play, Download, Loader2, Save, Library } from 'lucide-react';
+import { Sparkles, Music, Wand2, Play, Download, Loader2, Save, Library, CheckCircle2, Clock } from 'lucide-react';
 import { useSunoGeneration } from '@/hooks/useSunoGeneration';
 import { AnimatedCard } from '@/components/ui/AnimatedCard';
 import { AnimatedButton } from '@/components/ui/AnimatedButton';
@@ -28,7 +28,16 @@ const moods = [
 const keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 export function SunoGenerator() {
-  const { generate, isGenerating, progress, currentGeneration, saveToLibrary } = useSunoGeneration();
+  const { 
+    generate, 
+    isGenerating, 
+    progress, 
+    currentGeneration, 
+    saveToLibrary,
+    isSavedToLibrary,
+    autoSaveEnabled,
+    setAutoSaveEnabled
+  } = useSunoGeneration();
   
   const [prompt, setPrompt] = useState('');
   const [genre, setGenre] = useState('');
@@ -40,6 +49,14 @@ export function SunoGenerator() {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [saveTitle, setSaveTitle] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+
+  // Pre-fill save title based on prompt
+  useEffect(() => {
+    if (currentGeneration?.success && prompt) {
+      const defaultTitle = prompt.slice(0, 50) + (prompt.length > 50 ? '...' : '');
+      setSaveTitle(defaultTitle);
+    }
+  }, [currentGeneration, prompt]);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -167,13 +184,27 @@ export function SunoGenerator() {
             </div>
           </div>
 
-          {/* Instrumental Toggle */}
-          <div className="flex items-center justify-between py-2">
-            <div>
-              <Label className="text-xs">Apenas instrumental</Label>
-              <p className="text-[10px] text-muted-foreground">Sem vocais/letras</p>
+          {/* Toggles */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between py-2 border-b border-border/50">
+              <div>
+                <Label className="text-xs">Apenas instrumental</Label>
+                <p className="text-[10px] text-muted-foreground">Sem vocais/letras</p>
+              </div>
+              <Switch checked={instrumental} onCheckedChange={setInstrumental} />
             </div>
-            <Switch checked={instrumental} onCheckedChange={setInstrumental} />
+            
+            {/* Auto-save toggle */}
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <Label className="text-xs flex items-center gap-1.5">
+                  <Library className="h-3 w-3" />
+                  Salvar automaticamente
+                </Label>
+                <p className="text-[10px] text-muted-foreground">Salva direto na biblioteca após gerar</p>
+              </div>
+              <Switch checked={autoSaveEnabled} onCheckedChange={setAutoSaveEnabled} />
+            </div>
           </div>
 
           {/* Progress */}
@@ -224,9 +255,23 @@ export function SunoGenerator() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">Música Gerada</p>
-                  <p className="text-xs text-muted-foreground">
-                    {currentGeneration.simulated ? 'Modo simulação' : 'Pronta para usar'}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs text-muted-foreground">
+                      {currentGeneration.simulated ? 'Modo simulação' : 'Pronta para usar'}
+                    </p>
+                    {/* Save status badge */}
+                    {isSavedToLibrary ? (
+                      <Badge variant="default" className="text-[9px] gap-1 bg-green-500/20 text-green-500 border-green-500/30">
+                        <CheckCircle2 className="h-2.5 w-2.5" />
+                        Na Biblioteca
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="text-[9px] gap-1">
+                        <Clock className="h-2.5 w-2.5" />
+                        Não salva
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <AnimatedButton size="sm" variant="ghost">
@@ -236,54 +281,56 @@ export function SunoGenerator() {
                     <Download className="h-4 w-4" />
                   </AnimatedButton>
                   
-                  {/* Save to Library Dialog */}
-                  <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
-                    <DialogTrigger asChild>
-                      <AnimatedButton size="sm" variant="default" className="gap-1.5">
-                        <Library className="h-4 w-4" />
-                        <span className="hidden sm:inline">Salvar na Biblioteca</span>
-                      </AnimatedButton>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
-                      <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                          <Save className="h-5 w-5 text-primary" />
-                          Salvar na Biblioteca
-                        </DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <p className="text-sm text-muted-foreground">
-                          Salve esta geração na sua biblioteca principal para usar em qualquer lugar do app.
-                        </p>
-                        <div className="space-y-2">
-                          <Label>Título da música</Label>
-                          <Input
-                            placeholder="Ex: Summer Vibes AI"
-                            value={saveTitle}
-                            onChange={(e) => setSaveTitle(e.target.value)}
-                          />
+                  {/* Save to Library Dialog - only show if not already saved */}
+                  {!isSavedToLibrary && (
+                    <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+                      <DialogTrigger asChild>
+                        <AnimatedButton size="sm" variant="default" className="gap-1.5">
+                          <Library className="h-4 w-4" />
+                          <span className="hidden sm:inline">Salvar</span>
+                        </AnimatedButton>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2">
+                            <Save className="h-5 w-5 text-primary" />
+                            Salvar na Biblioteca
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <p className="text-sm text-muted-foreground">
+                            Salve esta geração na sua biblioteca principal para usar em qualquer lugar do app.
+                          </p>
+                          <div className="space-y-2">
+                            <Label>Título da música</Label>
+                            <Input
+                              placeholder="Ex: Summer Vibes AI"
+                              value={saveTitle}
+                              onChange={(e) => setSaveTitle(e.target.value)}
+                            />
+                          </div>
+                          <div className="flex justify-end gap-2">
+                            <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
+                              Cancelar
+                            </Button>
+                            <Button onClick={handleSaveToLibrary} disabled={isSaving || !saveTitle.trim()}>
+                              {isSaving ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Salvando...
+                                </>
+                              ) : (
+                                <>
+                                  <Save className="h-4 w-4 mr-2" />
+                                  Salvar
+                                </>
+                              )}
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex justify-end gap-2">
-                          <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
-                            Cancelar
-                          </Button>
-                          <Button onClick={handleSaveToLibrary} disabled={isSaving || !saveTitle.trim()}>
-                            {isSaving ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Salvando...
-                              </>
-                            ) : (
-                              <>
-                                <Save className="h-4 w-4 mr-2" />
-                                Salvar
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                      </DialogContent>
+                    </Dialog>
+                  )}
                 </div>
               </div>
             </AnimatedCard>

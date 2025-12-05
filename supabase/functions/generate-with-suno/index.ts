@@ -15,6 +15,7 @@ interface SunoRequest {
   duration?: number;
   instrumental?: boolean;
   userId: string;
+  autoSave?: boolean;
 }
 
 serve(async (req) => {
@@ -29,7 +30,7 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseKey);
     
-    const { prompt, genre, mood, key, bpm, duration, instrumental, userId }: SunoRequest = await req.json();
+    const { prompt, genre, mood, key, bpm, duration, instrumental, userId, autoSave }: SunoRequest = await req.json();
 
     if (!prompt || !userId) {
       return new Response(
@@ -46,7 +47,7 @@ serve(async (req) => {
     if (bpm) enhancedPrompt += `, ${bpm} BPM`;
     if (instrumental) enhancedPrompt += ', instrumental only, no vocals';
 
-    console.log('Generating with Suno AI:', { enhancedPrompt, duration });
+    console.log('Generating with Suno AI:', { enhancedPrompt, duration, autoSave });
 
     // Record generation in database
     const { data: generation, error: dbError } = await supabase
@@ -62,7 +63,8 @@ serve(async (req) => {
           key,
           bpm,
           duration: duration || 30,
-          instrumental
+          instrumental,
+          autoSave
         }
       })
       .select()
@@ -72,6 +74,9 @@ serve(async (req) => {
       console.error('Database error:', dbError);
       throw new Error('Falha ao registrar geração');
     }
+
+    let audioUrl: string;
+    let isSimulated = false;
 
     // If Suno API key is configured, make real API call
     if (sunoApiKey) {
@@ -93,58 +98,91 @@ serve(async (req) => {
 
         if (sunoResponse.ok) {
           const sunoData = await sunoResponse.json();
-          
-          // Update generation with result
-          await supabase
-            .from('ai_generations')
-            .update({
-              status: 'completed',
-              output_url: sunoData.audio_url,
-              completed_at: new Date().toISOString(),
-              credits_used: Math.ceil((duration || 30) / 30) // 1 credit per 30s
-            })
-            .eq('id', generation.id);
-
-          return new Response(
-            JSON.stringify({
-              success: true,
-              generationId: generation.id,
-              audioUrl: sunoData.audio_url,
-              duration: sunoData.duration,
-              metadata: sunoData.metadata
-            }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+          audioUrl = sunoData.audio_url;
+        } else {
+          throw new Error('Suno API request failed');
         }
       } catch (apiError) {
         console.error('Suno API error:', apiError);
         // Fall through to simulation
+        isSimulated = true;
+        audioUrl = `https://example.com/simulated-audio-${generation.id}.mp3`;
       }
+    } else {
+      // Simulation mode when API not configured
+      console.log('Running in simulation mode (SUNO_API_KEY not configured)');
+      isSimulated = true;
+      audioUrl = `https://example.com/simulated-audio-${generation.id}.mp3`;
     }
 
-    // Simulation mode when API not configured
-    console.log('Running in simulation mode (SUNO_API_KEY not configured)');
-    
     // Simulate processing time
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Update with simulated result
+    if (isSimulated) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+
+    // Update generation with result
     await supabase
       .from('ai_generations')
       .update({
         status: 'completed',
-        output_url: `https://example.com/simulated-audio-${generation.id}.mp3`,
+        output_url: audioUrl,
         completed_at: new Date().toISOString(),
-        credits_used: 1
+        credits_used: Math.ceil((duration || 30) / 30)
       })
       .eq('id', generation.id);
+
+    // Auto-save to library if enabled
+    let savedToLibrary = false;
+    let trackId: string | null = null;
+
+    if (autoSave) {
+      try {
+        const trackTitle = prompt.slice(0, 50) + (prompt.length > 50 ? '...' : '') + ' (Suno AI)';
+        
+        const { data: track, error: trackError } = await supabase
+          .from('tracks')
+          .insert({
+            user_id: userId,
+            type: 'ai_generation',
+            title: trackTitle,
+            artist: 'Suno AI',
+            file_url: audioUrl,
+            bpm: bpm || null,
+            key_signature: key || null,
+            genre: genre || null,
+            duration: String(duration || 30),
+          })
+          .select()
+          .single();
+
+        if (!trackError && track) {
+          savedToLibrary = true;
+          trackId = track.id;
+
+          // Link generation to track
+          await supabase
+            .from('ai_generations')
+            .update({ input_track_id: track.id })
+            .eq('id', generation.id);
+
+          console.log('Track auto-saved to library:', track.id);
+        } else {
+          console.error('Failed to auto-save track:', trackError);
+        }
+      } catch (saveError) {
+        console.error('Auto-save error:', saveError);
+      }
+    }
 
     return new Response(
       JSON.stringify({
         success: true,
         generationId: generation.id,
-        simulated: true,
-        message: 'Geração simulada - Configure SUNO_API_KEY para geração real',
+        audioUrl,
+        simulated: isSimulated,
+        savedToLibrary,
+        trackId,
+        message: isSimulated ? 'Geração simulada - Configure SUNO_API_KEY para geração real' : undefined,
         parameters: {
           prompt: enhancedPrompt,
           duration: duration || 30
