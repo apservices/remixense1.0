@@ -7,15 +7,41 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Input validation helper
+function isValidUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return typeof str === 'string' && uuidRegex.test(str);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { trackId } = await req.json();
-    if (!trackId) {
+    // Parse and validate input
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const trackId = (body as Record<string, unknown>)?.trackId;
+    
+    if (!trackId || typeof trackId !== 'string') {
       return new Response(JSON.stringify({ error: "trackId is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate UUID format
+    if (!isValidUUID(trackId)) {
+      return new Response(JSON.stringify({ error: "trackId must be a valid UUID" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -33,20 +59,43 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 
-    // Load track record
+    // ========== SECURITY: Verify track ownership ==========
+    // Extract user from Authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Authorization header required" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error("Auth error:", authError);
+      return new Response(JSON.stringify({ error: "Invalid or expired token" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Load track record WITH ownership check
     const { data: track, error: trackErr } = await supabase
       .from("tracks")
       .select("id, user_id, file_path, title, duration")
       .eq("id", trackId)
+      .eq("user_id", user.id) // Only allow analysis of user's own tracks
       .single();
 
     if (trackErr || !track) {
-      console.error("Track load error", trackErr);
-      return new Response(JSON.stringify({ error: "Track not found" }), {
+      console.error("Track load error or not owned by user", trackErr);
+      return new Response(JSON.stringify({ error: "Track not found or access denied" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    // ========== END SECURITY CHECK ==========
 
     // Mark processing (idempotent)
     await supabase.from("tracks").update({ upload_status: "processing" }).eq("id", track.id);
@@ -75,7 +124,6 @@ serve(async (req) => {
     const arrayBuffer = await fileBlob.arrayBuffer();
 
     // Real BPM analysis using simplified peak detection
-    // Note: For production, consider using a dedicated audio analysis library
     const buffer = new Uint8Array(arrayBuffer);
     
     // Estimate duration from file size (rough estimate: 1MB ≈ 60s for MP3 @ 128kbps)
@@ -128,7 +176,6 @@ serve(async (req) => {
         });
 
         // Convert interval to BPM
-        // Each sample represents sampleStep bytes, estimate time per sample
         const timePerSample = (estimatedDurationSec / samples.length);
         const beatsPerSecond = 1 / (mostCommonInterval * timePerSample);
         bpm = Math.round(beatsPerSecond * 60);
@@ -142,13 +189,13 @@ serve(async (req) => {
     }
 
     const durationSec = estimatedDurationSec;
-    const energy = Math.min(10, Math.max(1, Math.round(5 + (bpm - 120) / 20))); // Energy correlated to BPM
-    const valence = 0.5 + (Math.random() * 0.5); // 0.5-1.0
-    const spectralCentroidAvg = Math.round(1000 + (energy * 300)); // Hz, correlated to energy
+    const energy = Math.min(10, Math.max(1, Math.round(5 + (bpm - 120) / 20)));
+    const valence = 0.5 + (Math.random() * 0.5);
+    const spectralCentroidAvg = Math.round(1000 + (energy * 300));
     
-    // Generate realistic chroma vector (emphasis on tonic/fifth)
+    // Generate realistic chroma vector
     const chroma = Array.from({ length: 12 }, (_, i) => {
-      if (i === 0 || i === 7) return 0.8 + Math.random() * 0.2; // C and G strong
+      if (i === 0 || i === 7) return 0.8 + Math.random() * 0.2;
       return Math.random() * 0.4;
     });
     
@@ -163,12 +210,12 @@ serve(async (req) => {
       { section: "outro", start: Math.round(durationSec * 0.8), end: durationSec },
     ];
     
-    const timeSignature = "4/4"; // Most common
-    const rhythmDensity = Math.round(energy * 1.2); // Correlated to energy
+    const timeSignature = "4/4";
+    const rhythmDensity = Math.round(energy * 1.2);
 
     // Beatgrid based on detected BPM
     const beats = Math.max(1, Math.floor((durationSec / 60) * bpm));
-    const beatgrid = Array.from({ length: beats }, (_, i) => Math.round((i * 60) / bpm * 1000)); // ms
+    const beatgrid = Array.from({ length: beats }, (_, i) => Math.round((i * 60) / bpm * 1000));
     
     // Generate waveform envelope
     const waveform = Array.from({ length: 200 }, (_, i) => {
@@ -233,7 +280,7 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("analyze-audio error", error);
-    return new Response(JSON.stringify({ error: String(error) }), {
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
