@@ -4,6 +4,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/Logo';
+import { LanguageSelector } from '@/components/ui/LanguageSelector';
+import { VoiceCommandButton } from '@/components/features/VoiceCommandButton';
+import { DynamicThemeToggle } from '@/components/features/DynamicThemeToggle';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -130,7 +133,14 @@ export function AppLayout({ children }: AppLayoutProps) {
           </div>
 
           {/* Right: Actions + Profile */}
-          <div className="flex items-center gap-2 md:gap-3">
+          <div className="flex items-center gap-1.5 md:gap-2">
+            {/* V3 Features */}
+            <div className="hidden sm:flex items-center gap-1">
+              <LanguageSelector />
+              <DynamicThemeToggle />
+              <VoiceCommandButton />
+            </div>
+
             {isFree && (
               <Button 
                 variant="outline" 

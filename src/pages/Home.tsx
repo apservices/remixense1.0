@@ -1,6 +1,7 @@
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { 
   Sparkles, 
   FolderKanban, 
@@ -15,18 +16,23 @@ import {
   TrendingUp,
   Play,
   ChevronRight,
-  Zap
+  Zap,
+  Mic,
+  Globe,
+  Palette
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useAudioLibrary } from '@/hooks/useAudioLibrary';
 
 export default function Home() {
   const navigate = useNavigate();
   const { playTrack } = usePlayer();
   const { user } = useAuth();
+  const { aiGenerations, tracks } = useAudioLibrary();
 
   // Fetch recent projects
   const { data: recentProjects } = useQuery({
@@ -84,6 +90,14 @@ export default function Home() {
     },
   ];
 
+  // V3 Features
+  const v3Features = [
+    { label: 'Suno AI', icon: Sparkles, path: '/ai-studio', badge: 'V3' },
+    { label: 'Comandos de Voz', icon: Mic, path: '/ai-studio', badge: 'V3' },
+    { label: 'Multi-idioma', icon: Globe, path: '/settings', badge: 'V3' },
+    { label: 'Tema Dinâmico', icon: Palette, path: '/settings', badge: 'V3' },
+  ];
+
   // Platform highlights
   const highlights = [
     { label: 'Gerador de Melodias', icon: Wand2, path: '/ai-studio' },
@@ -125,6 +139,65 @@ export default function Home() {
   return (
     <AppLayout>
       <div className="container max-w-6xl mx-auto py-4 md:py-6 px-3 md:px-4 space-y-6 md:space-y-8">
+        {/* V3 Features Section */}
+        <section className="space-y-3 md:space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg md:text-xl font-bold">Novidades V3</h2>
+              <Badge className="bg-gradient-to-r from-violet-500 to-cyan-500 text-white text-[10px]">NEW</Badge>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+            {v3Features.map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <Card
+                  key={feature.label}
+                  className="glass glass-border p-3 md:p-4 cursor-pointer hover:bg-muted/30 active:scale-[0.98] transition-all group touch-manipulation"
+                  onClick={() => navigate(feature.path)}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-cyan-500/20 group-hover:from-primary/30 group-hover:to-cyan-500/30 transition-colors">
+                      <Icon className="h-4 w-4 text-primary" />
+                    </div>
+                    <Badge variant="secondary" className="text-[9px]">{feature.badge}</Badge>
+                  </div>
+                  <p className="text-xs md:text-sm font-medium">{feature.label}</p>
+                </Card>
+              );
+            })}
+          </div>
+          
+          {/* Recent AI Generations */}
+          {aiGenerations.length > 0 && (
+            <Card className="premium-card p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  Últimas Gerações IA
+                </h3>
+                <Button variant="ghost" size="sm" onClick={() => navigate('/tracks')} className="text-xs">
+                  Ver todas
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {aiGenerations.slice(0, 4).map((gen) => (
+                  <div key={gen.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/30 transition-colors">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-violet-500/20 to-cyan-500/20 flex items-center justify-center">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{gen.title}</p>
+                      <p className="text-xs text-muted-foreground">{gen.artist}</p>
+                    </div>
+                    <Badge variant="secondary" className="text-[9px]">IA</Badge>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+        </section>
+
         {/* Hero Section */}
         <section className="relative overflow-hidden rounded-2xl md:rounded-3xl gradient-primary p-5 md:p-8 lg:p-12">
           <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent" />
