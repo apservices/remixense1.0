@@ -1,5 +1,12 @@
 import { supabase } from '@/integrations/supabase/client';
 
+export interface ReanalysisResult {
+  success: boolean;
+  processed: number;
+  failed: number;
+  errors: string[];
+}
+
 /**
  * Re-triggers analysis for a specific track by invoking the analyze-audio edge function
  */
@@ -22,45 +29,112 @@ export async function reanalyzeTrack(trackId: string): Promise<{ success: boolea
 }
 
 /**
- * Re-analyzes all tracks for the current user
+ * Re-analyzes all tracks for a user that need BPM/Key detection
  */
-export async function reanalyzeAllTracks(userId: string): Promise<{ 
-  success: boolean; 
-  processed: number; 
-  failed: number;
-  errors: string[];
-}> {
+export async function reanalyzeAllTracks(userId: string): Promise<ReanalysisResult> {
+  const result: ReanalysisResult = {
+    success: true,
+    processed: 0,
+    failed: 0,
+    errors: []
+  };
+
   try {
-    // Fetch all tracks for the user
+    // Fetch all tracks for the user that need analysis
     const { data: tracks, error: fetchError } = await supabase
       .from('tracks')
-      .select('id')
-      .eq('user_id', userId);
+      .select('id, title, bpm, key_signature, file_path')
+      .eq('user_id', userId)
+      .not('file_path', 'is', null);
 
-    if (fetchError) throw fetchError;
-    if (!tracks || tracks.length === 0) {
-      return { success: true, processed: 0, failed: 0, errors: [] };
+    if (fetchError) {
+      throw fetchError;
     }
 
-    // Re-analyze each track
-    const results = await Promise.allSettled(
-      tracks.map(track => reanalyzeTrack(track.id))
+    if (!tracks || tracks.length === 0) {
+      return { ...result, success: true };
+    }
+
+    // Filter tracks that need re-analysis (no BPM or key, or mock values)
+    const tracksToAnalyze = tracks.filter(t => 
+      !t.bpm || 
+      !t.key_signature || 
+      t.bpm === 200 || // Known mock value
+      t.bpm === 0
     );
 
-    const processed = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
-    const failed = results.length - processed;
-    const errors = results
-      .filter((r): r is PromiseRejectedResult => r.status === 'rejected')
-      .map(r => r.reason?.message || 'Unknown error');
+    console.log(`📊 Re-analyzing ${tracksToAnalyze.length} of ${tracks.length} tracks`);
 
-    return { success: failed === 0, processed, failed, errors };
+    // If no tracks need analysis, return success with all tracks processed
+    if (tracksToAnalyze.length === 0) {
+      return { ...result, processed: tracks.length, success: true };
+    }
+
+    // Process tracks in batches to avoid overwhelming the server
+    const batchSize = 3;
+    for (let i = 0; i < tracksToAnalyze.length; i += batchSize) {
+      const batch = tracksToAnalyze.slice(i, i + batchSize);
+      
+      const batchPromises = batch.map(async (track) => {
+        try {
+          console.log(`🔄 Re-analyzing: ${track.title}`);
+          
+          const { data, error } = await supabase.functions.invoke('analyze-audio', {
+            body: { trackId: track.id }
+          });
+
+          if (error) {
+            throw error;
+          }
+
+          result.processed++;
+          return true;
+        } catch (err) {
+          console.error(`❌ Failed to analyze ${track.title}:`, err);
+          result.failed++;
+          result.errors.push(`${track.title}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+          return false;
+        }
+      });
+
+      await Promise.all(batchPromises);
+      
+      // Small delay between batches
+      if (i + batchSize < tracksToAnalyze.length) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+
+    result.success = result.failed === 0;
+    return result;
+
   } catch (error) {
-    console.error('Error re-analyzing all tracks:', error);
-    return { 
-      success: false, 
-      processed: 0, 
-      failed: 0, 
-      errors: [error instanceof Error ? error.message : 'Unknown error'] 
+    console.error('Re-analysis error:', error);
+    return {
+      success: false,
+      processed: 0,
+      failed: 1,
+      errors: [error instanceof Error ? error.message : 'Unknown error']
     };
+  }
+}
+
+/**
+ * Re-analyzes a single track
+ */
+export async function reanalyzeSingleTrack(trackId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase.functions.invoke('analyze-audio', {
+      body: { trackId }
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Single track re-analysis error:', error);
+    return false;
   }
 }
