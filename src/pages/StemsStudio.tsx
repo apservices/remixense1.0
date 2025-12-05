@@ -4,11 +4,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
-import { Badge } from '@/components/ui/badge';
-import { Upload, Music, Volume2, VolumeX, Download, Play, Pause, Loader2, RefreshCw, Headphones, Crown, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Upload, Music, Volume2, VolumeX, Download, Play, Pause, Loader2, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useSubscription } from '@/hooks/useSubscription';
-import { useNavigate } from 'react-router-dom';
 
 interface Stem {
   id: string;
@@ -17,20 +14,16 @@ interface Stem {
   color: string;
   volume: number;
   muted: boolean;
-  solo: boolean;
   audioUrl?: string;
 }
 
 export default function StemsStudio() {
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const { subscription, isFree, isPro, isExpert } = useSubscription();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [stems, setStems] = useState<Stem[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [viewMode, setViewMode] = useState<'mix' | 'original'>('mix');
   const audioRefs = useRef<Record<string, HTMLAudioElement>>({});
   const originalAudioRef = useRef<HTMLAudioElement>(null);
 
@@ -41,9 +34,6 @@ export default function StemsStudio() {
     { type: 'harmony', name: '🎹 Harmony', color: 'bg-purple-500' },
     { type: 'other', name: '🎵 Other', color: 'bg-green-500' },
   ];
-
-  const planType = subscription?.plan_type || 'free';
-  const remainingStems = isExpert ? Infinity : isPro ? 10 : 1;
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -66,24 +56,13 @@ export default function StemsStudio() {
   const handleSeparateStems = async () => {
     if (!selectedFile) return;
 
-    // Check plan limits (simplified check)
-    if (isFree && remainingStems <= 0) {
-      toast({
-        title: 'Limite atingido',
-        description: `Você atingiu o limite de separações do plano ${planType}. Faça upgrade para continuar.`,
-        variant: 'destructive'
-      });
-      return;
-    }
-
     setIsProcessing(true);
     setProgress(0);
 
     try {
-      // Simulate processing with progress
-      for (let i = 0; i <= 100; i += 2) {
+      for (let i = 0; i <= 100; i += 5) {
         setProgress(i);
-        await new Promise(resolve => setTimeout(resolve, 80));
+        await new Promise(resolve => setTimeout(resolve, 150));
       }
 
       const audioUrl = URL.createObjectURL(selectedFile);
@@ -95,7 +74,6 @@ export default function StemsStudio() {
         color,
         volume: 100,
         muted: false,
-        solo: false,
         audioUrl
       }));
 
@@ -137,28 +115,10 @@ export default function StemsStudio() {
         if (audio) {
           audio.muted = newMuted;
         }
-        return { ...stem, muted: newMuted, solo: false };
+        return { ...stem, muted: newMuted };
       }
       return stem;
     }));
-  };
-
-  const toggleSolo = (stemId: string) => {
-    setStems(prev => {
-      const targetStem = prev.find(s => s.id === stemId);
-      const newSoloState = !targetStem?.solo;
-      
-      return prev.map(stem => {
-        const audio = audioRefs.current[stem.id];
-        if (stem.id === stemId) {
-          if (audio) audio.muted = false;
-          return { ...stem, solo: newSoloState, muted: false };
-        } else {
-          if (audio) audio.muted = newSoloState;
-          return { ...stem, solo: false, muted: newSoloState };
-        }
-      });
-    });
   };
 
   const togglePlayback = () => {
@@ -167,19 +127,14 @@ export default function StemsStudio() {
       originalAudioRef.current?.pause();
       setIsPlaying(false);
     } else {
-      if (viewMode === 'original' && originalAudioRef.current) {
-        originalAudioRef.current.currentTime = 0;
-        originalAudioRef.current.play().catch(console.error);
-      } else {
-        const playPromises = Object.values(audioRefs.current)
-          .filter(Boolean)
-          .map(audio => {
-            audio.currentTime = 0;
-            return audio.play().catch(console.error);
-          });
-        Promise.all(playPromises);
-      }
-      setIsPlaying(true);
+      const playPromises = Object.values(audioRefs.current)
+        .filter(Boolean)
+        .map(audio => {
+          audio.currentTime = 0;
+          return audio.play().catch(console.error);
+        });
+      
+      Promise.all(playPromises).then(() => setIsPlaying(true));
     }
   };
 
@@ -197,16 +152,8 @@ export default function StemsStudio() {
     });
   };
 
-  const downloadAllStems = () => {
-    stems.forEach(stem => downloadStem(stem));
-    toast({
-      title: 'Todos os stems baixados!',
-      description: '5 arquivos foram salvos na pasta de downloads.'
-    });
-  };
-
   const resetAll = () => {
-    setStems(prev => prev.map(stem => ({ ...stem, volume: 100, muted: false, solo: false })));
+    setStems(prev => prev.map(stem => ({ ...stem, volume: 100, muted: false })));
     Object.values(audioRefs.current).forEach(audio => {
       if (audio) {
         audio.volume = 1;
@@ -218,48 +165,12 @@ export default function StemsStudio() {
   return (
     <AppLayout>
       <div className="container max-w-6xl mx-auto py-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-heading-xl mb-2">🎛️ Studio de Stems</h1>
-            <p className="text-muted-foreground">
-              Separe e edite stems com IA - voz, bateria, baixo, harmonia e FX
-            </p>
-          </div>
-          
-          {/* Plan badge */}
-          <div className="flex items-center gap-2">
-            {planType === 'expert' ? (
-              <Badge className="bg-gradient-to-r from-amber-500 to-orange-500">
-                <Crown className="h-3 w-3 mr-1" />
-                Ilimitado
-              </Badge>
-            ) : (
-              <Badge variant="outline">
-                {remainingStems === Infinity ? '∞' : remainingStems} separações restantes
-              </Badge>
-            )}
-          </div>
+        <div>
+          <h1 className="text-heading-xl mb-2">🎛️ Studio de Stems</h1>
+          <p className="text-muted-foreground">
+            Separe e edite stems com IA - voz, bateria, baixo, harmonia e FX
+          </p>
         </div>
-
-        {/* Plan limit warning */}
-        {planType === 'free' && remainingStems <= 0 && (
-          <Card className="glass border-amber-500/30 bg-gradient-to-r from-amber-500/10 to-orange-500/10 p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Crown className="h-6 w-6 text-amber-500" />
-                <div>
-                  <p className="font-medium">Limite de separações atingido</p>
-                  <p className="text-sm text-muted-foreground">
-                    Plano Free permite 1 separação/mês. Upgrade para mais.
-                  </p>
-                </div>
-              </div>
-              <Button onClick={() => navigate('/subscription')} variant="default" className="bg-gradient-to-r from-amber-500 to-orange-500">
-                Upgrade
-              </Button>
-            </div>
-          </Card>
-        )}
 
         {!selectedFile ? (
           <Card className="glass glass-border p-12">
@@ -311,12 +222,6 @@ export default function StemsStudio() {
                   Trocar Arquivo
                 </Button>
               </div>
-              {/* Hidden original audio */}
-              <audio
-                ref={originalAudioRef}
-                src={URL.createObjectURL(selectedFile)}
-                preload="auto"
-              />
             </Card>
 
             {/* Processing */}
@@ -341,7 +246,6 @@ export default function StemsStudio() {
                 size="lg"
                 className="w-full neon-glow"
                 onClick={handleSeparateStems}
-                disabled={planType === 'free' && remainingStems <= 0}
               >
                 🎵 Separar Stems com IA
               </Button>
@@ -353,27 +257,21 @@ export default function StemsStudio() {
                 <div className="flex items-center justify-between">
                   <h3 className="text-heading-lg">Mixer de Stems</h3>
                   <div className="flex gap-2">
-                    {/* A/B Toggle */}
-                    <Button
-                      variant={viewMode === 'original' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setViewMode(viewMode === 'mix' ? 'original' : 'mix')}
-                    >
-                      {viewMode === 'mix' ? (
-                        <><ToggleLeft className="h-4 w-4 mr-2" />Mix</>
-                      ) : (
-                        <><ToggleRight className="h-4 w-4 mr-2" />Original</>
-                      )}
-                    </Button>
                     <Button variant="outline" size="sm" onClick={resetAll}>
                       <RefreshCw className="h-4 w-4 mr-2" />
                       Resetar
                     </Button>
                     <Button variant="outline" size="sm" onClick={togglePlayback}>
                       {isPlaying ? (
-                        <><Pause className="h-4 w-4 mr-2" />Pausar</>
+                        <>
+                          <Pause className="h-4 w-4 mr-2" />
+                          Pausar
+                        </>
                       ) : (
-                        <><Play className="h-4 w-4 mr-2" />Play</>
+                        <>
+                          <Play className="h-4 w-4 mr-2" />
+                          Play
+                        </>
                       )}
                     </Button>
                   </div>
@@ -383,7 +281,7 @@ export default function StemsStudio() {
                   {stems.map((stem) => (
                     <div
                       key={stem.id}
-                      className={`glass glass-border rounded-lg p-4 transition-opacity ${stem.muted && !stem.solo ? 'opacity-50' : ''}`}
+                      className={`glass glass-border rounded-lg p-4 ${stem.muted ? 'opacity-50' : ''}`}
                     >
                       <div className="flex items-center gap-4">
                         {/* Stem indicator */}
@@ -393,17 +291,6 @@ export default function StemsStudio() {
                         <div className="w-28">
                           <span className="font-medium">{stem.name}</span>
                         </div>
-
-                        {/* Solo button */}
-                        <Button
-                          variant={stem.solo ? 'default' : 'outline'}
-                          size="icon"
-                          onClick={() => toggleSolo(stem.id)}
-                          className={stem.solo ? 'bg-amber-500 hover:bg-amber-600' : ''}
-                          aria-label="Solo"
-                        >
-                          <Headphones className="h-4 w-4" />
-                        </Button>
 
                         {/* Mute button */}
                         <Button
@@ -462,12 +349,12 @@ export default function StemsStudio() {
 
                 {/* Export buttons */}
                 <div className="flex gap-2 pt-4 border-t border-border">
-                  <Button className="flex-1" variant="neon" onClick={downloadAllStems}>
+                  <Button className="flex-1" variant="neon">
                     <Download className="h-4 w-4 mr-2" />
-                    Baixar Todos
+                    Exportar Mix
                   </Button>
                   <Button variant="outline" className="flex-1">
-                    Salvar no Vault
+                    Salvar Projeto
                   </Button>
                 </div>
               </Card>
@@ -481,11 +368,9 @@ export default function StemsStudio() {
             <span className="text-2xl">💡</span>
             <div className="text-sm text-muted-foreground">
               <strong className="text-foreground">Dica:</strong> A separação de stems permite isolar 
-              vocais, bateria, baixo e harmonia de qualquer música. Use o botão <strong>Solo</strong> (🎧) 
-              para ouvir apenas um stem, ou <strong>Mute</strong> para silenciar. 
-              {planType === 'free' && (
-                <span className="text-amber-500"> Plano Free: 1 separação/mês.</span>
-              )}
+              vocais, bateria, baixo e harmonia de qualquer música. Perfeito para criar remixes, 
+              acapellas ou versões instrumentais. Em produção, este recurso utilizará modelos 
+              de IA como Demucs ou Spleeter para separação real de alta qualidade.
             </div>
           </div>
         </Card>
