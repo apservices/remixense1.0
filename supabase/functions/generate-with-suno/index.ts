@@ -47,7 +47,12 @@ serve(async (req) => {
     if (bpm) enhancedPrompt += `, ${bpm} BPM`;
     if (instrumental) enhancedPrompt += ', instrumental only, no vocals';
 
-    console.log('Generating with Suno AI:', { enhancedPrompt, duration, autoSave, hasApiKey: !!sunoApiKey });
+    console.log('=== SUNO GENERATION START ===');
+    console.log('Enhanced prompt:', enhancedPrompt);
+    console.log('Duration:', duration);
+    console.log('AutoSave:', autoSave);
+    console.log('Has API Key:', !!sunoApiKey);
+    console.log('API Key length:', sunoApiKey?.length || 0);
 
     // Record generation in database
     const { data: generation, error: dbError } = await supabase
@@ -79,83 +84,118 @@ serve(async (req) => {
     let isSimulated = false;
 
     // If Suno API key is configured, make real API call
-    if (sunoApiKey) {
+    if (sunoApiKey && sunoApiKey.length > 10) {
       try {
-        console.log('Calling Suno API via GoAPI...');
+        console.log('=== CALLING GOAPI.AI ===');
         
-        // Using GoAPI.ai Suno wrapper
-        const sunoResponse = await fetch('https://api.goapi.ai/api/suno/v1/music', {
+        // GoAPI.ai Music API - correct endpoint and structure
+        const requestBody = {
+          model: 'music-u',
+          task_type: 'generate_music',
+          input: {
+            gpt_description_prompt: enhancedPrompt,
+            negative_tags: '',
+            lyrics_type: instrumental ? 'instrumental' : 'generate'
+          }
+        };
+        
+        console.log('Request URL: https://api.goapi.ai/api/v1/task');
+        console.log('Request body:', JSON.stringify(requestBody));
+        
+        const sunoResponse = await fetch('https://api.goapi.ai/api/v1/task', {
           method: 'POST',
           headers: {
-            'X-API-Key': sunoApiKey,
+            'x-api-key': sunoApiKey,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            custom_mode: true,
-            input: {
-              gpt_description_prompt: enhancedPrompt,
-              make_instrumental: instrumental || false,
-              mv: 'sonic-v3-5'
-            }
-          }),
+          body: JSON.stringify(requestBody),
         });
 
-        console.log('Suno API response status:', sunoResponse.status);
+        console.log('GoAPI response status:', sunoResponse.status);
+        const responseText = await sunoResponse.text();
+        console.log('GoAPI response body:', responseText.slice(0, 1000));
         
         if (sunoResponse.ok) {
-          const sunoData = await sunoResponse.json();
-          console.log('Suno API response:', JSON.stringify(sunoData).slice(0, 500));
+          const sunoData = JSON.parse(responseText);
+          console.log('Parsed response:', JSON.stringify(sunoData).slice(0, 500));
           
           // GoAPI returns a task_id, need to poll for result
-          if (sunoData.data?.task_id) {
-            const taskId = sunoData.data.task_id;
-            console.log('Task ID:', taskId);
+          const taskId = sunoData.data?.task_id || sunoData.task_id;
+          
+          if (taskId) {
+            console.log('Task ID received:', taskId);
             
-            // Poll for result (max 60 attempts, 5 seconds each = 5 minutes)
-            for (let i = 0; i < 60; i++) {
-              await new Promise(resolve => setTimeout(resolve, 5000));
+            // Poll for result (max 90 attempts, 4 seconds each = 6 minutes)
+            for (let i = 0; i < 90; i++) {
+              await new Promise(resolve => setTimeout(resolve, 4000));
               
-              const statusResponse = await fetch(`https://api.goapi.ai/api/suno/v1/music/${taskId}`, {
-                headers: { 'X-API-Key': sunoApiKey }
+              console.log(`Poll attempt ${i + 1}/90 for task ${taskId}`);
+              
+              const statusResponse = await fetch(`https://api.goapi.ai/api/v1/task/${taskId}`, {
+                headers: { 'x-api-key': sunoApiKey }
               });
               
+              const statusText = await statusResponse.text();
+              console.log(`Poll ${i + 1} status:`, statusResponse.status);
+              console.log(`Poll ${i + 1} body:`, statusText.slice(0, 500));
+              
               if (statusResponse.ok) {
-                const statusData = await statusResponse.json();
-                console.log(`Poll ${i + 1}:`, statusData.data?.status);
+                const statusData = JSON.parse(statusText);
+                const taskStatus = statusData.data?.status || statusData.status;
+                console.log(`Task status: ${taskStatus}`);
                 
-                if (statusData.data?.status === 'completed' && statusData.data?.output?.audio_url) {
-                  audioUrl = statusData.data.output.audio_url;
+                if (taskStatus === 'success' || taskStatus === 'completed') {
+                  // Try multiple possible paths for audio URL
+                  audioUrl = statusData.data?.task_result?.task_output?.audio_url 
+                    || statusData.data?.task_result?.audio_url
+                    || statusData.data?.output?.audio_url
+                    || statusData.data?.audio_url
+                    || statusData.audio_url;
+                  
+                  console.log('=== GENERATION SUCCESS ===');
                   console.log('Audio URL found:', audioUrl);
                   break;
-                } else if (statusData.data?.status === 'failed') {
-                  throw new Error('Suno generation failed: ' + (statusData.data?.error || 'Unknown error'));
+                } else if (taskStatus === 'failed' || taskStatus === 'error') {
+                  const errorMsg = statusData.data?.error || statusData.error || 'Unknown error';
+                  console.error('=== GENERATION FAILED ===');
+                  console.error('Error:', errorMsg);
+                  throw new Error('Suno generation failed: ' + errorMsg);
                 }
+                // Continue polling for 'pending', 'processing', etc.
+              } else {
+                console.error(`Poll error: ${statusResponse.status}`);
               }
             }
             
             if (!audioUrl) {
-              throw new Error('Timeout waiting for Suno generation');
+              console.error('=== TIMEOUT ===');
+              throw new Error('Timeout waiting for Suno generation (6 minutes)');
             }
           } else if (sunoData.audio_url) {
             audioUrl = sunoData.audio_url;
+            console.log('Direct audio URL:', audioUrl);
           } else {
-            console.error('Unexpected Suno response format:', sunoData);
-            throw new Error('Formato de resposta Suno inesperado');
+            console.error('=== UNEXPECTED RESPONSE ===');
+            console.error('Full response:', responseText);
+            throw new Error('Formato de resposta inesperado - sem task_id');
           }
         } else {
-          const errorText = await sunoResponse.text();
-          console.error('Suno API error response:', errorText);
-          throw new Error(`Suno API request failed: ${sunoResponse.status}`);
+          console.error('=== API ERROR ===');
+          console.error('Status:', sunoResponse.status);
+          console.error('Response:', responseText);
+          throw new Error(`GoAPI request failed: ${sunoResponse.status} - ${responseText.slice(0, 200)}`);
         }
       } catch (apiError) {
-        console.error('Suno API error:', apiError);
+        console.error('=== CATCH API ERROR ===');
+        console.error('Error:', apiError);
         // Fall through to simulation if API fails
         isSimulated = true;
         audioUrl = null;
       }
     } else {
       // Simulation mode when API not configured
-      console.log('Running in simulation mode (SUNO_API_KEY not configured)');
+      console.log('=== SIMULATION MODE ===');
+      console.log('Reason: SUNO_API_KEY not configured or too short');
       isSimulated = true;
     }
 
@@ -221,6 +261,11 @@ serve(async (req) => {
       }
     }
 
+    console.log('=== RETURNING RESPONSE ===');
+    console.log('Success:', !!audioUrl);
+    console.log('Simulated:', isSimulated);
+    console.log('Audio URL:', audioUrl?.slice(0, 100));
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -239,7 +284,8 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in generate-with-suno:', error);
+    console.error('=== FATAL ERROR ===');
+    console.error('Error:', error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Erro desconhecido' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
