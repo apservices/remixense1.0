@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus';
-import { Onboarding } from '@/components/Onboarding';
+import { useProfileCompletion } from '@/hooks/useProfileCompletion';
+import { useAuth } from '@/hooks/useAuth';
+import { GuidedOnboarding } from '@/components/GuidedOnboarding';
+import { ProfileCompletionModal } from '@/components/ProfileCompletionModal';
+import { OAuthErrorHandler } from '@/components/OAuthErrorHandler';
 
 interface OnboardingWrapperProps {
   children: React.ReactNode;
@@ -8,15 +12,40 @@ interface OnboardingWrapperProps {
 
 export function OnboardingWrapper({ children }: OnboardingWrapperProps) {
   const { hasCompletedOnboarding, isLoading, completeOnboarding } = useOnboardingStatus();
+  const { isComplete: profileComplete, isLoading: profileLoading } = useProfileCompletion();
+  const { user } = useAuth();
+  
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && !hasCompletedOnboarding) {
+    if (!isLoading && !hasCompletedOnboarding && user) {
       setShowOnboarding(true);
     }
-  }, [isLoading, hasCompletedOnboarding]);
+  }, [isLoading, hasCompletedOnboarding, user]);
 
-  const handleComplete = async () => {
+  // Check profile completion after onboarding
+  useEffect(() => {
+    if (!profileLoading && !profileComplete && user && hasCompletedOnboarding) {
+      // Check if user skipped recently (within 24h)
+      const skippedAt = localStorage.getItem('profile_completion_skipped');
+      if (skippedAt) {
+        const skippedTime = parseInt(skippedAt, 10);
+        const dayInMs = 24 * 60 * 60 * 1000;
+        if (Date.now() - skippedTime < dayInMs) {
+          return; // Don't show if skipped within 24h
+        }
+      }
+      setShowProfileModal(true);
+    }
+  }, [profileLoading, profileComplete, user, hasCompletedOnboarding]);
+
+  const handleOnboardingComplete = async () => {
+    await completeOnboarding();
+    setShowOnboarding(false);
+  };
+
+  const handleOnboardingSkip = async () => {
     await completeOnboarding();
     setShowOnboarding(false);
   };
@@ -25,9 +54,23 @@ export function OnboardingWrapper({ children }: OnboardingWrapperProps) {
     return <>{children}</>;
   }
 
-  if (showOnboarding) {
-    return <Onboarding onComplete={handleComplete} />;
+  if (showOnboarding && user) {
+    return (
+      <GuidedOnboarding 
+        onComplete={handleOnboardingComplete} 
+        onSkip={handleOnboardingSkip}
+      />
+    );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <OAuthErrorHandler />
+      <ProfileCompletionModal 
+        open={showProfileModal} 
+        onOpenChange={setShowProfileModal} 
+      />
+      {children}
+    </>
+  );
 }
