@@ -1,7 +1,7 @@
 {
-  "name": "RemiXense - AI Music Creation Platform",
+  "name": "RemiXense - Sua jornada musical começa aqui!",
   "short_name": "RemiXense",
-  "description": "Plataforma de criação musical com inteligência artificial",
+  "description": "Sua jornada musical começa aqui! Plataforma de criação musical com IA.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
