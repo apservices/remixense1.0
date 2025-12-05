@@ -11,7 +11,7 @@ import { Wand2, Music, Download, Play, Pause, Volume2, Star, Zap, Upload, Loader
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useSubscription } from '@/hooks/useSubscription';
-import { MainLayout } from '@/components/MainLayout';
+import { AppLayout } from '@/components/layout/AppLayout';
 
 export default function AIStudio() {
   const { user } = useAuth();
@@ -243,7 +243,7 @@ export default function AIStudio() {
   ];
 
   return (
-    <MainLayout>
+    <AppLayout>
       <div className="min-h-screen pb-20">
         {/* Header */}
         <div className="sticky top-0 z-40 glass border-b border-glass-border backdrop-blur-glass">
@@ -682,6 +682,6 @@ export default function AIStudio() {
           )}
         </div>
       </div>
-    </MainLayout>
+    </AppLayout>
   );
 }

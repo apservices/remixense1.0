@@ -1,4 +1,4 @@
-import { MainLayout } from '@/components/MainLayout';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { AutoDJPanel } from '@/components/dj/AutoDJPanel';
 import { SmartRecommendations } from '@/components/SmartRecommendations';
 import { Card } from '@/components/ui/card';
@@ -7,7 +7,7 @@ import { Disc3, Sparkles, Zap, Music } from 'lucide-react';
 
 export default function AutoDJ() {
   return (
-    <MainLayout>
+    <AppLayout>
       <div className="min-h-screen pb-20">
         {/* Header */}
         <div className="sticky top-0 z-40 glass border-b border-glass-border backdrop-blur-glass">
@@ -94,6 +94,6 @@ export default function AutoDJ() {
           </Card>
         </div>
       </div>
-    </MainLayout>
+    </AppLayout>
   );
 }

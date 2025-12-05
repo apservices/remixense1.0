@@ -1,4 +1,4 @@
-import { MainLayout } from '@/components/MainLayout';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { SocialFeedCard } from '@/components/social/SocialFeedCard';
 import { CommentsPanel } from '@/components/social/CommentsPanel';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,7 @@ export default function SocialFeed() {
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
   return (
-    <MainLayout>
+    <AppLayout>
       <div className="container max-w-2xl mx-auto py-6 px-4">
         {/* Feed Type Tabs */}
         <div className="flex gap-2 mb-6 glass glass-border backdrop-blur-glass p-2 rounded-lg">
@@ -94,6 +94,6 @@ export default function SocialFeed() {
           {selectedPostId && <CommentsPanel postId={selectedPostId} />}
         </DialogContent>
       </Dialog>
-    </MainLayout>
+    </AppLayout>
   );
 }

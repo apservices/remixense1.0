@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { Music, Loader2 } from 'lucide-react';
 
 interface Track {
   id: string;
@@ -39,41 +41,56 @@ export default function Tracks() {
   }, []);
 
   return (
-    <main className="p-4 max-w-5xl mx-auto">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold">Minhas Faixas</h1>
-        <p className="text-muted-foreground">Gerencie e analise suas faixas enviadas.</p>
-      </header>
+    <AppLayout>
+      <div className="container max-w-5xl mx-auto py-6 px-4">
+        <header className="mb-6">
+          <h1 className="text-2xl font-bold gradient-text">Minhas Faixas</h1>
+          <p className="text-muted-foreground">Gerencie e analise suas faixas enviadas.</p>
+        </header>
 
-      {loading ? (
-        <div className="text-muted-foreground">Carregando...</div>
-      ) : tracks.length === 0 ? (
-        <Card className="glass border-glass-border p-8 text-center">
-          <p className="mb-4">Você ainda não enviou nenhuma faixa.</p>
-          <a href="/vault" className="underline text-primary">Enviar faixas</a>
-        </Card>
-      ) : (
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {tracks.map((t) => (
-            <Card key={t.id} className="glass border-glass-border p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-base font-semibold">{t.title}</h2>
-                  <p className="text-sm text-muted-foreground">{t.artist}</p>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : tracks.length === 0 ? (
+          <Card className="premium-card p-12 text-center">
+            <div className="inline-flex p-4 rounded-2xl bg-primary/10 mb-4">
+              <Music className="h-8 w-8 text-primary" />
+            </div>
+            <h3 className="text-lg font-medium mb-2">Nenhuma faixa encontrada</h3>
+            <p className="text-muted-foreground">Faça upload de suas primeiras faixas para começar.</p>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {tracks.map((track) => (
+              <Card key={track.id} className="premium-card p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl gradient-primary flex items-center justify-center">
+                      <Music className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium">{track.title || 'Sem título'}</h3>
+                      <p className="text-sm text-muted-foreground">{track.artist || 'Artista desconhecido'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {track.bpm && (
+                      <Badge variant="secondary">{track.bpm} BPM</Badge>
+                    )}
+                    {track.key_signature && (
+                      <Badge variant="outline">{track.key_signature}</Badge>
+                    )}
+                    {track.genre && (
+                      <Badge className="bg-primary/20 text-primary">{track.genre}</Badge>
+                    )}
+                  </div>
                 </div>
-                <Badge variant="outline">{new Date(t.created_at).toLocaleDateString()}</Badge>
-              </div>
-              <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
-                <div><span className="text-muted-foreground">BPM</span><div className="font-medium">{t.bpm ?? '—'}</div></div>
-                <div><span className="text-muted-foreground">Key</span><div className="font-medium">{t.key_signature ?? '—'}</div></div>
-                <div><span className="text-muted-foreground">Energia</span><div className="font-medium">{t.energy_level ?? '—'}</div></div>
-                <div><span className="text-muted-foreground">Gênero</span><div className="font-medium">{t.genre ?? '—'}</div></div>
-                <div><span className="text-muted-foreground">Duração</span><div className="font-medium">{t.duration}</div></div>
-              </div>
-            </Card>
-          ))}
-        </section>
-      )}
-    </main>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </AppLayout>
   );
 }
