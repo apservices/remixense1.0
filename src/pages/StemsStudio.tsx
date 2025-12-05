@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { MainLayout } from '@/components/MainLayout';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -60,16 +60,13 @@ export default function StemsStudio() {
     setProgress(0);
 
     try {
-      // Simulate AI stem separation with progress
       for (let i = 0; i <= 100; i += 5) {
         setProgress(i);
         await new Promise(resolve => setTimeout(resolve, 150));
       }
 
-      // Create audio URL from original file for all stems (simulated)
       const audioUrl = URL.createObjectURL(selectedFile);
 
-      // Generate stems (simulated - in production would be real separated audio)
       const generatedStems: Stem[] = stemTypes.map(({ type, name, color }) => ({
         id: crypto.randomUUID(),
         name,
@@ -77,7 +74,7 @@ export default function StemsStudio() {
         color,
         volume: 100,
         muted: false,
-        audioUrl // In production, each stem would have its own URL
+        audioUrl
       }));
 
       setStems(generatedStems);
@@ -104,7 +101,6 @@ export default function StemsStudio() {
       stem.id === stemId ? { ...stem, volume: value[0] } : stem
     ));
 
-    // Update audio volume
     const audio = audioRefs.current[stemId];
     if (audio) {
       audio.volume = value[0] / 100;
@@ -127,12 +123,10 @@ export default function StemsStudio() {
 
   const togglePlayback = () => {
     if (isPlaying) {
-      // Pause all
       Object.values(audioRefs.current).forEach(audio => audio?.pause());
       originalAudioRef.current?.pause();
       setIsPlaying(false);
     } else {
-      // Play all stems together
       const playPromises = Object.values(audioRefs.current)
         .filter(Boolean)
         .map(audio => {
@@ -169,7 +163,7 @@ export default function StemsStudio() {
   };
 
   return (
-    <MainLayout>
+    <AppLayout>
       <div className="container max-w-6xl mx-auto py-8 space-y-6">
         <div>
           <h1 className="text-heading-xl mb-2">🎛️ Studio de Stems</h1>
@@ -381,6 +375,6 @@ export default function StemsStudio() {
           </div>
         </Card>
       </div>
-    </MainLayout>
+    </AppLayout>
   );
 }
