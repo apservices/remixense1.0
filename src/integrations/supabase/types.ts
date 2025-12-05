@@ -3064,7 +3064,9 @@ export type Database = {
         }[]
       }
       increment_comment_count: { Args: { post_id: string }; Returns: undefined }
-      is_admin: { Args: { user_id?: string }; Returns: boolean }
+      is_admin:
+        | { Args: never; Returns: boolean }
+        | { Args: { user_id?: string }; Returns: boolean }
       is_admin_by_email: { Args: { email: string }; Returns: boolean }
     }
     Enums: {
