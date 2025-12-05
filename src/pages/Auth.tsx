@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
+import { Logo } from '@/components/ui/Logo';
 import { Mail, Lock, User, Music, ArrowLeft } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 
@@ -73,8 +73,8 @@ export default function Auth({ onBack }: AuthProps) {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       {onBack && (
-        <div className="p-4">
-          <Button variant="ghost" onClick={onBack} className="flex items-center gap-2">
+        <div className="p-3 md:p-4">
+          <Button variant="ghost" onClick={onBack} className="flex items-center gap-2 touch-manipulation">
             <ArrowLeft className="h-4 w-4" />
             Voltar
           </Button>
@@ -82,34 +82,31 @@ export default function Auth({ onBack }: AuthProps) {
       )}
 
       {/* Auth Form */}
-      <div className="flex-1 flex items-center justify-center p-4">
+      <div className="flex-1 flex items-center justify-center p-4 md:p-6">
         <div className="w-full max-w-md">
           {/* Logo/Title */}
-          <div className="text-center mb-6">
+          <div className="text-center mb-5 md:mb-6">
             <div className="inline-flex items-center justify-center mb-2">
-              <img
-                src="/lovable-uploads/23e55981-72ea-4de5-a422-fa6833eeb2b0.png"
-                alt="RemiXense"
-                className="w-40 h-auto drop-shadow-lg"
-              />
+              <Logo size="xl" />
             </div>
-            <p className="text-muted-foreground">
+            <h1 className="text-xl md:text-2xl font-bold gradient-text mb-1">RemiXense</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
               Sua jornada musical começa aqui
             </p>
-            <p className="text-xs text-warning mt-1">Fase Beta - Release Candidate</p>
+            <p className="text-[10px] md:text-xs text-warning mt-1">Fase Beta - Release Candidate</p>
           </div>
 
-          <Card className="glass border-glass-border p-6">
+          <Card className="glass border-glass-border p-4 md:p-6">
             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'signin' | 'signup')}>
-              <TabsList className="grid w-full grid-cols-2 glass mb-6">
-                <TabsTrigger value="signin">Entrar</TabsTrigger>
-                <TabsTrigger value="signup">Cadastrar</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 glass mb-4 md:mb-6">
+                <TabsTrigger value="signin" className="text-sm md:text-base">Entrar</TabsTrigger>
+                <TabsTrigger value="signup" className="text-sm md:text-base">Cadastrar</TabsTrigger>
               </TabsList>
 
               <TabsContent value="signin">
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-email" className="text-foreground">
+                <form onSubmit={handleSignIn} className="space-y-3 md:space-y-4">
+                  <div className="space-y-1.5 md:space-y-2">
+                    <Label htmlFor="signin-email" className="text-foreground text-sm">
                       Email
                     </Label>
                     <div className="relative">
@@ -120,14 +117,14 @@ export default function Auth({ onBack }: AuthProps) {
                         placeholder="seu@email.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 h-11 md:h-10"
                         required
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-password" className="text-foreground">
+                  <div className="space-y-1.5 md:space-y-2">
+                    <Label htmlFor="signin-password" className="text-foreground text-sm">
                       Senha
                     </Label>
                     <div className="relative">
@@ -138,7 +135,7 @@ export default function Auth({ onBack }: AuthProps) {
                         placeholder="senha"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 h-11 md:h-10"
                         required
                       />
                     </div>
@@ -147,15 +144,15 @@ export default function Auth({ onBack }: AuthProps) {
                   <Button
                     type="submit"
                     variant="neon"
-                    className="w-full"
+                    className="w-full h-11 md:h-10 touch-manipulation"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? 'Entrando...' : 'Entrar'}
                   </Button>
                 </form>
-                <div className="mt-4 space-y-3">
+                <div className="mt-3 md:mt-4 space-y-2 md:space-y-3">
                   <div className="text-center text-xs text-muted-foreground">ou</div>
-                  <Button variant="outline" className="w-full" type="button" onClick={signInWithGoogle}>
+                  <Button variant="outline" className="w-full h-11 md:h-10 touch-manipulation" type="button" onClick={signInWithGoogle}>
                     <span className="mr-2 inline-flex">{/* Google Icon */}
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="h-4 w-4">
                         <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12 s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C35.202,7.163,29.902,5,24,5C12.955,5,4,13.955,4,25 s8.955,20,20,20s20-8.955,20-20C44,23.659,43.862,21.822,43.611,20.083z"/>
@@ -170,9 +167,9 @@ export default function Auth({ onBack }: AuthProps) {
               </TabsContent>
 
               <TabsContent value="signup">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-djname" className="text-foreground">
+                <form onSubmit={handleSignUp} className="space-y-3 md:space-y-4">
+                  <div className="space-y-1.5 md:space-y-2">
+                    <Label htmlFor="signup-djname" className="text-foreground text-sm">
                       RemiXer
                     </Label>
                     <div className="relative">
@@ -183,13 +180,13 @@ export default function Auth({ onBack }: AuthProps) {
                         placeholder="RemiXer Username"
                         value={djName}
                         onChange={(e) => setDjName(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 h-11 md:h-10"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email" className="text-foreground">
+                  <div className="space-y-1.5 md:space-y-2">
+                    <Label htmlFor="signup-email" className="text-foreground text-sm">
                       Email
                     </Label>
                     <div className="relative">
@@ -200,14 +197,14 @@ export default function Auth({ onBack }: AuthProps) {
                         placeholder="seu@email.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 h-11 md:h-10"
                         required
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password" className="text-foreground">
+                  <div className="space-y-1.5 md:space-y-2">
+                    <Label htmlFor="signup-password" className="text-foreground text-sm">
                       Senha
                     </Label>
                     <div className="relative">
@@ -218,7 +215,7 @@ export default function Auth({ onBack }: AuthProps) {
                         placeholder="senha"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 h-11 md:h-10"
                         required
                         minLength={6}
                       />
@@ -228,7 +225,7 @@ export default function Auth({ onBack }: AuthProps) {
                   <Button
                     type="submit"
                     variant="neon"
-                    className="w-full"
+                    className="w-full h-11 md:h-10 touch-manipulation"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? 'Criando conta...' : 'Criar conta'}
@@ -238,8 +235,8 @@ export default function Auth({ onBack }: AuthProps) {
               </Tabs>
 
 
-              <div className="mt-6 pt-6 border-t border-glass-border">
-                <p className="text-xs text-muted-foreground text-center">
+              <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-glass-border">
+                <p className="text-[10px] md:text-xs text-muted-foreground text-center">
                   Ao continuar, você concorda com nossos{' '}
                   <a href="#" className="text-primary hover:underline">Termos de Uso</a>{' '}e{' '}
                   <a href="#" className="text-primary hover:underline">Política de Privacidade</a>

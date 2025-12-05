@@ -262,7 +262,7 @@
   /* Mobile-first responsive utilities */
   @media (max-width: 640px) {
     .mobile-padding {
-      @apply px-4 py-2;
+      @apply px-3 py-2;
     }
     
     .mobile-text {
@@ -272,6 +272,38 @@
     .mobile-stack {
       @apply flex-col space-x-0 space-y-2;
     }
+  }
+
+  /* Safe area for notched devices */
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
+  }
+  
+  .pt-safe {
+    padding-top: max(env(safe-area-inset-top), 0.5rem);
+  }
+
+  /* Touch optimization */
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Better touch targets */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Mobile text sizing */
+  .text-mobile-xs {
+    font-size: 0.65rem;
+    line-height: 1;
+  }
+
+  .text-mobile-sm {
+    font-size: 0.75rem;
+    line-height: 1.2;
   }
 
   /* Print styles */

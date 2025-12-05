@@ -3,6 +3,7 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/ui/Logo';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -39,12 +40,12 @@ interface AppLayoutProps {
 }
 
 const mainNavItems = [
-  { id: 'home', label: 'Home', icon: Home, path: '/' },
-  { id: 'create', label: 'Create', icon: Sparkles, path: '/ai-studio', description: 'IA Musical' },
-  { id: 'manage', label: 'Manage', icon: FolderKanban, path: '/tracks', description: 'Gestão Musical' },
-  { id: 'distribute', label: 'Distribute', icon: Share2, path: '/calendar', description: 'Distribuição' },
-  { id: 'community', label: 'Community', icon: Users, path: '/feed', description: 'Comunidade' },
-  { id: 'settings', label: 'Settings', icon: Settings, path: '/settings', description: 'Configurações' },
+  { id: 'home', label: 'Início', icon: Home, path: '/' },
+  { id: 'create', label: 'Criar', icon: Sparkles, path: '/ai-studio', description: 'IA Musical' },
+  { id: 'manage', label: 'Gerenciar', icon: FolderKanban, path: '/tracks', description: 'Gestão Musical' },
+  { id: 'distribute', label: 'Distribuir', icon: Share2, path: '/calendar', description: 'Distribuição' },
+  { id: 'community', label: 'Comunidade', icon: Users, path: '/feed', description: 'Social' },
+  { id: 'settings', label: 'Ajustes', icon: Settings, path: '/settings', description: 'Configurações' },
 ];
 
 const subNavItems = {
@@ -72,10 +73,10 @@ const subNavItems = {
 };
 
 const mobileNavItems = [
-  { id: 'home', label: 'Home', icon: Home, path: '/' },
-  { id: 'create', label: 'Create', icon: Sparkles, path: '/ai-studio' },
-  { id: 'distribute', label: 'Distribute', icon: Share2, path: '/calendar' },
-  { id: 'community', label: 'Community', icon: Users, path: '/feed' },
+  { id: 'home', label: 'Início', icon: Home, path: '/' },
+  { id: 'create', label: 'Criar', icon: Sparkles, path: '/ai-studio' },
+  { id: 'manage', label: 'Vault', icon: FolderKanban, path: '/vault' },
+  { id: 'community', label: 'Social', icon: Users, path: '/feed' },
   { id: 'profile', label: 'Perfil', icon: User, path: '/profile' },
 ];
 
@@ -105,51 +106,50 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Desktop TopBar */}
-      <header className="fixed top-0 left-0 right-0 z-50 h-16 glass glass-border border-b backdrop-blur-glass">
-        <div className="flex items-center justify-between h-full px-4 lg:px-6">
+      <header className="fixed top-0 left-0 right-0 z-50 h-14 md:h-16 glass glass-border border-b backdrop-blur-glass">
+        <div className="flex items-center justify-between h-full px-3 md:px-4 lg:px-6">
           {/* Left: Logo + Page Title */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="lg:hidden p-2 rounded-lg hover:bg-muted/50 transition-colors"
+              className="lg:hidden p-2.5 rounded-xl hover:bg-muted/50 transition-colors touch-manipulation"
+              aria-label="Menu"
             >
               {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
             
-            <Link to="/" className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl gradient-primary flex items-center justify-center neon-glow">
-                <span className="text-lg font-bold text-white">R</span>
-              </div>
-              <span className="hidden sm:block font-bold text-lg gradient-text">RemiXense</span>
+            <Link to="/" className="flex items-center gap-2">
+              <Logo size="sm" />
+              <span className="hidden sm:block font-bold text-base md:text-lg gradient-text">RemiXense</span>
             </Link>
 
             <div className="hidden lg:flex items-center gap-2 text-muted-foreground">
               <ChevronRight className="h-4 w-4" />
-              <span className="font-medium text-foreground">{currentPage}</span>
+              <span className="font-medium text-foreground text-sm">{currentPage}</span>
             </div>
           </div>
 
           {/* Right: Actions + Profile */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             {isFree && (
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={() => navigate('/pricing')}
-                className="hidden sm:flex border-primary/50 text-primary hover:bg-primary/10"
+                className="hidden sm:flex border-primary/50 text-primary hover:bg-primary/10 text-xs md:text-sm"
               >
-                <Sparkles className="h-4 w-4 mr-2" />
+                <Sparkles className="h-3.5 w-3.5 mr-1.5" />
                 Upgrade
               </Button>
             )}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2 px-2">
-                  <div className="h-8 w-8 rounded-full gradient-primary flex items-center justify-center">
+                <Button variant="ghost" className="flex items-center gap-2 px-2 touch-manipulation">
+                  <div className="h-8 w-8 md:h-9 md:w-9 rounded-full gradient-primary flex items-center justify-center">
                     <User className="h-4 w-4 text-white" />
                   </div>
-                  <span className="hidden md:block text-sm max-w-[120px] truncate">
+                  <span className="hidden md:block text-sm max-w-[100px] truncate">
                     {user?.email?.split('@')[0] || 'Usuário'}
                   </span>
                 </Button>
@@ -183,8 +183,8 @@ export function AppLayout({ children }: AppLayoutProps) {
       </header>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex fixed left-0 top-16 bottom-0 w-64 flex-col glass glass-border border-r backdrop-blur-glass z-40 overflow-y-auto">
-        <nav className="flex-1 p-4 space-y-1">
+      <aside className="hidden lg:flex fixed left-0 top-16 bottom-0 w-60 xl:w-64 flex-col glass glass-border border-r backdrop-blur-glass z-40 overflow-y-auto">
+        <nav className="flex-1 p-3 xl:p-4 space-y-1">
           {mainNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = isActivePath(item.path);
@@ -318,13 +318,13 @@ export function AppLayout({ children }: AppLayoutProps) {
       )}
 
       {/* Main Content */}
-      <main className="pt-16 lg:pl-64 min-h-screen pb-24 lg:pb-8">
+      <main className="pt-14 md:pt-16 lg:pl-60 xl:lg:pl-64 min-h-screen pb-20 md:pb-24 lg:pb-8">
         {children}
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden glass glass-border border-t backdrop-blur-glass safe-area-bottom">
-        <div className="flex items-center justify-around py-2 px-1">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden glass glass-border border-t backdrop-blur-glass pb-safe">
+        <div className="flex items-center justify-around py-1.5 px-1">
           {mobileNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = isActivePath(item.path);
@@ -334,10 +334,10 @@ export function AppLayout({ children }: AppLayoutProps) {
                 key={item.id}
                 onClick={() => navigate(item.path)}
                 className={cn(
-                  'flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-200 min-w-0 flex-1',
+                  'flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-xl transition-all duration-200 min-w-0 flex-1 touch-manipulation',
                   isActive 
                     ? 'text-primary' 
-                    : 'text-muted-foreground'
+                    : 'text-muted-foreground active:scale-95'
                 )}
               >
                 <div className={cn(
@@ -350,7 +350,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                   )} />
                 </div>
                 <span className={cn(
-                  'text-[10px] font-medium leading-none',
+                  'text-[10px] font-semibold leading-none mt-0.5',
                   isActive && 'text-primary'
                 )}>
                   {item.label}
