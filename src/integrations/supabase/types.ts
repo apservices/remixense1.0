@@ -1935,36 +1935,48 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
           credits_remaining: number | null
+          display_name: string | null
           id: string
           plan: string | null
+          social_links: Json | null
           subscription_plan: string
           updated_at: string
           user_id: string | null
           username: string
+          website: string | null
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           credits_remaining?: number | null
+          display_name?: string | null
           id: string
           plan?: string | null
+          social_links?: Json | null
           subscription_plan?: string
           updated_at?: string
           user_id?: string | null
           username: string
+          website?: string | null
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           credits_remaining?: number | null
+          display_name?: string | null
           id?: string
           plan?: string | null
+          social_links?: Json | null
           subscription_plan?: string
           updated_at?: string
           user_id?: string | null
           username?: string
+          website?: string | null
         }
         Relationships: [
           {
