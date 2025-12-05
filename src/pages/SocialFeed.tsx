@@ -3,10 +3,11 @@ import { SocialFeedCard } from '@/components/social/SocialFeedCard';
 import { CommentsPanel } from '@/components/social/CommentsPanel';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Clock, Users, Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { useSocialPosts } from '@/hooks/useSocialPosts';
 import { Card } from '@/components/ui/card';
+import { usePlayer } from '@/contexts/PlayerContext';
 import {
   Dialog,
   DialogContent,
@@ -18,6 +19,26 @@ export default function SocialFeed() {
   const [feedType, setFeedType] = useState<'foryou' | 'following' | 'trending'>('foryou');
   const { posts, isLoading, toggleLike } = useSocialPosts(feedType);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const { playTrack, currentTrack, isPlaying, setIsPlaying } = usePlayer();
+
+  const handlePlay = (post: typeof posts[0]) => {
+    // Check if post has a contentId (track reference)
+    if (post.contentId) {
+      const isCurrentTrack = currentTrack?.id === post.contentId;
+      if (isCurrentTrack) {
+        setIsPlaying(!isPlaying);
+      } else {
+        playTrack({
+          id: post.contentId,
+          title: post.caption || 'Post',
+          artist: post.user.djName || post.user.username,
+          audioUrl: '', // Will be fetched by player if needed
+          duration: 0,
+          coverUrl: post.user.avatarUrl
+        });
+      }
+    }
+  };
 
   return (
     <AppLayout>
@@ -76,6 +97,8 @@ export default function SocialFeed() {
               <SocialFeedCard 
                 key={post.id} 
                 {...post}
+                isPlaying={currentTrack?.id === post.contentId && isPlaying}
+                onPlay={() => handlePlay(post)}
                 onLike={() => toggleLike(post.id)}
                 onComment={() => setSelectedPostId(post.id)}
                 onShare={() => console.log('Share', post.id)}

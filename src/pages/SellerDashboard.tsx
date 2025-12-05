@@ -71,13 +71,22 @@ export default function SellerDashboard() {
       // Fetch products
       const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('id, title, price, sales_count, created_at, status')
+        .select('id, title, price, created_at, product_type, downloads_count')
         .eq('seller_id', user?.id)
         .order('created_at', { ascending: false });
 
       if (productsError) throw productsError;
-      const mapped = (productsData || []).map(p => ({ ...p, type: 'sample', views_count: 0 }));
-      setProducts(mapped as Product[]);
+      const mapped = (productsData || []).map((p) => ({ 
+        id: p.id,
+        title: p.title,
+        price: p.price,
+        created_at: p.created_at,
+        type: p.product_type || 'sample',
+        views_count: 0,
+        sales_count: p.downloads_count || 0,
+        status: 'active' as const
+      }));
+      setProducts(mapped);
 
       // Fetch sales
       const { data: ordersData, error: ordersError } = await supabase
