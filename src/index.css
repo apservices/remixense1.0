@@ -81,34 +81,36 @@
   }
   
   .glass {
-    background: hsla(var(--glass-bg));
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: hsl(222.2 84% 4.9% / 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
   }
   
   .glass-border {
-    border-color: hsla(var(--glass-border));
+    border-color: hsl(217.2 32.6% 17.5% / 0.25);
   }
   
   .glass-card {
-    background: linear-gradient(145deg, hsl(222.2 84% 6% / 0.9) 0%, hsl(222.2 84% 4% / 0.95) 100%);
+    background: linear-gradient(145deg, hsl(222.2 84% 6% / 0.8) 0%, hsl(222.2 84% 4% / 0.9) 100%);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid hsl(217.2 32.6% 17.5% / 0.5);
+    border: 1px solid hsl(217.2 32.6% 17.5% / 0.3);
+    border-radius: 0.75rem;
   }
   
   .premium-card {
-    background: linear-gradient(145deg, hsl(222.2 84% 6% / 0.95) 0%, hsl(222.2 84% 4% / 0.98) 100%);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid hsl(217.2 32.6% 20% / 0.4);
-    border-radius: 1rem;
-    box-shadow: 0 0 30px -10px hsl(271 91% 58% / 0.15);
+    background: linear-gradient(145deg, hsl(222.2 84% 6% / 0.85) 0%, hsl(222.2 84% 4% / 0.9) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid hsl(217.2 32.6% 20% / 0.25);
+    border-radius: 0.875rem;
+    box-shadow: 0 4px 24px -8px hsl(0 0% 0% / 0.3);
+    transition: all 0.2s ease;
   }
   
   .premium-card:hover {
-    border-color: hsl(271 91% 58% / 0.3);
-    box-shadow: 0 0 40px -10px hsl(271 91% 58% / 0.25);
+    border-color: hsl(271 91% 58% / 0.2);
+    box-shadow: 0 8px 32px -8px hsl(271 91% 58% / 0.15);
   }
   
   .safe-area-bottom {
@@ -127,11 +129,11 @@
   }
   
   .neon-glow {
-    box-shadow: 0 0 20px hsla(var(--primary), 0.3);
+    box-shadow: 0 0 16px hsla(var(--primary), 0.25);
   }
   
   .neon-glow-strong {
-    box-shadow: 0 0 30px hsla(var(--primary), 0.5), 0 0 60px hsla(var(--primary), 0.2);
+    box-shadow: 0 0 24px hsla(var(--primary), 0.4), 0 0 48px hsla(var(--primary), 0.15);
   }
   
   .transition-smooth {
