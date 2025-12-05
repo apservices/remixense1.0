@@ -40,17 +40,22 @@ export default function HarmonyMatrix() {
     try {
       const { data, error } = await supabase.functions.invoke('generate-harmony', {
         body: {
-          key: settings.key,
-          mode: settings.mode,
-          genre: settings.genre,
-          length: settings.progressionLength
+          key: `${settings.key}${settings.mode === 'minor' ? 'm' : ''}`,
+          style: settings.genre,
+          progression_length: settings.progressionLength
         }
       });
 
       if (error) throw error;
       
-      setGeneratedHarmony(data.progression);
-      toast.success('Progressão harmônica gerada!');
+      if (data?.harmony?.chords) {
+        // Extract chord names from the response
+        const chordNames = data.harmony.chords.map((c: { chord: string }) => c.chord);
+        setGeneratedHarmony(chordNames);
+        toast.success(`Progressão gerada em ${data.processing_time_ms}ms`);
+      } else {
+        throw new Error('Nenhuma progressão retornada');
+      }
     } catch (error: any) {
       toast.error(`Erro ao gerar harmonia: ${error.message}`);
     } finally {
