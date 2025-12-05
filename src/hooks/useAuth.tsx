@@ -20,6 +20,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, djName?: string) => Promise<{ error?: any }>;
   signIn: (email: string, password: string) => Promise<{ error?: any }>;
   signInWithGoogle: () => Promise<void>;
+  signInWithSpotify: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
@@ -262,7 +263,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${window.location.origin}/`,
         }
       });
       if (error) {
@@ -270,6 +271,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     } catch (err: any) {
       toast({ title: "Erro no login Google", description: "Falha de rede. Tente novamente.", variant: "destructive" });
+    }
+  };
+
+  const signInWithSpotify = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'spotify',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+          scopes: 'user-read-email user-read-private'
+        }
+      });
+      if (error) {
+        toast({ title: "Erro no login Spotify", description: error.message, variant: "destructive" });
+      }
+    } catch (err: any) {
+      toast({ title: "Erro no login Spotify", description: "Falha de rede. Tente novamente.", variant: "destructive" });
     }
   };
 
@@ -284,6 +302,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       signUp,
       signIn,
       signInWithGoogle,
+      signInWithSpotify,
       signOut,
       refreshSession,
     }}>
