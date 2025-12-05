@@ -47,7 +47,7 @@ serve(async (req) => {
     if (bpm) enhancedPrompt += `, ${bpm} BPM`;
     if (instrumental) enhancedPrompt += ', instrumental only, no vocals';
 
-    console.log('Generating with Suno AI:', { enhancedPrompt, duration, autoSave });
+    console.log('Generating with Suno AI:', { enhancedPrompt, duration, autoSave, hasApiKey: !!sunoApiKey });
 
     // Record generation in database
     const { data: generation, error: dbError } = await supabase
@@ -75,48 +75,94 @@ serve(async (req) => {
       throw new Error('Falha ao registrar geração');
     }
 
-    let audioUrl: string;
+    let audioUrl: string | null = null;
     let isSimulated = false;
 
     // If Suno API key is configured, make real API call
     if (sunoApiKey) {
       try {
-        // Using CometAPI or similar Suno wrapper
-        const sunoResponse = await fetch('https://api.comet.ai/v1/suno/generate', {
+        console.log('Calling Suno API via GoAPI...');
+        
+        // Using GoAPI.ai Suno wrapper
+        const sunoResponse = await fetch('https://api.goapi.ai/api/suno/v1/music', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${sunoApiKey}`,
+            'X-API-Key': sunoApiKey,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            prompt: enhancedPrompt,
-            duration: Math.min(duration || 30, 480), // Max 8 minutes
-            instrumental: instrumental || false,
-            model: 'suno-v3.5'
+            custom_mode: true,
+            input: {
+              gpt_description_prompt: enhancedPrompt,
+              make_instrumental: instrumental || false,
+              mv: 'sonic-v3-5'
+            }
           }),
         });
 
+        console.log('Suno API response status:', sunoResponse.status);
+        
         if (sunoResponse.ok) {
           const sunoData = await sunoResponse.json();
-          audioUrl = sunoData.audio_url;
+          console.log('Suno API response:', JSON.stringify(sunoData).slice(0, 500));
+          
+          // GoAPI returns a task_id, need to poll for result
+          if (sunoData.data?.task_id) {
+            const taskId = sunoData.data.task_id;
+            console.log('Task ID:', taskId);
+            
+            // Poll for result (max 60 attempts, 5 seconds each = 5 minutes)
+            for (let i = 0; i < 60; i++) {
+              await new Promise(resolve => setTimeout(resolve, 5000));
+              
+              const statusResponse = await fetch(`https://api.goapi.ai/api/suno/v1/music/${taskId}`, {
+                headers: { 'X-API-Key': sunoApiKey }
+              });
+              
+              if (statusResponse.ok) {
+                const statusData = await statusResponse.json();
+                console.log(`Poll ${i + 1}:`, statusData.data?.status);
+                
+                if (statusData.data?.status === 'completed' && statusData.data?.output?.audio_url) {
+                  audioUrl = statusData.data.output.audio_url;
+                  console.log('Audio URL found:', audioUrl);
+                  break;
+                } else if (statusData.data?.status === 'failed') {
+                  throw new Error('Suno generation failed: ' + (statusData.data?.error || 'Unknown error'));
+                }
+              }
+            }
+            
+            if (!audioUrl) {
+              throw new Error('Timeout waiting for Suno generation');
+            }
+          } else if (sunoData.audio_url) {
+            audioUrl = sunoData.audio_url;
+          } else {
+            console.error('Unexpected Suno response format:', sunoData);
+            throw new Error('Formato de resposta Suno inesperado');
+          }
         } else {
-          throw new Error('Suno API request failed');
+          const errorText = await sunoResponse.text();
+          console.error('Suno API error response:', errorText);
+          throw new Error(`Suno API request failed: ${sunoResponse.status}`);
         }
       } catch (apiError) {
         console.error('Suno API error:', apiError);
-        // Fall through to simulation
+        // Fall through to simulation if API fails
         isSimulated = true;
-        audioUrl = `https://example.com/simulated-audio-${generation.id}.mp3`;
+        audioUrl = null;
       }
     } else {
       // Simulation mode when API not configured
       console.log('Running in simulation mode (SUNO_API_KEY not configured)');
       isSimulated = true;
-      audioUrl = `https://example.com/simulated-audio-${generation.id}.mp3`;
     }
 
-    // Simulate processing time
+    // For simulation, create a placeholder
     if (isSimulated) {
+      // Use a real sample audio URL for demo purposes
+      audioUrl = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
 
@@ -124,18 +170,19 @@ serve(async (req) => {
     await supabase
       .from('ai_generations')
       .update({
-        status: 'completed',
+        status: audioUrl ? 'completed' : 'failed',
         output_url: audioUrl,
         completed_at: new Date().toISOString(),
-        credits_used: Math.ceil((duration || 30) / 30)
+        credits_used: Math.ceil((duration || 30) / 30),
+        error_message: !audioUrl && !isSimulated ? 'Failed to generate audio' : null
       })
       .eq('id', generation.id);
 
-    // Auto-save to library if enabled
+    // Auto-save to library if enabled and we have audio
     let savedToLibrary = false;
     let trackId: string | null = null;
 
-    if (autoSave) {
+    if (autoSave && audioUrl) {
       try {
         const trackTitle = prompt.slice(0, 50) + (prompt.length > 50 ? '...' : '') + ' (Suno AI)';
         
@@ -182,7 +229,7 @@ serve(async (req) => {
         simulated: isSimulated,
         savedToLibrary,
         trackId,
-        message: isSimulated ? 'Geração simulada - Configure SUNO_API_KEY para geração real' : undefined,
+        message: isSimulated ? 'Geração simulada - Configure SUNO_API_KEY (GoAPI.ai) para geração real' : undefined,
         parameters: {
           prompt: enhancedPrompt,
           duration: duration || 30
