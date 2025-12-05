@@ -44,9 +44,9 @@ serve(async (req) => {
       .eq('status', 'active')
       .single();
 
-    if (existingSubscription && existingSubscription.plan_type !== 'free') {
+    if (existingSubscription && existingSubscription.plan_id && existingSubscription.plan_id !== 'free') {
       logStep("Found existing active subscription in database", { 
-        planType: existingSubscription.plan_type,
+        planId: existingSubscription.plan_id,
         status: existingSubscription.status 
       });
 
@@ -54,14 +54,14 @@ serve(async (req) => {
       const { data: limits } = await supabaseClient
         .from('subscription_limits')
         .select('*')
-        .eq('plan_type', existingSubscription.plan_type)
+        .eq('plan_type', existingSubscription.plan_id)
         .single();
 
       return new Response(JSON.stringify({
-        plan_type: existingSubscription.plan_type,
+        plan_type: existingSubscription.plan_id,
         status: existingSubscription.status,
         current_period_end: existingSubscription.current_period_end,
-        limits: limits || getDefaultLimits(existingSubscription.plan_type)
+        limits: limits || getDefaultLimits(existingSubscription.plan_id)
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
@@ -84,7 +84,7 @@ serve(async (req) => {
       await supabaseClient.from('subscriptions').upsert({
         user_id: user.id,
         email: user.email,
-        plan_type: 'expert',
+        plan_id: 'expert',
         status: 'active',
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' });
@@ -124,7 +124,7 @@ serve(async (req) => {
       await supabaseClient.from('subscriptions').upsert({
         user_id: user.id,
         email: user.email,
-        plan_type: 'expert',
+        plan_id: 'expert',
         status: 'active',
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' });
@@ -207,7 +207,7 @@ serve(async (req) => {
       email: user.email,
       stripe_customer_id: customerId,
       stripe_subscription_id: stripeSubscriptionId,
-      plan_type: planType,
+      plan_id: planType,
       status: status,
       current_period_end: subscriptionEnd,
       updated_at: new Date().toISOString(),
@@ -284,7 +284,7 @@ async function returnFreePlan(supabaseClient: any, user: any) {
     await supabaseClient.from("subscriptions").upsert({
       user_id: user.id,
       email: user.email,
-      plan_type: "free",
+      plan_id: "free",
       status: "active",
       updated_at: new Date().toISOString(),
     }, { onConflict: 'user_id' });
