@@ -1,1 +1,55 @@
 project_id = "xmjwutsmvshcfnowarnf"
+
+[functions.analyze-audio]
+verify_jwt = true
+
+[functions.accept-invite]
+verify_jwt = false
+
+[functions.check-subscription]
+verify_jwt = true
+
+[functions.create-checkout]
+verify_jwt = true
+
+[functions.create-marketplace-checkout]
+verify_jwt = true
+
+[functions.customer-portal]
+verify_jwt = true
+
+[functions.export-to-dropbox]
+verify_jwt = true
+
+[functions.platform-oauth-callback]
+verify_jwt = false
+
+[functions.platform-oauth-init]
+verify_jwt = true
+
+[functions.seed-expert-users]
+verify_jwt = false
+
+[functions.seed-test-users]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.generate-melody]
+verify_jwt = true
+
+[functions.generate-harmony]
+verify_jwt = true
+
+[functions.master-track]
+verify_jwt = true
+
+[functions.stem-swap]
+verify_jwt = true
+
+[functions.mood-variation]
+verify_jwt = true
+
+[functions.waveform-generator]
+verify_jwt = true

@@ -61,16 +61,24 @@ export default function MasteringIA() {
     try {
       const { data, error } = await supabase.functions.invoke('master-track', {
         body: {
-          trackId,
-          preset,
-          settings
+          track_id: trackId,
+          target_loudness: settings.targetLUFS,
+          style: preset === 'custom' ? 'balanced' : preset,
+          enable_limiter: settings.limiterEnabled,
+          enable_eq: true,
+          enable_compression: settings.multiband,
+          stereo_width: settings.stereoWidth
         }
       });
 
       if (error) throw error;
       
-      setMasteringPreview(data.url);
-      toast.success('Mastering aplicado com sucesso!');
+      if (data?.mastering) {
+        setMasteringPreview(JSON.stringify(data.mastering));
+        toast.success(`Mastering aplicado em ${data.processing_time_ms}ms`);
+      } else {
+        throw new Error('Nenhum resultado de mastering');
+      }
     } catch (error: any) {
       toast.error(`Erro no mastering: ${error.message}`);
     } finally {

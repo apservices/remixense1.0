@@ -37,19 +37,24 @@ export default function MelodyGenerator() {
       const { data, error } = await supabase.functions.invoke('generate-melody', {
         body: {
           key: settings.key,
-          mode: settings.mode,
+          scale: settings.mode,
           bpm: settings.bpm,
           mood: settings.mood,
-          complexity: settings.complexity,
-          bars: settings.length
+          duration_bars: settings.length
         }
       });
 
       if (error) throw error;
       
       updateProgress(90);
-      setGeneratedMelody(data.url);
-      toast.success('Melodia gerada com sucesso!');
+      
+      if (data?.melody) {
+        // Store melody data as JSON string for later use
+        setGeneratedMelody(JSON.stringify(data.melody));
+        toast.success(`Melodia gerada! ${data.melody.notes?.length || 0} notas em ${data.processing_time_ms}ms`);
+      } else {
+        throw new Error('Nenhuma melodia retornada');
+      }
     } catch (error: any) {
       toast.error(`Erro ao gerar melodia: ${error.message}`);
     } finally {

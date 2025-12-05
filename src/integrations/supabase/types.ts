@@ -59,6 +59,7 @@ export type Database = {
           descricao: string | null
           id: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           ativo?: boolean
@@ -68,6 +69,7 @@ export type Database = {
           descricao?: string | null
           id?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           ativo?: boolean
@@ -77,6 +79,7 @@ export type Database = {
           descricao?: string | null
           id?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -100,6 +103,59 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      ai_generations: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          credits_used: number | null
+          error_message: string | null
+          id: string
+          input_track_id: string | null
+          output_url: string | null
+          parameters: Json | null
+          processing_time_ms: number | null
+          status: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          credits_used?: number | null
+          error_message?: string | null
+          id?: string
+          input_track_id?: string | null
+          output_url?: string | null
+          parameters?: Json | null
+          processing_time_ms?: number | null
+          status?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          credits_used?: number | null
+          error_message?: string | null
+          id?: string
+          input_track_id?: string | null
+          output_url?: string | null
+          parameters?: Json | null
+          processing_time_ms?: number | null
+          status?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_generations_input_track_id_fkey"
+            columns: ["input_track_id"]
+            isOneToOne: false
+            referencedRelation: "tracks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       alerts: {
         Row: {
@@ -161,6 +217,7 @@ export type Database = {
           release_id: string
           revenue: number
           streams: number
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -170,6 +227,7 @@ export type Database = {
           release_id: string
           revenue?: number
           streams?: number
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -179,6 +237,7 @@ export type Database = {
           release_id?: string
           revenue?: number
           streams?: number
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -308,6 +367,50 @@ export type Database = {
           },
         ]
       }
+      audio_metadata: {
+        Row: {
+          bpm: number | null
+          created_at: string | null
+          duration: number | null
+          energy: number | null
+          id: string
+          key_signature: string | null
+          track_id: string
+          updated_at: string | null
+          waveform_url: string | null
+        }
+        Insert: {
+          bpm?: number | null
+          created_at?: string | null
+          duration?: number | null
+          energy?: number | null
+          id?: string
+          key_signature?: string | null
+          track_id: string
+          updated_at?: string | null
+          waveform_url?: string | null
+        }
+        Update: {
+          bpm?: number | null
+          created_at?: string | null
+          duration?: number | null
+          energy?: number | null
+          id?: string
+          key_signature?: string | null
+          track_id?: string
+          updated_at?: string | null
+          waveform_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audio_metadata_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       birds: {
         Row: {
           age: string | null
@@ -347,7 +450,7 @@ export type Database = {
         }
         Relationships: []
       }
-      challenge_submissions: {
+      challenge_entries: {
         Row: {
           challenge_id: string
           id: string
@@ -403,6 +506,7 @@ export type Database = {
           start_date: string
           status: string
           title: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -414,6 +518,7 @@ export type Database = {
           start_date: string
           status?: string
           title: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -425,6 +530,7 @@ export type Database = {
           start_date?: string
           status?: string
           title?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -438,6 +544,7 @@ export type Database = {
           recipient_id: string
           status: string
           terms: Json | null
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -448,6 +555,7 @@ export type Database = {
           recipient_id: string
           status?: string
           terms?: Json | null
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -458,6 +566,7 @@ export type Database = {
           recipient_id?: string
           status?: string
           terms?: Json | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -550,6 +659,7 @@ export type Database = {
           start_time: number | null
           track_id: string
           transition_type: string | null
+          user_id: string | null
         }
         Insert: {
           bpm_shift?: number | null
@@ -566,6 +676,7 @@ export type Database = {
           start_time?: number | null
           track_id: string
           transition_type?: string | null
+          user_id?: string | null
         }
         Update: {
           bpm_shift?: number | null
@@ -582,6 +693,7 @@ export type Database = {
           start_time?: number | null
           track_id?: string
           transition_type?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -656,6 +768,7 @@ export type Database = {
           platform: string | null
           status: string | null
           track_id: string | null
+          user_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -664,6 +777,7 @@ export type Database = {
           platform?: string | null
           status?: string | null
           track_id?: string | null
+          user_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -672,6 +786,7 @@ export type Database = {
           platform?: string | null
           status?: string | null
           track_id?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -718,6 +833,51 @@ export type Database = {
           },
         ]
       }
+      feedback_messages: {
+        Row: {
+          audio_url: string | null
+          content: string | null
+          created_at: string | null
+          id: string
+          message_type: string | null
+          room_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          audio_url?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          message_type?: string | null
+          room_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          audio_url?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          message_type?: string | null
+          room_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "feedback_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feedback_rooms: {
         Row: {
           created_at: string
@@ -726,6 +886,7 @@ export type Database = {
           project_id: string
           room_name: string
           status: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -734,6 +895,7 @@ export type Database = {
           project_id: string
           room_name: string
           status?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -742,6 +904,7 @@ export type Database = {
           project_id?: string
           room_name?: string
           status?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -801,18 +964,21 @@ export type Database = {
           follower_id: string
           following_id: string
           id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
           follower_id: string
           following_id: string
           id?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
           follower_id?: string
           following_id?: string
           id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -825,6 +991,7 @@ export type Database = {
           response_time_ms: number
           service_name: string
           status: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -834,6 +1001,7 @@ export type Database = {
           response_time_ms: number
           service_name: string
           status: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -843,6 +1011,7 @@ export type Database = {
           response_time_ms?: number
           service_name?: string
           status?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -856,6 +1025,7 @@ export type Database = {
           plan_type: string
           token: string
           used_at: string | null
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -866,6 +1036,7 @@ export type Database = {
           plan_type: string
           token: string
           used_at?: string | null
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -876,8 +1047,56 @@ export type Database = {
           plan_type?: string
           token?: string
           used_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
+      }
+      landing_pages: {
+        Row: {
+          artist_name: string | null
+          cover_url: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          links: Json | null
+          release_id: string
+          slug: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          artist_name?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          links?: Json | null
+          release_id: string
+          slug?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          artist_name?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          links?: Json | null
+          release_id?: string
+          slug?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "landing_pages_release_id_fkey"
+            columns: ["release_id"]
+            isOneToOne: false
+            referencedRelation: "releases"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       launch_events: {
         Row: {
@@ -936,6 +1155,7 @@ export type Database = {
           status: string
           stem_id: string
           transaction_hash: string
+          user_id: string | null
         }
         Insert: {
           buyer_id: string
@@ -948,6 +1168,7 @@ export type Database = {
           status?: string
           stem_id: string
           transaction_hash: string
+          user_id?: string | null
         }
         Update: {
           buyer_id?: string
@@ -960,6 +1181,7 @@ export type Database = {
           status?: string
           stem_id?: string
           transaction_hash?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1014,6 +1236,7 @@ export type Database = {
           stripe_payment_intent_id: string
           track_id: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           buyer_id: string
@@ -1028,6 +1251,7 @@ export type Database = {
           stripe_payment_intent_id: string
           track_id?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           buyer_id?: string
@@ -1042,6 +1266,7 @@ export type Database = {
           stripe_payment_intent_id?: string
           track_id?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1064,6 +1289,7 @@ export type Database = {
           set_id: string
           suggestions: Json | null
           transition_quality: Json | null
+          user_id: string | null
         }
         Insert: {
           bpm_progression?: number[] | null
@@ -1075,6 +1301,7 @@ export type Database = {
           set_id: string
           suggestions?: Json | null
           transition_quality?: Json | null
+          user_id?: string | null
         }
         Update: {
           bpm_progression?: number[] | null
@@ -1086,6 +1313,7 @@ export type Database = {
           set_id?: string
           suggestions?: Json | null
           transition_quality?: Json | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1106,6 +1334,7 @@ export type Database = {
           position: number
           start_sec: number | null
           track_id: string | null
+          user_id: string | null
         }
         Insert: {
           bpm_shift?: number | null
@@ -1115,6 +1344,7 @@ export type Database = {
           position: number
           start_sec?: number | null
           track_id?: string | null
+          user_id?: string | null
         }
         Update: {
           bpm_shift?: number | null
@@ -1124,6 +1354,7 @@ export type Database = {
           position?: number
           start_sec?: number | null
           track_id?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1252,6 +1483,7 @@ export type Database = {
           seller_amount: number
           seller_id: string
           status: string | null
+          user_id: string | null
         }
         Insert: {
           amount: number
@@ -1267,6 +1499,7 @@ export type Database = {
           seller_amount: number
           seller_id: string
           status?: string | null
+          user_id?: string | null
         }
         Update: {
           amount?: number
@@ -1282,6 +1515,7 @@ export type Database = {
           seller_amount?: number
           seller_id?: string
           status?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1361,18 +1595,21 @@ export type Database = {
           max_mixes: number | null
           max_playlists: number | null
           max_tracks: number | null
+          user_id: string | null
         }
         Insert: {
           id: string
           max_mixes?: number | null
           max_playlists?: number | null
           max_tracks?: number | null
+          user_id?: string | null
         }
         Update: {
           id?: string
           max_mixes?: number | null
           max_playlists?: number | null
           max_tracks?: number | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1413,6 +1650,7 @@ export type Database = {
           playlist_id: string
           position: number
           track_id: string
+          user_id: string | null
         }
         Insert: {
           added_at?: string
@@ -1420,6 +1658,7 @@ export type Database = {
           playlist_id: string
           position: number
           track_id: string
+          user_id?: string | null
         }
         Update: {
           added_at?: string
@@ -1427,6 +1666,7 @@ export type Database = {
           playlist_id?: string
           position?: number
           track_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1642,6 +1882,7 @@ export type Database = {
           tags: string[] | null
           title: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           bpm?: number | null
@@ -1664,6 +1905,7 @@ export type Database = {
           tags?: string[] | null
           title: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           bpm?: number | null
@@ -1686,6 +1928,7 @@ export type Database = {
           tags?: string[] | null
           title?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1698,6 +1941,7 @@ export type Database = {
           plan: string | null
           subscription_plan: string
           updated_at: string
+          user_id: string | null
           username: string
         }
         Insert: {
@@ -1708,6 +1952,7 @@ export type Database = {
           plan?: string | null
           subscription_plan?: string
           updated_at?: string
+          user_id?: string | null
           username: string
         }
         Update: {
@@ -1718,6 +1963,7 @@ export type Database = {
           plan?: string | null
           subscription_plan?: string
           updated_at?: string
+          user_id?: string | null
           username?: string
         }
         Relationships: [
@@ -1778,18 +2024,21 @@ export type Database = {
           id: string
           identifier: string
           ts: string
+          user_id: string | null
         }
         Insert: {
           endpoint: string
           id?: string
           identifier: string
           ts?: string
+          user_id?: string | null
         }
         Update: {
           endpoint?: string
           id?: string
           identifier?: string
           ts?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1806,6 +2055,7 @@ export type Database = {
           title: string
           updated_at: string
           url: string
+          user_id: string | null
         }
         Insert: {
           content?: string | null
@@ -1819,6 +2069,7 @@ export type Database = {
           title: string
           updated_at?: string
           url: string
+          user_id?: string | null
         }
         Update: {
           content?: string | null
@@ -1832,6 +2083,7 @@ export type Database = {
           title?: string
           updated_at?: string
           url?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1875,6 +2127,7 @@ export type Database = {
           project_id: string
           release_date: string
           status: string
+          user_id: string | null
         }
         Insert: {
           cover_art_url?: string | null
@@ -1885,6 +2138,7 @@ export type Database = {
           project_id: string
           release_date: string
           status?: string
+          user_id?: string | null
         }
         Update: {
           cover_art_url?: string | null
@@ -1895,6 +2149,7 @@ export type Database = {
           project_id?: string
           release_date?: string
           status?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1913,6 +2168,7 @@ export type Database = {
           owner_id: string
           post_id: string
           status: string | null
+          user_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -1920,6 +2176,7 @@ export type Database = {
           owner_id: string
           post_id: string
           status?: string | null
+          user_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -1927,6 +2184,7 @@ export type Database = {
           owner_id?: string
           post_id?: string
           status?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1934,6 +2192,51 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smart_contracts: {
+        Row: {
+          contract_url: string | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          release_id: string
+          royalty_percent: number | null
+          user_id: string | null
+        }
+        Insert: {
+          contract_url?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          release_id: string
+          royalty_percent?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          contract_url?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          release_id?: string
+          royalty_percent?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smart_contracts_release_id_fkey"
+            columns: ["release_id"]
+            isOneToOne: false
+            referencedRelation: "releases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smart_contracts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2086,6 +2389,7 @@ export type Database = {
           max_storage_mb: number
           max_tracks: number
           plan_type: string
+          user_id: string | null
         }
         Insert: {
           can_export?: boolean | null
@@ -2097,6 +2401,7 @@ export type Database = {
           max_storage_mb: number
           max_tracks: number
           plan_type: string
+          user_id?: string | null
         }
         Update: {
           can_export?: boolean | null
@@ -2108,6 +2413,7 @@ export type Database = {
           max_storage_mb?: number
           max_tracks?: number
           plan_type?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -2564,6 +2870,7 @@ export type Database = {
           total_likes: number | null
           total_plays: number | null
           updated_at: string
+          user_id: string | null
           username: string
           verified: boolean | null
           website_url: string | null
@@ -2584,6 +2891,7 @@ export type Database = {
           total_likes?: number | null
           total_plays?: number | null
           updated_at?: string
+          user_id?: string | null
           username: string
           verified?: boolean | null
           website_url?: string | null
@@ -2604,6 +2912,7 @@ export type Database = {
           total_likes?: number | null
           total_plays?: number | null
           updated_at?: string
+          user_id?: string | null
           username?: string
           verified?: boolean | null
           website_url?: string | null
@@ -2694,6 +3003,7 @@ export type Database = {
           processed_at: string | null
           received_at: string
           status: string
+          user_id: string | null
         }
         Insert: {
           error_message?: string | null
@@ -2703,6 +3013,7 @@ export type Database = {
           processed_at?: string | null
           received_at?: string
           status?: string
+          user_id?: string | null
         }
         Update: {
           error_message?: string | null
@@ -2712,6 +3023,7 @@ export type Database = {
           processed_at?: string | null
           received_at?: string
           status?: string
+          user_id?: string | null
         }
         Relationships: []
       }
