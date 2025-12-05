@@ -31,6 +31,7 @@ const Sessions = lazy(() => import('./pages/Sessions'));
 const MetadataManager = lazy(() => import('./pages/MetadataManager'));
 const AudioDashboard = lazy(() => import('./pages/AudioDashboard'));
 const Inspiration = lazy(() => import('./pages/Inspiration'));
+const Settings = lazy(() => import('./pages/Settings'));
 
 const LoadingFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
@@ -223,6 +224,14 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingFallback />}>
             <RevenueAnalytics />
+          </Suspense>
+        ) 
+      },
+      { 
+        path: '/settings', 
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <Settings />
           </Suspense>
         ) 
       },

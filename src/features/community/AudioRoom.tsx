@@ -56,7 +56,21 @@ export default function AudioRoom({ roomId, trackUrl }: AudioRoomProps) {
       .order('created_at', { ascending: true });
 
     if (data) {
-      setMessages(data);
+      // Fetch user profiles for messages
+      const userIds = [...new Set(data.map(m => m.user_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url')
+        .in('id', userIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+      
+      const messagesWithUsers = data.map(msg => ({
+        ...msg,
+        user: profileMap.get(msg.user_id)
+      }));
+      
+      setMessages(messagesWithUsers);
     }
   };
 

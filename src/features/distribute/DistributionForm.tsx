@@ -77,7 +77,7 @@ export default function DistributionForm({ projectId, onSuccess }: DistributionF
         .getPublicUrl(coverPath);
 
       // 2. Create release record
-      const { error: releaseError } = await supabase
+      const { data: releaseData, error: releaseError } = await supabase
         .from('releases')
         .insert({
           project_id: projectId,
@@ -85,14 +85,16 @@ export default function DistributionForm({ projectId, onSuccess }: DistributionF
           status: 'scheduled',
           isrc: isrc || null,
           cover_art_url: publicUrl
-        });
+        })
+        .select()
+        .single();
 
       if (releaseError) throw releaseError;
 
       // 3. Trigger distribution (async)
       await supabase.functions.invoke('publish', {
         body: {
-          projectId,
+          releaseId: releaseData.id,
           platforms: selectedPlatforms,
           releaseDate: data.release_date.toISOString()
         }

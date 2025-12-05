@@ -65,6 +65,13 @@ export default {
           green: "hsl(var(--neon-green))",
           pink: "hsl(var(--neon-pink))",
         },
+        remixense: {
+          violet: "hsl(var(--remixense-violet))",
+          cyan: "hsl(var(--remixense-cyan))",
+        },
+        warning: "hsl(var(--warning))",
+        success: "hsl(var(--success))",
+        info: "hsl(var(--info))",
       },
       borderRadius: {
         lg: "var(--radius)",

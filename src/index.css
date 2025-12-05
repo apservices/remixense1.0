@@ -12,23 +12,29 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 200 100% 60%;
-    --primary-foreground: 222.2 84% 4.9%;
+    --primary: 271 91% 58%;
+    --primary-foreground: 210 40% 98%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 188 100% 54%;
+    --accent-foreground: 222.2 84% 4.9%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 200 100% 60%;
+    --ring: 271 91% 58%;
     --radius: 0.75rem;
+    
+    /* RemiXense Brand Colors */
+    --remixense-violet: 271 91% 58%;
+    --remixense-cyan: 188 100% 54%;
     
     /* Status tokens */
     --warning: 48 96% 53%;
+    --success: 142 76% 36%;
+    --info: 199 89% 48%;
     
     /* Neon colors */
     --neon-blue: 200 100% 60%;
@@ -40,6 +46,10 @@
     /* Glass effect */
     --glass-bg: 222.2 84% 4.9% / 0.8;
     --glass-border: 217.2 32.6% 17.5% / 0.3;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(271 91% 58%) 0%, hsl(188 100% 54%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(222.2 84% 6%) 0%, hsl(222.2 84% 4%) 100%);
   }
 
   * {
@@ -80,8 +90,30 @@
     border-color: hsla(var(--glass-border));
   }
   
+  .glass-card {
+    background: linear-gradient(145deg, hsl(222.2 84% 6% / 0.9) 0%, hsl(222.2 84% 4% / 0.95) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid hsl(217.2 32.6% 17.5% / 0.5);
+  }
+  
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(271 91% 58%) 0%, hsl(188 100% 54%) 100%);
+  }
+  
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(271 91% 58%) 0%, hsl(188 100% 54%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
   .neon-glow {
     box-shadow: 0 0 20px hsla(var(--primary), 0.3);
+  }
+  
+  .neon-glow-strong {
+    box-shadow: 0 0 30px hsla(var(--primary), 0.5), 0 0 60px hsla(var(--primary), 0.2);
   }
   
   .transition-smooth {
