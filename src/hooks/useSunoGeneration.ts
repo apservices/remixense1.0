@@ -91,6 +91,49 @@ export function useSunoGeneration() {
     }
   }, [user]);
 
+  // Save generation to main tracks library
+  const saveToLibrary = useCallback(async (title: string): Promise<boolean> => {
+    if (!user || !currentGeneration?.generationId || !currentGeneration?.audioUrl) {
+      toast.error('Nenhuma geração para salvar');
+      return false;
+    }
+
+    try {
+      // Get generation details
+      const { data: generation } = await supabase
+        .from('ai_generations')
+        .select('*')
+        .eq('id', currentGeneration.generationId)
+        .single();
+
+      const params = generation?.parameters as Record<string, unknown> || {};
+
+      // Create track in main library
+      const { error } = await supabase
+        .from('tracks')
+        .insert([{
+          user_id: user.id,
+          type: 'ai_generation',
+          title: title || `Suno AI - ${new Date().toLocaleDateString('pt-BR')}`,
+          artist: 'Suno AI',
+          file_url: currentGeneration.audioUrl,
+          bpm: params.bpm as number | undefined,
+          key_signature: params.key as string | undefined,
+          genre: params.genre as string | undefined,
+          duration: String(params.duration || 30),
+        }]);
+
+      if (error) throw error;
+
+      toast.success('Música salva na biblioteca!');
+      return true;
+    } catch (error) {
+      console.error('Error saving to library:', error);
+      toast.error('Erro ao salvar na biblioteca');
+      return false;
+    }
+  }, [user, currentGeneration]);
+
   const getGenerationHistory = useCallback(async () => {
     if (!user) return [];
 
@@ -115,6 +158,7 @@ export function useSunoGeneration() {
     isGenerating,
     progress,
     currentGeneration,
-    getGenerationHistory
+    getGenerationHistory,
+    saveToLibrary,
   };
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Music, Wand2, Play, Download, Loader2 } from 'lucide-react';
+import { Sparkles, Music, Wand2, Play, Download, Loader2, Save, Library } from 'lucide-react';
 import { useSunoGeneration } from '@/hooks/useSunoGeneration';
 import { AnimatedCard } from '@/components/ui/AnimatedCard';
 import { AnimatedButton } from '@/components/ui/AnimatedButton';
@@ -11,6 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 const genres = [
   'Pop', 'Rock', 'Electronic', 'Hip Hop', 'R&B', 'Jazz', 'Classical', 
@@ -25,7 +28,7 @@ const moods = [
 const keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 export function SunoGenerator() {
-  const { generate, isGenerating, progress, currentGeneration } = useSunoGeneration();
+  const { generate, isGenerating, progress, currentGeneration, saveToLibrary } = useSunoGeneration();
   
   const [prompt, setPrompt] = useState('');
   const [genre, setGenre] = useState('');
@@ -34,6 +37,9 @@ export function SunoGenerator() {
   const [bpm, setBpm] = useState<number | undefined>();
   const [duration, setDuration] = useState(30);
   const [instrumental, setInstrumental] = useState(false);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [saveTitle, setSaveTitle] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -47,6 +53,22 @@ export function SunoGenerator() {
       duration,
       instrumental
     });
+  };
+
+  const handleSaveToLibrary = async () => {
+    if (!saveTitle.trim()) {
+      toast.error('Digite um título para a música');
+      return;
+    }
+    
+    setIsSaving(true);
+    const success = await saveToLibrary(saveTitle);
+    setIsSaving(false);
+    
+    if (success) {
+      setSaveDialogOpen(false);
+      setSaveTitle('');
+    }
   };
 
   return (
@@ -213,6 +235,55 @@ export function SunoGenerator() {
                   <AnimatedButton size="sm" variant="ghost">
                     <Download className="h-4 w-4" />
                   </AnimatedButton>
+                  
+                  {/* Save to Library Dialog */}
+                  <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+                    <DialogTrigger asChild>
+                      <AnimatedButton size="sm" variant="default" className="gap-1.5">
+                        <Library className="h-4 w-4" />
+                        <span className="hidden sm:inline">Salvar na Biblioteca</span>
+                      </AnimatedButton>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <Save className="h-5 w-5 text-primary" />
+                          Salvar na Biblioteca
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <p className="text-sm text-muted-foreground">
+                          Salve esta geração na sua biblioteca principal para usar em qualquer lugar do app.
+                        </p>
+                        <div className="space-y-2">
+                          <Label>Título da música</Label>
+                          <Input
+                            placeholder="Ex: Summer Vibes AI"
+                            value={saveTitle}
+                            onChange={(e) => setSaveTitle(e.target.value)}
+                          />
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
+                            Cancelar
+                          </Button>
+                          <Button onClick={handleSaveToLibrary} disabled={isSaving || !saveTitle.trim()}>
+                            {isSaving ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Salvando...
+                              </>
+                            ) : (
+                              <>
+                                <Save className="h-4 w-4 mr-2" />
+                                Salvar
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
             </AnimatedCard>
