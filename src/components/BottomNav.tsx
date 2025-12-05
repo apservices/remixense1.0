@@ -16,7 +16,7 @@ export function BottomNav() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 pb-safe">
       <div className="glass border-t border-glass-border backdrop-blur-glass">
-        <div className="flex items-center justify-around py-2 px-2">
+        <div className="flex items-center justify-around py-1.5 px-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -26,17 +26,17 @@ export function BottomNav() {
                 key={item.id}
                 to={item.path}
                 className={cn(
-                  "flex flex-col items-center gap-1 p-1.5 rounded-lg transition-smooth min-w-0 flex-1",
+                  "flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-smooth min-w-0 flex-1 touch-manipulation",
                   isActive 
                     ? "text-primary bg-primary/10" 
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50 active:scale-95"
                 )}
               >
                 <Icon className={cn(
-                  "h-4 w-4",
+                  "h-5 w-5",
                   isActive && "animate-scale-in"
                 )} />
-                <span className="text-[10px] font-medium leading-none truncate">
+                <span className="text-[10px] font-semibold leading-none truncate">
                   {item.label}
                 </span>
               </Link>
