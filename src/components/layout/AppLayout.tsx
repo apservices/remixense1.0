@@ -3,6 +3,8 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { usePlayer } from '@/contexts/PlayerContext';
+import { useProfile } from '@/hooks/useProfile';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/Logo';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
@@ -95,6 +97,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { user, signOut } = useAuth();
   const { subscription, isFree } = useSubscription();
   const { currentTrack } = usePlayer();
+  const { profile } = useProfile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [showMobileFeatures, setShowMobileFeatures] = useState(false);
@@ -183,11 +186,17 @@ export function AppLayout({ children }: AppLayoutProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2 px-2 touch-manipulation">
-                  <div className="h-8 w-8 md:h-9 md:w-9 rounded-full gradient-primary flex items-center justify-center">
-                    <User className="h-4 w-4 text-white" />
-                  </div>
+                  <Avatar className="h-8 w-8 md:h-9 md:w-9 border-2 border-primary/50">
+                    <AvatarImage 
+                      src={profile?.avatar_url || ''} 
+                      alt={profile?.username || user?.email || 'Usuário'} 
+                    />
+                    <AvatarFallback className="gradient-primary text-white text-sm font-bold">
+                      {(profile?.username || user?.email || 'U').charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
                   <span className="hidden md:block text-sm max-w-[100px] truncate">
-                    {user?.email?.split('@')[0] || 'Usuário'}
+                    {profile?.username || profile?.dj_name || user?.email?.split('@')[0] || 'Usuário'}
                   </span>
                 </Button>
               </DropdownMenuTrigger>
@@ -395,6 +404,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           {mobileNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = isActivePath(item.path);
+            const isProfileItem = item.id === 'profile';
             
             return (
               <button
@@ -411,10 +421,19 @@ export function AppLayout({ children }: AppLayoutProps) {
                   'p-2 rounded-xl transition-all duration-200',
                   isActive && 'gradient-primary neon-glow'
                 )}>
-                  <Icon className={cn(
-                    'h-5 w-5',
-                    isActive ? 'text-white' : ''
-                  )} />
+                  {isProfileItem && profile?.avatar_url ? (
+                    <Avatar className="h-5 w-5">
+                      <AvatarImage src={profile.avatar_url} alt={profile.username || ''} />
+                      <AvatarFallback className="text-[10px]">
+                        {(profile.username || 'U').charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <Icon className={cn(
+                      'h-5 w-5',
+                      isActive ? 'text-white' : ''
+                    )} />
+                  )}
                 </div>
                 <span className={cn(
                   'text-[10px] font-semibold leading-none mt-0.5',
