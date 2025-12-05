@@ -6,11 +6,24 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface Payload {
-  email?: string;
-  password?: string;
-  token?: string;
-  dj_name?: string;
+// Input validation helpers
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return typeof email === 'string' && email.length <= 255 && emailRegex.test(email);
+}
+
+function isValidPassword(password: string): boolean {
+  return typeof password === 'string' && password.length >= 8 && password.length <= 128;
+}
+
+function isValidToken(token: string): boolean {
+  // Token should be alphanumeric, reasonable length
+  return typeof token === 'string' && token.length >= 8 && token.length <= 256 && /^[a-zA-Z0-9_-]+$/.test(token);
+}
+
+function sanitizeString(str: string, maxLength: number): string {
+  if (typeof str !== 'string') return '';
+  return str.trim().slice(0, maxLength);
 }
 
 serve(async (req) => {
@@ -25,11 +38,58 @@ serve(async (req) => {
   );
 
   try {
-    const body: Payload = await req.json().catch(() => ({}));
-    const { email, password, token, dj_name } = body;
+    // Parse JSON body safely
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
 
+    // Validate input types
+    if (typeof body !== 'object' || body === null) {
+      return new Response(JSON.stringify({ error: "Invalid request body" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
+    const rawBody = body as Record<string, unknown>;
+    const email = typeof rawBody.email === 'string' ? rawBody.email.trim().toLowerCase() : '';
+    const password = typeof rawBody.password === 'string' ? rawBody.password : '';
+    const token = typeof rawBody.token === 'string' ? rawBody.token.trim() : '';
+    const dj_name = typeof rawBody.dj_name === 'string' ? sanitizeString(rawBody.dj_name, 100) : '';
+
+    // Validate required fields
     if (!email || !password || !token) {
       return new Response(JSON.stringify({ error: "email, password e token são obrigatórios" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
+    // Validate email format
+    if (!isValidEmail(email)) {
+      return new Response(JSON.stringify({ error: "Email inválido" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
+    // Validate password
+    if (!isValidPassword(password)) {
+      return new Response(JSON.stringify({ error: "Senha deve ter entre 8 e 128 caracteres" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
+    // Validate token format
+    if (!isValidToken(token)) {
+      return new Response(JSON.stringify({ error: "Token inválido" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 400,
       });
@@ -66,11 +126,12 @@ serve(async (req) => {
     }
 
     // 2) Criar usuário via admin (self-signup pode estar desativado)
+    const username = dj_name || email.split("@")[0];
     const { data: created, error: createErr } = await supabase.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      user_metadata: { dj_name: dj_name || email.split("@")[0] },
+      user_metadata: { dj_name: username },
     });
 
     if (createErr) {
@@ -97,7 +158,7 @@ serve(async (req) => {
       try {
         await supabase
           .from("profiles")
-          .upsert({ id: userId, username: dj_name || email.split("@")[0] });
+          .upsert({ id: userId, username });
       } catch {
         // Ignore profile errors
       }
@@ -108,8 +169,8 @@ serve(async (req) => {
       status: 200,
     });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    return new Response(JSON.stringify({ error: msg }), {
+    console.error("accept-invite error:", e);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
