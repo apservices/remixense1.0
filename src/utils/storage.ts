@@ -15,7 +15,8 @@ export async function getSignedUrl(bucket: string, path: string, expiresInSecond
 }
 
 /**
- * Get a public URL for an audio file in the tracks bucket
+ * Get a playable URL for an audio file
+ * Tries audio-files bucket (private - needs signed URL), then tracks bucket (public)
  */
 export async function getAudioUrl(filePath: string): Promise<string> {
   if (!filePath) {
@@ -28,17 +29,31 @@ export async function getAudioUrl(filePath: string): Promise<string> {
   
   console.log('🔗 Getting audio URL for:', cleanPath);
 
-  // The 'tracks' bucket is public, so use public URL
-  const { data } = supabase.storage.from('tracks').getPublicUrl(cleanPath);
-  
-  // Verify the URL is valid
-  if (!data?.publicUrl) {
-    console.error('Failed to get public URL for:', cleanPath);
+  try {
+    // Try audio-files bucket first (private - use signed URL)
+    const { data: signedData, error: signedError } = await supabase.storage
+      .from('audio-files')
+      .createSignedUrl(cleanPath, 3600); // 1 hour expiry
+
+    if (!signedError && signedData?.signedUrl) {
+      console.log('✅ Audio URL (signed from audio-files):', signedData.signedUrl);
+      return signedData.signedUrl;
+    }
+
+    // Fallback to tracks bucket (public)
+    const { data } = supabase.storage.from('tracks').getPublicUrl(cleanPath);
+    
+    if (data?.publicUrl) {
+      console.log('✅ Audio URL (public from tracks):', data.publicUrl);
+      return data.publicUrl;
+    }
+
+    console.error('Failed to get URL for:', cleanPath);
+    return '';
+  } catch (error) {
+    console.error('Error getting audio URL:', error);
     return '';
   }
-
-  console.log('✅ Audio URL:', data.publicUrl);
-  return data.publicUrl;
 }
 
 /**
