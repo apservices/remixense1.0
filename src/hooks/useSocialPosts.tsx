@@ -76,10 +76,10 @@ export function useSocialPosts(feedType: 'foryou' | 'following' | 'trending' = '
 
       if (error) throw error;
 
-      // Fetch user profiles for posts
+      // Fetch user profiles for posts - usando VIEW pública segura
       const userIds = [...new Set(postsData?.map(p => p.user_id) || [])];
       const { data: profiles } = await supabase
-        .from('user_profiles')
+        .from('public_profiles')
         .select('id, username, dj_name, avatar_url')
         .in('id', userIds);
 

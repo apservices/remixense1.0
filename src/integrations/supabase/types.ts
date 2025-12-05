@@ -876,6 +876,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "feedback_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       feedback_rooms: {
@@ -2251,6 +2258,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "smart_contracts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       social_posts: {
@@ -2935,7 +2949,6 @@ export type Database = {
         Row: {
           aprovado: boolean
           blockchain_registro: string | null
-          cartao_credito_token: string | null
           celular: string
           created_at: string
           data_cadastro: string
@@ -2949,7 +2962,6 @@ export type Database = {
         Insert: {
           aprovado?: boolean
           blockchain_registro?: string | null
-          cartao_credito_token?: string | null
           celular: string
           created_at?: string
           data_cadastro?: string
@@ -2963,7 +2975,6 @@ export type Database = {
         Update: {
           aprovado?: boolean
           blockchain_registro?: string | null
-          cartao_credito_token?: string | null
           celular?: string
           created_at?: string
           data_cadastro?: string
@@ -3041,7 +3052,60 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          avatar_url: string | null
+          dj_name: string | null
+          followers_count: number | null
+          id: string | null
+          total_plays: number | null
+          username: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          dj_name?: string | null
+          followers_count?: number | null
+          id?: string | null
+          total_plays?: number | null
+          username?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          avatar_url?: string | null
+          dj_name?: string | null
+          followers_count?: number | null
+          id?: string | null
+          total_plays?: number | null
+          username?: string | null
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
+      public_user_profiles: {
+        Row: {
+          avatar_url: string | null
+          display_name: string | null
+          id: string | null
+          subscription_plan: string | null
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          display_name?: string | null
+          id?: string | null
+          subscription_plan?: string | null
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          display_name?: string | null
+          id?: string | null
+          subscription_plan?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_create_mix: { Args: { p_user: string }; Returns: boolean }
