@@ -152,6 +152,13 @@ export type Database = {
             foreignKeyName: "ai_generations_input_track_id_fkey"
             columns: ["input_track_id"]
             isOneToOne: false
+            referencedRelation: "public_tracks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_generations_input_track_id_fkey"
+            columns: ["input_track_id"]
+            isOneToOne: false
             referencedRelation: "tracks"
             referencedColumns: ["id"]
           },
@@ -362,6 +369,13 @@ export type Database = {
             foreignKeyName: "audio_analysis_track_id_fkey"
             columns: ["track_id"]
             isOneToOne: true
+            referencedRelation: "public_tracks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audio_analysis_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: true
             referencedRelation: "tracks"
             referencedColumns: ["id"]
           },
@@ -402,6 +416,13 @@ export type Database = {
           waveform_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "audio_metadata_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "public_tracks"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "audio_metadata_track_id_fkey"
             columns: ["track_id"]
@@ -728,6 +749,13 @@ export type Database = {
             foreignKeyName: "dj_set_tracks_track_id_fkey"
             columns: ["track_id"]
             isOneToOne: false
+            referencedRelation: "public_tracks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dj_set_tracks_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
             referencedRelation: "tracks"
             referencedColumns: ["id"]
           },
@@ -810,6 +838,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "exports_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "public_tracks"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "exports_track_id_fkey"
             columns: ["track_id"]
@@ -1301,6 +1336,13 @@ export type Database = {
             foreignKeyName: "marketplace_transactions_track_id_fkey"
             columns: ["track_id"]
             isOneToOne: false
+            referencedRelation: "public_tracks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_transactions_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
             referencedRelation: "tracks"
             referencedColumns: ["id"]
           },
@@ -1390,6 +1432,13 @@ export type Database = {
             columns: ["mix_id"]
             isOneToOne: false
             referencedRelation: "mixes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mix_entries_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "public_tracks"
             referencedColumns: ["id"]
           },
           {
@@ -1708,6 +1757,13 @@ export type Database = {
             foreignKeyName: "playlist_tracks_track_id_fkey"
             columns: ["track_id"]
             isOneToOne: false
+            referencedRelation: "public_tracks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playlist_tracks_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
             referencedRelation: "tracks"
             referencedColumns: ["id"]
           },
@@ -1843,6 +1899,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "posts_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "public_tracks"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "posts_track_id_fkey"
             columns: ["track_id"]
@@ -2606,6 +2669,13 @@ export type Database = {
             foreignKeyName: "track_comments_track_id_fkey"
             columns: ["track_id"]
             isOneToOne: false
+            referencedRelation: "public_tracks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "track_comments_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
             referencedRelation: "tracks"
             referencedColumns: ["id"]
           },
@@ -2754,6 +2824,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "track_stems_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "public_tracks"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "track_stems_track_id_fkey"
             columns: ["track_id"]
@@ -2918,6 +2995,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "upload_analytics_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "public_tracks"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "upload_analytics_track_id_fkey"
             columns: ["track_id"]
@@ -3151,6 +3235,57 @@ export type Database = {
           total_plays?: number | null
           username?: string | null
           verified?: boolean | null
+        }
+        Relationships: []
+      }
+      public_tracks: {
+        Row: {
+          artist: string | null
+          bpm: number | null
+          created_at: string | null
+          duration: string | null
+          energy_level: number | null
+          genre: string | null
+          id: string | null
+          is_featured: boolean | null
+          key_signature: string | null
+          original_filename: string | null
+          play_count: number | null
+          tags: string[] | null
+          title: string | null
+          waveform_data: Json | null
+        }
+        Insert: {
+          artist?: string | null
+          bpm?: number | null
+          created_at?: string | null
+          duration?: string | null
+          energy_level?: number | null
+          genre?: string | null
+          id?: string | null
+          is_featured?: boolean | null
+          key_signature?: string | null
+          original_filename?: string | null
+          play_count?: number | null
+          tags?: string[] | null
+          title?: string | null
+          waveform_data?: Json | null
+        }
+        Update: {
+          artist?: string | null
+          bpm?: number | null
+          created_at?: string | null
+          duration?: string | null
+          energy_level?: number | null
+          genre?: string | null
+          id?: string | null
+          is_featured?: boolean | null
+          key_signature?: string | null
+          original_filename?: string | null
+          play_count?: number | null
+          tags?: string[] | null
+          title?: string | null
+          waveform_data?: Json | null
         }
         Relationships: []
       }
