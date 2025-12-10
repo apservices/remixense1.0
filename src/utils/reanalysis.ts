@@ -4,7 +4,14 @@ export interface ReanalysisResult {
   success: boolean;
   processed: number;
   failed: number;
+  skipped: number;
   errors: string[];
+}
+
+export interface ReanalysisProgress {
+  current: number;
+  total: number;
+  currentTrack: string;
 }
 
 /**
@@ -31,11 +38,15 @@ export async function reanalyzeTrack(trackId: string): Promise<{ success: boolea
 /**
  * Re-analyzes all tracks for a user that need BPM/Key detection
  */
-export async function reanalyzeAllTracks(userId: string): Promise<ReanalysisResult> {
+export async function reanalyzeAllTracks(
+  userId: string,
+  onProgress?: (progress: ReanalysisProgress) => void
+): Promise<ReanalysisResult> {
   const result: ReanalysisResult = {
     success: true,
     processed: 0,
     failed: 0,
+    skipped: 0,
     errors: []
   };
 
@@ -52,7 +63,7 @@ export async function reanalyzeAllTracks(userId: string): Promise<ReanalysisResu
     }
 
     if (!tracks || tracks.length === 0) {
-      return { ...result, success: true };
+      return { ...result, success: true, skipped: 0 };
     }
 
     // Filter tracks that need re-analysis (no BPM or key, or mock values)
@@ -65,18 +76,31 @@ export async function reanalyzeAllTracks(userId: string): Promise<ReanalysisResu
 
     console.log(`📊 Re-analyzing ${tracksToAnalyze.length} of ${tracks.length} tracks`);
 
-    // If no tracks need analysis, return success with all tracks processed
+    // If no tracks need analysis, return success
     if (tracksToAnalyze.length === 0) {
-      return { ...result, processed: tracks.length, success: true };
+      return { ...result, skipped: tracks.length, success: true };
     }
+
+    const totalToAnalyze = tracksToAnalyze.length;
 
     // Process tracks in batches to avoid overwhelming the server
     const batchSize = 3;
+    let processedCount = 0;
+    
     for (let i = 0; i < tracksToAnalyze.length; i += batchSize) {
       const batch = tracksToAnalyze.slice(i, i + batchSize);
       
       const batchPromises = batch.map(async (track) => {
         try {
+          // Report progress
+          if (onProgress) {
+            onProgress({
+              current: processedCount + 1,
+              total: totalToAnalyze,
+              currentTrack: track.title || 'Unknown'
+            });
+          }
+          
           console.log(`🔄 Re-analyzing: ${track.title}`);
           
           const { data, error } = await supabase.functions.invoke('analyze-audio', {
@@ -88,10 +112,12 @@ export async function reanalyzeAllTracks(userId: string): Promise<ReanalysisResu
           }
 
           result.processed++;
+          processedCount++;
           return true;
         } catch (err) {
           console.error(`❌ Failed to analyze ${track.title}:`, err);
           result.failed++;
+          processedCount++;
           result.errors.push(`${track.title}: ${err instanceof Error ? err.message : 'Unknown error'}`);
           return false;
         }
@@ -114,6 +140,7 @@ export async function reanalyzeAllTracks(userId: string): Promise<ReanalysisResu
       success: false,
       processed: 0,
       failed: 1,
+      skipped: 0,
       errors: [error instanceof Error ? error.message : 'Unknown error']
     };
   }
