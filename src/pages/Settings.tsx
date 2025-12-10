@@ -1,7 +1,8 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, CreditCard, Link2, Shield, Sparkles } from "lucide-react";
+import { User, CreditCard, Link2, Shield, Sparkles, Activity } from "lucide-react";
 import { ProfileForm, SubscriptionCard, ConnectedApps, SecurityPreferences } from '@/features/settings';
 import { V3FeaturesPanel } from '@/components/features/V3FeaturesPanel';
+import { AudioHealthMonitor } from '@/components/AudioHealthMonitor';
 import { useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 
@@ -22,7 +23,7 @@ export default function Settings() {
         </div>
 
         <Tabs defaultValue={defaultTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex glass glass-border">
+          <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-flex glass glass-border">
             <TabsTrigger value="profile" className="gap-2">
               <User className="w-4 h-4" />
               <span className="hidden sm:inline">Perfil</span>
@@ -38,6 +39,10 @@ export default function Settings() {
             <TabsTrigger value="security" className="gap-2">
               <Shield className="w-4 h-4" />
               <span className="hidden sm:inline">Segurança</span>
+            </TabsTrigger>
+            <TabsTrigger value="audio" className="gap-2">
+              <Activity className="w-4 h-4" />
+              <span className="hidden sm:inline">Áudio</span>
             </TabsTrigger>
             <TabsTrigger value="features" className="gap-2">
               <Sparkles className="w-4 h-4" />
@@ -59,6 +64,10 @@ export default function Settings() {
 
           <TabsContent value="security">
             <SecurityPreferences />
+          </TabsContent>
+
+          <TabsContent value="audio">
+            <AudioHealthMonitor />
           </TabsContent>
 
           <TabsContent value="features">
